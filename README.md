@@ -32,6 +32,9 @@ Deploying: put `index.html` at the root of any static host. The intended target 
 GitHub Pages, so the file must be named `index.html` for the bare URL to work.
 Then on iPhone, open the URL in Safari and use Share → Add to Home Screen.
 
+The app now includes a service worker for offline shell caching, so it can load
+when the network is unavailable after the first visit.
+
 ---
 
 ## Storage

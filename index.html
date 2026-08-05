@@ -85,12 +85,23 @@
     border:1px solid var(--line);background:var(--card);color:var(--mid);cursor:pointer;line-height:1.3}
   .tag.on{border-color:var(--blue);background:var(--blue-wash);color:var(--blue)}
   .spacer{margin-left:auto}
-  input.time{font-family:var(--g);font-size:13px;color:var(--mid);background:var(--card);
+  .time-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:120px}
+  .time-type,.vague,input.time{font-family:var(--g);font-size:13px;color:var(--mid);background:var(--card);
     border:1px solid var(--line);border-radius:7px;padding:6px 8px;-webkit-appearance:none;appearance:none;
     min-width:88px;text-align:center}
-  input.time:focus{border-color:var(--blue);outline:none}
+  .time-type{min-width:100px}
+  .vague{text-align:left;min-width:120px}
+  .shot.text-only{background:rgba(241,242,238,.88)}
+  .no-photo{min-height:170px;display:grid;place-items:center;border-bottom:1px solid var(--line);
+    background:rgba(241,242,238,.7);color:var(--soft);font-size:14px;text-align:center;padding:28px}
+  .actions{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .action-btn{background:none;border:1px solid var(--line);border-radius:99px;color:var(--ink);
+    padding:11px 16px;font-family:var(--g);font-size:14px;cursor:pointer}
+  .action-btn:active{background:var(--wash)}
+  input.time:focus, .time-type:focus, .vague:focus{border-color:var(--blue);outline:none}
   .icon{background:var(--card);border:1px solid var(--line);color:var(--mid);cursor:pointer;
-    width:32px;height:32px;border-radius:7px;font-size:14px;line-height:1;display:grid;place-items:center}
+    width:34px;height:34px;border-radius:8px;display:grid;place-items:center;padding:0}
+  .icon svg{width:16px;height:16px;display:block}
   .icon:active{border-color:var(--soft);color:var(--ink)}
   .icon.danger:active{color:#B4544A;border-color:#B4544A}
   .note{width:100%;border:none;border-top:1px solid var(--line);background:transparent;color:var(--ink);
@@ -110,6 +121,15 @@
   .add.busy{opacity:.55;pointer-events:none}
   input[type=file]{display:none}
 
+  /* ---------- autosave pill ---------- */
+  .saved{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-14px);
+    z-index:80;background:rgba(27,30,34,.92);color:#fff;font-size:13px;font-weight:500;
+    padding:8px 16px;border-radius:99px;pointer-events:none;opacity:0;
+    transition:opacity .22s ease, transform .22s ease;display:flex;align-items:center;gap:7px}
+  .saved.show{opacity:1;transform:translate(-50%,0)}
+  .saved i{width:6px;height:6px;border-radius:50%;background:#8FD0A4;display:block}
+  .saved.working i{background:#E8C468}
+
   /* ---------- photo editor ---------- */
   .editor{position:fixed;inset:0;z-index:60;background:#141618;display:flex;flex-direction:column;
     color:#EDEEEF;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
@@ -119,32 +139,32 @@
   .ebar button{background:none;border:none;font-family:var(--g);font-size:15px;cursor:pointer;padding:6px 2px}
   #eCancel{color:#9BA1A6}
   #eSave{color:#7FB2E8;font-weight:600}
-  .stage{flex:1 1 auto;display:grid;place-items:center;overflow:hidden;padding:6px 18px}
-  .frame{position:relative;overflow:hidden;background:#0C0E0F;touch-action:none;cursor:grab;
-    box-shadow:0 0 0 1px rgba(255,255,255,.18)}
-  .frame:active{cursor:grabbing}
-  .frame img{position:absolute;left:50%;top:50%;will-change:transform;pointer-events:none;
-    transform-origin:center center}
-  .frame .thirds{position:absolute;inset:0;pointer-events:none;
+  .stage{flex:1 1 auto;display:grid;place-items:center;overflow:hidden;padding:10px 18px}
+  .cbox{position:relative;overflow:hidden;touch-action:none;user-select:none}
+  .cbox img{position:absolute;left:50%;top:50%;transform-origin:center center;pointer-events:none}
+  .crop{position:absolute;box-shadow:0 0 0 9999px rgba(10,12,13,.62);
+    outline:1px solid rgba(255,255,255,.9);cursor:move}
+  .crop .thirds{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .18s;
     background:
-      linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.22) 33.2%,rgba(255,255,255,.22) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.22) 66.4%,rgba(255,255,255,.22) 66.7%,transparent 66.7%),
-      linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.22) 33.2%,rgba(255,255,255,.22) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.22) 66.4%,rgba(255,255,255,.22) 66.7%,transparent 66.7%);
-    opacity:0;transition:opacity .2s}
-  .frame.moving .thirds{opacity:1}
-  .ectrl{flex:0 0 auto;padding:16px 18px 22px;display:flex;flex-direction:column;gap:16px}
-  .ratios{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+      linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.3) 33.2%,rgba(255,255,255,.3) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.3) 66.4%,rgba(255,255,255,.3) 66.7%,transparent 66.7%),
+      linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.3) 33.2%,rgba(255,255,255,.3) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.3) 66.4%,rgba(255,255,255,.3) 66.7%,transparent 66.7%)}
+  .crop.active .thirds{opacity:1}
+  .hh{position:absolute;width:22px;height:22px;border:3px solid #fff;touch-action:none}
+  .hh::after{content:'';position:absolute;inset:-14px}
+  .hh[data-h=nw]{left:-3px;top:-3px;border-right:none;border-bottom:none;cursor:nwse-resize}
+  .hh[data-h=ne]{right:-3px;top:-3px;border-left:none;border-bottom:none;cursor:nesw-resize}
+  .hh[data-h=sw]{left:-3px;bottom:-3px;border-right:none;border-top:none;cursor:nesw-resize}
+  .hh[data-h=se]{right:-3px;bottom:-3px;border-left:none;border-top:none;cursor:nwse-resize}
+
+  .ectrl{flex:0 0 auto;padding:14px 18px 20px;display:flex;flex-direction:column;gap:14px}
+  .ratios{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
   .ratios button{font-family:var(--g);font-size:13px;padding:7px 14px;border-radius:99px;cursor:pointer;
     border:1px solid rgba(255,255,255,.2);background:transparent;color:#9BA1A6}
   .ratios button.on{border-color:#7FB2E8;color:#7FB2E8;background:rgba(127,178,232,.12)}
-  .zoomrow{display:flex;align-items:center;gap:14px}
-  .zoomrow button{width:40px;height:40px;flex:0 0 auto;border-radius:10px;cursor:pointer;font-size:17px;
+  .rots{display:flex;gap:12px;justify-content:center}
+  .rots button{width:46px;height:42px;border-radius:10px;cursor:pointer;font-size:18px;
     border:1px solid rgba(255,255,255,.2);background:transparent;color:#EDEEEF;display:grid;place-items:center}
-  input[type=range]{flex:1;-webkit-appearance:none;appearance:none;background:transparent;height:34px}
-  input[type=range]::-webkit-slider-runnable-track{height:3px;background:rgba(255,255,255,.25);border-radius:99px}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
-    background:#EDEEEF;margin-top:-9.5px}
-  input[type=range]::-moz-range-track{height:3px;background:rgba(255,255,255,.25);border-radius:99px}
-  input[type=range]::-moz-range-thumb{width:22px;height:22px;border:none;border-radius:50%;background:#EDEEEF}
+  .rots button:active{background:rgba(255,255,255,.1)}
 
   .loading{text-align:center;color:var(--soft);font-size:14px;padding:64px 0}
   button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
@@ -153,6 +173,8 @@
 </style>
 </head>
 <body>
+
+<div class="saved" id="savedPill"><i></i><span id="savedTxt">Autosaved</span></div>
 
 <div class="wrap">
   <div class="view" id="cal">
@@ -177,6 +199,7 @@
   <div class="view" id="sheet" hidden>
     <button class="back" id="back">← Back to calendar</button>
     <div class="dhead"><div class="dnum" id="dNum">—</div><div class="dmeta" id="dMeta"></div></div>
+    <div class="actions"><button class="action-btn" id="addNoteBtn">＋ Add note</button></div>
     <div id="dBody" class="loading">Loading</div>
   </div>
 </div>
@@ -192,18 +215,26 @@
     <button id="eSave">Done</button>
   </div>
   <div class="stage" id="stage">
-    <div class="frame" id="frame"><img id="eImg" alt=""><div class="thirds"></div></div>
+    <div class="cbox" id="cbox">
+      <img id="eImg" alt="">
+      <div class="crop" id="crop">
+        <div class="thirds"></div>
+        <div class="hh" data-h="nw"></div><div class="hh" data-h="ne"></div>
+        <div class="hh" data-h="sw"></div><div class="hh" data-h="se"></div>
+      </div>
+    </div>
   </div>
   <div class="ectrl">
     <div class="ratios" id="ratios">
+      <button data-ar="0">Freeform</button>
       <button data-ar="1">Square</button>
       <button data-ar="0.8">4:5</button>
       <button data-ar="1.5">3:2</button>
-      <button data-ar="0">Original</button>
+      <button data-ar="-1">Original</button>
     </div>
-    <div class="zoomrow">
+    <div class="rots">
       <button id="rotL" aria-label="Rotate left">⟲</button>
-      <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
+      <button id="reset" aria-label="Reset crop" style="width:auto;padding:0 16px;font-size:14px">Reset</button>
       <button id="rotR" aria-label="Rotate right">⟳</button>
     </div>
   </div>
@@ -214,6 +245,8 @@ const MEALS = ['Breakfast','Lunch','Dinner','Snack','Late night'];
 const MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
 const WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const CROSS  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 
 /* ---------- storage ---------- */
 let dbp = null;
@@ -261,7 +294,18 @@ const $ = id => document.getElementById(id);
 let view = new Date(); view.setDate(1);
 let monthIdx = {}, openDay = null, openPhotos = [];
 
-/* ---------- import & downscale ---------- */
+/* ---------- autosave feedback ---------- */
+let pillTimer = null;
+function pill(text, working){
+  const p = $('savedPill');
+  $('savedTxt').textContent = text;
+  p.classList.toggle('working', !!working);
+  p.classList.add('show');
+  clearTimeout(pillTimer);
+  if(!working) pillTimer = setTimeout(()=>p.classList.remove('show'), 1700);
+}
+
+/* ---------- image helpers ---------- */
 function loadImg(src){
   return new Promise((res,rej)=>{
     const i = new Image();
@@ -355,7 +399,12 @@ async function showDay(dk){
 }
 
 function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
-const byTime = (a,b) => (a.time||'').localeCompare(b.time||'');
+function byTime(a,b){
+  const aType = a.timeType || 'detail';
+  const bType = b.timeType || 'detail';
+  if(aType !== bType) return aType === 'detail' ? -1 : 1;
+  return (a.time||'').localeCompare(b.time||'');
+}
 
 function drawDay(){
   const el = $('dBody');
@@ -364,19 +413,33 @@ function drawDay(){
     el.innerHTML = `<div class="empty">Nothing logged this day.<br>Add a photo to fill it in.</div>`;
     return;
   }
-  el.innerHTML = `<div class="shots">` + openPhotos.map((p,i)=>`
-    <div class="shot">
-      <img src="${p.src}" alt="">
+  el.innerHTML = `<div class="shots">` + openPhotos.map((p,i)=>{
+    const hasPhoto = !!p.src;
+    const order = p.meal ? [p.meal, ...MEALS.filter(t=>t!==p.meal)] : MEALS;
+    const timeType = p.timeType || 'detail';
+    const detailHidden = timeType === 'detail' ? '' : 'hidden';
+    const vagueHidden = timeType === 'vague' ? '' : 'hidden';
+    return `
+    <div class="shot ${hasPhoto?'':'text-only'}">
+      ${hasPhoto ? `<img src="${p.src}" alt="">` : `<div class="no-photo">Text-only entry</div>`}
       <div class="shotbar">
-        <div class="tags">${MEALS.map(t=>
+        <div class="tags">${order.map(t=>
           `<button class="tag ${p.meal===t?'on':''}" data-i="${i}" data-t="${t}">${t}</button>`).join('')}</div>
         <span class="spacer"></span>
-        <input type="time" class="time" value="${p.time||''}" data-time="${i}" aria-label="Time">
-        <button class="icon" data-edit="${i}" aria-label="Crop and rotate">⤢</button>
-        <button class="icon danger" data-del="${i}" aria-label="Delete">✕</button>
+        <div class="time-group">
+          <select class="time-type" data-timetype="${i}" aria-label="Time type">
+            <option value="detail"${timeType==='detail'?' selected':''}>Detail</option>
+            <option value="vague"${timeType==='vague'?' selected':''}>Vague</option>
+          </select>
+          <input type="time" class="time" value="${timeType==='detail'?p.time||'':''}" data-time="${i}" aria-label="Time" ${detailHidden}>
+          <input type="text" class="vague" value="${timeType==='vague'?p.time||'':''}" data-vague="${i}" aria-label="Vague time" placeholder="e.g. evening" ${vagueHidden}>
+        </div>
+        ${hasPhoto?`<button class="icon" data-edit="${i}" aria-label="Crop and rotate">${PENCIL}</button>`:''}
+        <button class="icon danger" data-del="${i}" aria-label="Delete">${CROSS}</button>
       </div>
       <textarea class="note" rows="1" data-note="${i}" placeholder="What was it? Where?">${p.note||''}</textarea>
-    </div>`).join('') + `</div>`;
+    </div>`;
+  }).join('') + `</div>`;
 
   el.querySelectorAll('.tag').forEach(b=>b.onclick=()=>{
     const p = openPhotos[b.dataset.i];
@@ -385,10 +448,25 @@ function drawDay(){
   });
   el.querySelectorAll('[data-time]').forEach(inp=>{
     inp.onchange = ()=>{
-      openPhotos[inp.dataset.time].time = inp.value;
+      const p = openPhotos[inp.dataset.time];
+      p.time = inp.value;
+      p.timeType = 'detail';
       openPhotos.sort(byTime);
       save(); drawDay();
     };
+  });
+  el.querySelectorAll('.time-type').forEach(sel=>{
+    sel.onchange = ()=>{
+      const p = openPhotos[sel.dataset.timetype];
+      p.timeType = sel.value;
+      if(p.timeType === 'detail' && !p.time) p.time = '12:00';
+      openPhotos.sort(byTime);
+      save(); drawDay();
+    };
+  });
+  el.querySelectorAll('[data-vague]').forEach(inp=>{
+    inp.oninput = ()=>{ openPhotos[inp.dataset.vague].time = inp.value; };
+    inp.onblur = save;
   });
   el.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(+b.dataset.edit));
   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
@@ -402,7 +480,7 @@ function drawDay(){
   });
 }
 
-async function save(){
+async function save(quiet){
   if(!openDay) return;
   const [y,m,dd] = openDay.split('-');
   await store.set(`day:${openDay}`, openPhotos);
@@ -412,22 +490,12 @@ async function save(){
   else delete idx[dd];
   await store.set(mk, idx);
   if(`${y}-${m}` === `${view.getFullYear()}-${pad(view.getMonth()+1)}`){ monthIdx = idx; drawMonth(); }
+  if(!quiet) pill('Autosaved');
 }
 
-/* ---------- photo editor ---------- */
-const ed = { i:-1, img:null, rot:0, scale:1, tx:0, ty:0, ar:1, W:0, H:0, sMin:1 };
-
-function frameDims(ar){
-  const stage = $('stage').getBoundingClientRect();
-  const maxW = Math.min(stage.width - 4, 420);
-  const maxH = stage.height - 4;
-  if(!ar){ // Original: fit the image's own aspect
-    ar = ed.rot % 180 === 0 ? ed.img.width/ed.img.height : ed.img.height/ed.img.width;
-  }
-  let W = maxW, H = W/ar;
-  if(H > maxH){ H = maxH; W = H*ar; }
-  return { W, H };
-}
+/* ================= photo editor ================= */
+const ed = { i:-1, img:null, rot:0, ar:0, W:0, H:0, rect:{x:0,y:0,w:0,h:0} };
+const MINC = 44;
 
 function effDims(){
   return ed.rot % 180 === 0
@@ -435,35 +503,48 @@ function effDims(){
     : { w: ed.img.height, h: ed.img.width };
 }
 
-function clamp(){
+/* size the displayed image box to fit the stage */
+function layout(){
+  const st = $('stage').getBoundingClientRect();
   const e = effDims();
-  ed.sMin = Math.max(ed.W/e.w, ed.H/e.h);
-  if(ed.scale < ed.sMin) ed.scale = ed.sMin;
-  const maxX = Math.max(0, (e.w*ed.scale - ed.W)/2);
-  const maxY = Math.max(0, (e.h*ed.scale - ed.H)/2);
-  ed.tx = Math.max(-maxX, Math.min(maxX, ed.tx));
-  ed.ty = Math.max(-maxY, Math.min(maxY, ed.ty));
-}
-
-function applyEdit(){
-  clamp();
-  const f = $('frame');
-  f.style.width = ed.W+'px'; f.style.height = ed.H+'px';
+  const k = Math.min((st.width-36)/e.w, (st.height-20)/e.h);
+  ed.W = Math.round(e.w*k); ed.H = Math.round(e.h*k);
+  const box = $('cbox');
+  box.style.width = ed.W+'px'; box.style.height = ed.H+'px';
   const im = $('eImg');
   im.style.width = ed.img.width+'px';
   im.style.height = ed.img.height+'px';
-  im.style.transform =
-    `translate(-50%,-50%) translate(${ed.tx}px,${ed.ty}px) rotate(${ed.rot}deg) scale(${ed.scale})`;
-  const z = $('zoom');
-  z.min = ed.sMin; z.max = ed.sMin*4; z.step = ed.sMin/100; z.value = ed.scale;
+  const scale = ed.rot % 180 === 0 ? ed.W/ed.img.width : ed.H/ed.img.width;
+  im.style.transform = `translate(-50%,-50%) rotate(${ed.rot}deg) scale(${scale})`;
 }
 
-function setAR(ar, keepView){
+function clampRect(){
+  const r = ed.rect;
+  r.w = Math.max(MINC, Math.min(r.w, ed.W));
+  r.h = Math.max(MINC, Math.min(r.h, ed.H));
+  r.x = Math.max(0, Math.min(r.x, ed.W - r.w));
+  r.y = Math.max(0, Math.min(r.y, ed.H - r.h));
+}
+
+function drawRect(){
+  clampRect();
+  const c = $('crop'), r = ed.rect;
+  c.style.left = r.x+'px'; c.style.top = r.y+'px';
+  c.style.width = r.w+'px'; c.style.height = r.h+'px';
+}
+
+/* fit the largest rect of ratio ar inside the image, centred */
+function fitRatio(ar){
+  let w = ed.W, h = w/ar;
+  if(h > ed.H){ h = ed.H; w = h*ar; }
+  ed.rect = { x:(ed.W-w)/2, y:(ed.H-h)/2, w, h };
+}
+
+function setAR(ar){
   ed.ar = ar;
-  const d = frameDims(ar);
-  ed.W = d.W; ed.H = d.H;
-  if(!keepView){ ed.scale = 0; ed.tx = 0; ed.ty = 0; }
-  applyEdit();
+  if(ar === -1) ed.rect = { x:0, y:0, w:ed.W, h:ed.H };
+  else if(ar > 0) fitRatio(ar);
+  drawRect();
   document.querySelectorAll('#ratios button').forEach(b=>
     b.classList.toggle('on', Number(b.dataset.ar) === ar));
 }
@@ -473,111 +554,156 @@ async function openEditor(i){
   ed.i = i;
   ed.img = await loadImg(p.orig || p.src);
   $('eImg').src = ed.img.src;
-  const st = p.edit;
-  ed.rot = st ? st.rot : 0;
+  ed.rot = p.edit ? p.edit.rot : 0;
   $('editor').hidden = false;
-  setAR(st ? st.ar : 1, false);
-  if(st){ ed.scale = st.scale; ed.tx = st.tx; ed.ty = st.ty; applyEdit(); }
+  layout();
+  if(p.edit && p.edit.rw){
+    ed.ar = p.edit.ar;
+    ed.rect = { x:p.edit.rx*ed.W, y:p.edit.ry*ed.H, w:p.edit.rw*ed.W, h:p.edit.rh*ed.H };
+    drawRect();
+    document.querySelectorAll('#ratios button').forEach(b=>
+      b.classList.toggle('on', Number(b.dataset.ar) === ed.ar));
+  }else{
+    setAR(0);
+    ed.rect = { x:0, y:0, w:ed.W, h:ed.H };
+    drawRect();
+  }
 }
-
 function closeEditor(){ $('editor').hidden = true; ed.img = null; }
 
 $('eCancel').onclick = closeEditor;
-$('ratios').onclick = e => { const b = e.target.closest('button'); if(b) setAR(Number(b.dataset.ar), false); };
-$('zoom').oninput = e => { ed.scale = Number(e.target.value); applyEdit(); };
-$('rotL').onclick = ()=>{ ed.rot = (ed.rot+270)%360; setAR(ed.ar, false); };
-$('rotR').onclick = ()=>{ ed.rot = (ed.rot+90)%360; setAR(ed.ar, false); };
+$('ratios').onclick = e => { const b = e.target.closest('button'); if(b) setAR(Number(b.dataset.ar)); };
+$('reset').onclick = ()=>{ ed.rect = {x:0,y:0,w:ed.W,h:ed.H}; ed.ar = 0; drawRect();
+  document.querySelectorAll('#ratios button').forEach(b=>b.classList.toggle('on', b.dataset.ar==='0')); };
+function rotate(deg){
+  ed.rot = (ed.rot + deg + 360) % 360;
+  layout();
+  setAR(ed.ar === -1 ? -1 : ed.ar);
+  if(ed.ar === 0){ ed.rect = {x:0,y:0,w:ed.W,h:ed.H}; drawRect(); }
+}
+$('rotL').onclick = ()=>rotate(-90);
+$('rotR').onclick = ()=>rotate(90);
 
-/* drag + pinch */
+/* drag to move / resize */
 (function(){
-  const f = $('frame');
-  const pts = new Map();
-  let start = null;
-  const dist = () => {
-    const [a,b] = [...pts.values()];
-    return Math.hypot(a.x-b.x, a.y-b.y);
+  const box = $('cbox');
+  let mode = null, handle = null, sx = 0, sy = 0, start = null;
+  const pos = e => {
+    const b = box.getBoundingClientRect();
+    return { x: e.clientX - b.left, y: e.clientY - b.top };
   };
-  const mid = () => {
-    const [a,b] = [...pts.values()];
-    return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 };
-  };
-  f.addEventListener('pointerdown', e => {
-    f.setPointerCapture(e.pointerId);
-    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
-    f.classList.add('moving');
-    start = pts.size === 2
-      ? { d:dist(), s:ed.scale, c:mid(), tx:ed.tx, ty:ed.ty }
-      : { c:{x:e.clientX,y:e.clientY}, tx:ed.tx, ty:ed.ty };
+  box.addEventListener('pointerdown', e => {
+    const h = e.target.closest('.hh');
+    const inCrop = e.target.closest('.crop');
+    if(!h && !inCrop) return;
+    box.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    sx = p.x; sy = p.y;
+    start = { ...ed.rect };
+    mode = h ? 'resize' : 'move';
+    handle = h ? h.dataset.h : null;
+    $('crop').classList.add('active');
+    e.preventDefault();
   });
-  f.addEventListener('pointermove', e => {
-    if(!pts.has(e.pointerId) || !start) return;
-    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
-    if(pts.size === 2 && start.d){
-      ed.scale = start.s * (dist()/start.d);
-      const c = mid();
-      ed.tx = start.tx + (c.x - start.c.x);
-      ed.ty = start.ty + (c.y - start.c.y);
-    }else if(pts.size === 1){
-      ed.tx = start.tx + (e.clientX - start.c.x);
-      ed.ty = start.ty + (e.clientY - start.c.y);
+  box.addEventListener('pointermove', e => {
+    if(!mode) return;
+    const p = pos(e);
+    if(mode === 'move'){
+      ed.rect.x = start.x + (p.x - sx);
+      ed.rect.y = start.y + (p.y - sy);
+    }else{
+      const ax = handle.includes('w') ? start.x + start.w : start.x;
+      const ay = handle.includes('n') ? start.y + start.h : start.y;
+      const px = Math.max(0, Math.min(ed.W, p.x));
+      const py = Math.max(0, Math.min(ed.H, p.y));
+      let w = Math.abs(px - ax), h = Math.abs(py - ay);
+      const maxW = px > ax ? ed.W - ax : ax;
+      const maxH = py > ay ? ed.H - ay : ay;
+      if(ed.ar > 0 || ed.ar === -1){
+        const ar = ed.ar === -1 ? ed.W/ed.H : ed.ar;
+        if(w/h > ar) w = h*ar; else h = w/ar;
+        if(w > maxW){ w = maxW; h = w/ar; }
+        if(h > maxH){ h = maxH; w = h*ar; }
+      }else{
+        w = Math.min(w, maxW); h = Math.min(h, maxH);
+      }
+      w = Math.max(MINC, w); h = Math.max(MINC, h);
+      ed.rect.w = w; ed.rect.h = h;
+      ed.rect.x = px > ax ? ax : ax - w;
+      ed.rect.y = py > ay ? ay : ay - h;
     }
-    applyEdit();
+    drawRect();
   });
   const end = e => {
-    pts.delete(e.pointerId);
-    if(pts.size === 0){ start = null; f.classList.remove('moving'); }
-    else start = pts.size === 2
-      ? { d:dist(), s:ed.scale, c:mid(), tx:ed.tx, ty:ed.ty }
-      : { c:[...pts.values()][0], tx:ed.tx, ty:ed.ty };
+    if(!mode) return;
+    mode = null; handle = null;
+    $('crop').classList.remove('active');
   };
-  f.addEventListener('pointerup', end);
-  f.addEventListener('pointercancel', end);
+  box.addEventListener('pointerup', end);
+  box.addEventListener('pointercancel', end);
 })();
 
 $('eSave').onclick = async ()=>{
   const btn = $('eSave'); btn.textContent = 'Saving…'; btn.disabled = true;
   try{
-    const ratio = Math.max(1, Math.min(1200/Math.max(ed.W,ed.H), 1/ed.scale));
-    const c = document.createElement('canvas');
-    c.width = Math.round(ed.W*ratio); c.height = Math.round(ed.H*ratio);
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
-    ctx.scale(ratio, ratio);
-    ctx.translate(ed.W/2 + ed.tx, ed.H/2 + ed.ty);
-    ctx.rotate(ed.rot * Math.PI/180);
-    ctx.scale(ed.scale, ed.scale);
-    ctx.drawImage(ed.img, -ed.img.width/2, -ed.img.height/2);
+    const e = effDims();
+    const off = document.createElement('canvas');
+    off.width = e.w; off.height = e.h;
+    const oc = off.getContext('2d');
+    oc.translate(e.w/2, e.h/2);
+    oc.rotate(ed.rot * Math.PI/180);
+    oc.drawImage(ed.img, -ed.img.width/2, -ed.img.height/2);
+
+    const k = e.w / ed.W;                       // display px -> image px
+    const r = ed.rect;
+    const sw = r.w*k, sh = r.h*k;
+    const out = document.createElement('canvas');
+    const cap = Math.min(1, 1400/Math.max(sw,sh));
+    out.width = Math.round(sw*cap); out.height = Math.round(sh*cap);
+    out.getContext('2d').drawImage(off, r.x*k, r.y*k, sw, sh, 0, 0, out.width, out.height);
 
     const p = openPhotos[ed.i];
     if(!p.orig) p.orig = p.src;
-    p.src = c.toDataURL('image/jpeg', .8);
+    p.src = out.toDataURL('image/jpeg', .8);
     p.thumb = await makeThumb(p.src);
-    p.edit = { rot:ed.rot, scale:ed.scale, tx:ed.tx, ty:ed.ty, ar:ed.ar };
+    p.edit = { rot:ed.rot, ar:ed.ar, rx:r.x/ed.W, ry:r.y/ed.H, rw:r.w/ed.W, rh:r.h/ed.H };
     await save(); drawDay();
   }catch(err){ console.error(err); alert('That edit could not be saved.'); }
   btn.textContent = 'Done'; btn.disabled = false;
   closeEditor();
 };
 
-window.addEventListener('resize', ()=>{ if(!$('editor').hidden) setAR(ed.ar, true); });
+window.addEventListener('resize', ()=>{
+  if($('editor').hidden || !ed.img) return;
+  const rx = ed.rect.x/ed.W, ry = ed.rect.y/ed.H, rw = ed.rect.w/ed.W, rh = ed.rect.h/ed.H;
+  layout();
+  ed.rect = { x:rx*ed.W, y:ry*ed.H, w:rw*ed.W, h:rh*ed.H };
+  drawRect();
+});
 
 /* ---------- add photos ---------- */
 $('addBtn').onclick = ()=> $('file').click();
+$('addNoteBtn').onclick = async ()=>{
+  openPhotos.push({ src:null, orig:null, thumb:null, note:'', meal:null, time:'', timeType:'vague' });
+  await save(); drawDay();
+};
 $('file').onchange = async e => {
   const files = [...e.target.files]; e.target.value='';
   if(!files.length) return;
   const btn = $('addBtn'); btn.classList.add('busy'); btn.textContent = 'Working…';
+  pill(files.length > 1 ? `Adding ${files.length} photos…` : 'Adding photo…', true);
   for(const f of files){
     try{
       const img = await loadImg(await fileToDataURL(f));
       const src = downscale(img, 1400, .78);
       const now = new Date();
       openPhotos.push({ src, orig:src, thumb: await makeThumb(src), note:'', meal:null,
-        time:`${pad(now.getHours())}:${pad(now.getMinutes())}` });
+        time:`${pad(now.getHours())}:${pad(now.getMinutes())}`, timeType:'detail' });
     }catch(err){ console.error(err); }
   }
   openPhotos.sort(byTime);
-  await save(); drawDay();
+  await save();
+  drawDay();
   btn.classList.remove('busy'); btn.textContent = '＋ Add photo';
 };
 
@@ -614,7 +740,7 @@ $('restore').onchange = e => {
         const [y,m] = mp.split('-');
         await reconcile(`month:${y}-${m}`, (await store.get(`month:${y}-${m}`)) || {});
       }
-      alert('Restored.');
+      pill('Restored');
       loadMonth();
     }catch(err){ alert('That file could not be read.'); }
   };
@@ -629,6 +755,11 @@ $('back').onclick = ()=>{
 };
 
 $('mode').textContent = `Saved on ${backend}`;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log('Meals service worker registered'))
+    .catch(() => {});
+}
 loadMonth();
 </script>
 </body>
