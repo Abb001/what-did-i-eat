@@ -1240,42 +1240,61 @@
     border-radius: 999px;
   }
 
-  /* Carousel View Mode for Day Sheet (Horizontal Swipeable Feed) */
-  .shots.carousel-view {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 16px;
-    padding: 4px 2px 14px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  /* Ensure browser default file inputs are completely invisible */
+  input[type="file"] {
+    display: none !important;
   }
-  .shots.carousel-view::-webkit-scrollbar { display: none; }
+
+  /* Coverflow Card Carousel Mode for Day Sheet (Matching Reference Image) */
+  .shots.carousel-view {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 16px !important;
+    padding: 16px 36px 24px !important;
+    margin: 0 -16px !important;
+    scroll-padding: 0 36px !important;
+  }
+  .shots.carousel-view::-webkit-scrollbar { display: none !important; }
   .shots.carousel-view .shot {
-    flex: 0 0 100%;
-    min-width: 100%;
-    max-width: 100%;
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
+    flex: 0 0 84% !important;
+    min-width: 84% !important;
+    max-width: 84% !important;
+    scroll-snap-align: center !important;
+    scroll-snap-stop: always !important;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, box-shadow 0.35s ease !important;
+    border-radius: 26px !important;
+    transform: scale(0.92);
+    opacity: 0.65;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), inset 0 1.5px 1.5px #FFFFFF !important;
+  }
+  .shots.carousel-view .shot.active-card {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px #FFFFFF !important;
   }
 
   .day-carousel-dots {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px;
-    margin: 8px 0 16px;
+    gap: 8px;
+    margin: 4px 0 18px;
   }
   .day-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: rgba(60, 60, 67, 0.25);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(60, 60, 67, 0.22);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
   }
   .day-dot.active {
     background: var(--ios-label);
-    width: 16px;
+    width: 22px;
     border-radius: 999px;
   }
 
@@ -1305,34 +1324,14 @@
     pointer-events: none;
   }
 
-  /* Drag & Drop Photos Target */
-  .shot.drag-target {
-    border: 2px dashed var(--ios-label) !important;
-    transform: scale(1.015);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15) !important;
-  }
-  .photo-slide img {
-    cursor: grab;
-  }
-  .photo-slide img:active {
-    cursor: grabbing;
-  }
-
   /* Post Bottom Action Bar (Save button & States) */
   .post-foot {
     padding: 10px 14px 12px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 8px;
     border-top: 0.5px solid var(--ios-separator);
-  }
-  .post-foot-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--ios-label-secondary);
   }
   .post-save-btn {
     background: rgba(255, 255, 255, 0.85) !important;
@@ -1503,7 +1502,6 @@
       </div>
     </div>
     <div class="actions"><button class="action-btn" id="addNoteBtn">＋ Add note</button></div>
-    <input type="file" id="postAttachFile" accept="image/*" multiple>
     <div id="dBody" class="loading">Loading</div>
   </div>
 
@@ -2245,26 +2243,26 @@ function drawDay(){
     let mediaMarkup = '';
     if(!hasPhotos){
       mediaMarkup = `
-      <div style="padding:14px 16px 2px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:600;color:var(--ios-label);display:flex;align-items:center;gap:6px">📝 Text Note</span>
+      <div style="padding:16px 16px 2px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13.5px;font-weight:600;color:var(--ios-label)">📝 Text Note</span>
       </div>`;
     } else if(photos.length === 1){
       mediaMarkup = `
       <div class="photo-carousel">
         <div class="photo-slide">
-          <img src="${photos[0].src}" alt="" draggable="true" ondragstart="onPhotoDragStart(event, ${pIdx}, 0)">
+          <img src="${photos[0].src}" alt="">
         </div>
       </div>`;
     } else {
       mediaMarkup = `
       <div class="photo-carousel" id="carousel_${pIdx}">
         <span class="carousel-counter" id="counter_${pIdx}">1 / ${photos.length}</span>
-        <button class="carousel-nav-btn prev" onclick="slidePhoto(${pIdx}, -1)">‹</button>
-        <button class="carousel-nav-btn next" onclick="slidePhoto(${pIdx}, 1)">›</button>
+        <button class="carousel-nav-btn prev" onclick="event.stopPropagation(); slidePhoto(${pIdx}, -1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="event.stopPropagation(); slidePhoto(${pIdx}, 1)">›</button>
         <div class="photo-track" id="track_${pIdx}" onscroll="onTrackScroll(${pIdx}, ${photos.length})">
           ${photos.map((ph, phIdx) => `
             <div class="photo-slide">
-              <img src="${ph.src}" alt="" draggable="true" ondragstart="onPhotoDragStart(event, ${pIdx}, ${phIdx})">
+              <img src="${ph.src}" alt="">
             </div>
           `).join('')}
         </div>
@@ -2283,8 +2281,10 @@ function drawDay(){
         ${canMoveDown ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="1" title="Move later">▼</button>` : ''}
       </div>` : '';
 
+    const initialActive = (isCarousel && pIdx === 0) ? 'active-card' : '';
+
     return `
-    <div class="shot" id="post_card_${pIdx}" ondragover="onCardDragOver(event)" ondragleave="onCardDragLeave(event)" ondrop="onCardDrop(event, ${pIdx})">
+    <div class="shot ${initialActive}" id="post_card_${pIdx}" onclick="${isCarousel ? `goToDayCard(${pIdx})` : ''}">
       ${mediaMarkup}
       <div class="shotbar">
         <div class="tags">${order.map(t=>`<button class="tag ${post.meal===t?'on':''}" data-post="${pIdx}" data-t="${t}">${t}</button>`).join('')}</div>
@@ -2295,9 +2295,6 @@ function drawDay(){
       </div>
       <textarea class="note" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${post.note||''}</textarea>
       <div class="post-foot">
-        <div class="post-foot-left">
-          ${hasPhotos ? `<span style="font-size:11.5px;color:var(--ios-label-tertiary)">Drag photo ↔ to move between cards</span>` : ''}
-        </div>
         <button class="post-save-btn saved" id="saveBtn_${pIdx}" data-savenote="${pIdx}">✓ Saved</button>
       </div>
     </div>`;
@@ -2305,22 +2302,25 @@ function drawDay(){
 
   let dotsMarkup = '';
   if(isCarousel && openPosts.length > 1){
-    dotsMarkup = `<div class="day-carousel-dots" id="dayDots">${openPosts.map((_, i) => `<span class="day-dot ${i===0?'active':''}"></span>`).join('')}</div>`;
+    dotsMarkup = `<div class="day-carousel-dots" id="dayDots">${openPosts.map((_, i) => `<span class="day-dot ${i===0?'active':''}" onclick="goToDayCard(${i})"></span>`).join('')}</div>`;
   }
 
   el.innerHTML = `<div class="shots ${isCarousel ? 'carousel-view' : ''}" id="shotsTrack" onscroll="onDayCarouselScroll(${openPosts.length})">${shotsMarkup}</div>` + dotsMarkup;
 
   // Event handlers
-  el.querySelectorAll('[data-post]').forEach(b => b.onclick = () => {
+  el.querySelectorAll('[data-post]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
     const pIdx = +b.dataset.post, tag = b.dataset.t;
     openPosts[pIdx].meal = (openPosts[pIdx].meal === tag) ? null : tag;
     save(true); drawDay();
   });
-  el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = () => {
+  el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
     openPosts.splice(+b.dataset.delpost, 1); save(); drawDay();
   });
   el.querySelectorAll('[data-movepost]').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
       const pIdx = +btn.dataset.movepost, dir = +btn.dataset.dir;
       const targetIdx = pIdx + dir;
       if(targetIdx < 0 || targetIdx >= openPosts.length) return;
@@ -2336,6 +2336,7 @@ function drawDay(){
   el.querySelectorAll('[data-postnote]').forEach(t => {
     const pIdx = t.dataset.postnote;
     const saveBtn = $(`saveBtn_${pIdx}`);
+    t.onclick = (e) => e.stopPropagation();
     t.oninput = () => {
       openPosts[pIdx].note = t.value;
       if(saveBtn){
@@ -2361,7 +2362,8 @@ function drawDay(){
   });
 
   el.querySelectorAll('[data-savenote]').forEach(btn => {
-    btn.onclick = async () => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
       await save();
       btn.classList.add('saved');
       btn.textContent = '✓ Saved';
@@ -2370,64 +2372,40 @@ function drawDay(){
   });
 }
 
-/* ---------- PHOTO DRAG & DROP BETWEEN CARDS ---------- */
-window.onPhotoDragStart = (e, pIdx, phIdx) => {
-  e.dataTransfer.setData('text/plain', JSON.stringify({ sourcePostIdx: pIdx, photoIdx: phIdx }));
-  e.dataTransfer.effectAllowed = 'move';
-};
-
-window.onCardDragOver = (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  const card = e.currentTarget;
-  if(card) card.classList.add('drag-target');
-};
-
-window.onCardDragLeave = (e) => {
-  const card = e.currentTarget;
-  if(card) card.classList.remove('drag-target');
-};
-
-window.onCardDrop = async (e, targetPostIdx) => {
-  e.preventDefault();
-  const card = e.currentTarget;
-  if(card) card.classList.remove('drag-target');
-
-  try {
-    const dataStr = e.dataTransfer.getData('text/plain');
-    if(!dataStr) return;
-    const { sourcePostIdx, photoIdx } = JSON.parse(dataStr);
-    if(sourcePostIdx === targetPostIdx) return;
-
-    const sourcePost = openPosts[sourcePostIdx];
-    const targetPost = openPosts[targetPostIdx];
-    if(!sourcePost || !targetPost || !sourcePost.photos || !sourcePost.photos[photoIdx]) return;
-
-    // Move photo from source to target
-    const [movedPhoto] = sourcePost.photos.splice(photoIdx, 1);
-    targetPost.photos = targetPost.photos || [];
-    targetPost.photos.push(movedPhoto);
-
-    // If source post is now completely empty (no photos and no text), clean it up
-    if(sourcePost.photos.length === 0 && (!sourcePost.note || !sourcePost.note.trim())){
-      openPosts.splice(sourcePostIdx, 1);
-    }
-
-    await save();
-    drawDay();
-    pill('Photo moved to card ✓');
-  } catch(err){
-    console.error('Drag drop error:', err);
+window.goToDayCard = (idx) => {
+  const track = $('shotsTrack');
+  if(!track) return;
+  const cards = track.querySelectorAll('.shot');
+  if(cards[idx]){
+    cards[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 };
 
 window.onDayCarouselScroll = (total) => {
   const track = $('shotsTrack');
   if(!track) return;
-  const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
+  const cards = track.querySelectorAll('.shot');
+  const trackCenter = track.scrollLeft + track.clientWidth / 2;
+  
+  let closestIdx = 0;
+  let minDistance = Infinity;
+
+  cards.forEach((card, i) => {
+    const cardCenter = card.offsetLeft + card.clientWidth / 2;
+    const dist = Math.abs(trackCenter - cardCenter);
+    if(dist < minDistance){
+      minDistance = dist;
+      closestIdx = i;
+    }
+  });
+
+  cards.forEach((card, i) => {
+    card.classList.toggle('active-card', i === closestIdx);
+  });
+
   const dots = $('dayDots');
   if(dots){
-    dots.querySelectorAll('.day-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+    dots.querySelectorAll('.day-dot').forEach((d, i) => d.classList.toggle('active', i === closestIdx));
   }
 };
 
