@@ -2000,13 +2000,58 @@ $('prev').onclick = () => { view.setMonth(view.getMonth()-1); loadMonth(); };
 $('next').onclick = () => { view.setMonth(view.getMonth()+1); loadMonth(); };
 $('back').onclick = () => showView('cal');
 
+/* ---------- AUTOMATIC LEGACY STORAGE MIGRATION ---------- */
+async function migrateLegacyStorage(){
+  const legacyDBNames = ['meals-diary', 'what-did-i-eat', 'meal-diary-db'];
+  for(const dbName of legacyDBNames){
+    try {
+      const legacyDB = await new Promise((res) => {
+        const req = indexedDB.open(dbName);
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => res(null);
+      });
+      if(legacyDB){
+        if(legacyDB.objectStoreNames.contains('kv')){
+          const legacyKeys = await new Promise((res) => {
+            const tx = legacyDB.transaction('kv', 'readonly');
+            const req = tx.objectStore('kv').getAllKeys();
+            req.onsuccess = () => res(req.result || []);
+            req.onerror = () => res([]);
+          });
+          for(const k of legacyKeys){
+            const currentVal = await store.get(k);
+            if(!currentVal){
+              const val = await new Promise((res) => {
+                const tx = legacyDB.transaction('kv', 'readonly');
+                const req = tx.objectStore('kv').get(k);
+                req.onsuccess = () => res(req.result);
+                req.onerror = () => res(null);
+              });
+              if(val !== undefined && val !== null){
+                await store.set(k, val);
+              }
+            }
+          }
+        }
+        legacyDB.close();
+      }
+    } catch(err){
+      console.warn('Legacy DB check skipped for:', dbName, err);
+    }
+  }
+}
+
 $('mode').textContent = `Storage: ${backend}`;
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js').catch(() => {});
 }
 
-loadMonth();
-showView('hub');
+async function initApp(){
+  await migrateLegacyStorage();
+  await loadMonth();
+  showView('hub');
+}
+initApp();
 </script>
 </body>
 </html>
