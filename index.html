@@ -2233,13 +2233,12 @@ const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
 /* ---------- ROUTING & VIEW NAVIGATION ---------- */
 let activeView = 'hub';
 function showView(viewId){
-  const views = ['hub', 'cal', 'sheet', 'budgetView', 'moodView', 'selfiesView', 'settingsView'];
+  const views = ['hub', 'cal', 'sheet', 'budgetView', 'healthView', 'moodView', 'selfiesView', 'settingsView'];
   views.forEach(v => {
     const el = $(v);
     if(el) el.hidden = (v !== viewId);
   });
   activeView = viewId;
-  $('addBtn').hidden = (viewId !== 'sheet');
   if(viewId === 'hub'){ loadHubStats(); loadHubMasterCalendar(); }
   if(viewId === 'budgetView') loadBudgetModule();
   if(viewId === 'healthView') loadHealthModule();
@@ -3515,27 +3514,11 @@ $('btnConvertImport').onclick = async () => {
 };
 
 /* ---------- MULTI-PHOTO UPLOAD & ADD POST ---------- */
-$('addBtn').onclick = () => $('file').click();
-$('addNoteBtn').onclick = async () => {
-  const now = new Date();
-  openPosts.unshift({
-    id: 'post_' + Date.now(),
-    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    timeType: 'detail',
-    meal: null,
-    note: '',
-    photos: [],
-    aiAnalysis: null
-  });
-  await save(); drawDay();
-};
-
 let pendingProcessedPhotos = [];
 
 $('file').onchange = async e => {
   const files = [...e.target.files]; e.target.value = '';
   if(!files.length) return;
-  const btn = $('addBtn'); btn.textContent = 'Working…';
   pill(`Processing ${files.length} photo(s)...`, true);
   
   const photos = [];
@@ -3546,8 +3529,6 @@ $('file').onchange = async e => {
       photos.push({ src, orig:src, thumb: await makeThumb(src), edit:null });
     } catch(err){ console.error(err); }
   }
-
-  btn.textContent = '＋ Add photo';
 
   if(!photos.length) return;
 
