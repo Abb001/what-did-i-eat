@@ -184,84 +184,91 @@
     font-weight: 400;
   }
 
-  .hub-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-
-  .hub-card {
-    padding: 18px 16px;
+  /* ---------- HUB RECTANGULAR APP LIST (IOS WIDGET LIST STYLE) ---------- */
+  .hub-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    cursor: pointer;
-    text-align: left;
+    gap: 10px;
+    margin-top: 18px;
+    margin-bottom: 24px;
   }
 
-  /* Transparent App Icons without background box */
-  .hub-icon-badge {
-    font-size: 32px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    flex-shrink: 0;
-  }
-  .hub-icon-food, .hub-icon-budget, .hub-icon-mood, .hub-icon-selfies {
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .hub-card-header {
+  .hub-list-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-  .hub-chevron {
-    color: var(--ios-label-tertiary);
-    font-size: 17px;
-    font-weight: 600;
-    transition: transform 0.2s ease, color 0.2s ease;
-  }
-  .hub-card:hover .hub-chevron {
-    color: var(--ios-label);
-    transform: translateX(2px);
+    padding: 14px 18px;
+    border-radius: 20px !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+    border: 0.5px solid var(--glass-border) !important;
+    box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 1px #FFFFFF !important;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease !important;
   }
 
-  .hub-card h3 {
-    font-size: 17px;
+  .hub-list-row:hover {
+    background: rgba(255, 255, 255, 0.86) !important;
+    transform: translateY(-2px) scale(1.008);
+    box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1.5px 1.5px #FFFFFF !important;
+  }
+
+  .hub-list-row:active {
+    transform: scale(0.985);
+  }
+
+  .hub-row-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .hub-row-icon {
+    font-size: 26px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hub-row-title {
+    font-size: 16px;
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
     color: var(--ios-label);
   }
-  .hub-card p {
-    font-size: 12.5px;
-    color: var(--ios-label-secondary);
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+
+  .hub-row-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
+
   .hub-stat {
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--ios-label);
+    color: var(--ios-label-secondary);
     background: rgba(255, 255, 255, 0.70);
     border: 0.5px solid rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 999px;
-    width: fit-content;
-    margin-top: auto;
     letter-spacing: -0.01em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03), inset 0 1px 1px #FFFFFF;
+  }
+
+  .hub-chevron {
+    color: var(--ios-label-tertiary);
+    font-size: 19px;
+    font-weight: 600;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  .hub-list-row:hover .hub-chevron {
+    color: var(--ios-label);
+    transform: translateX(3px);
   }
 
   /* ---------- APPLE iOS NAVIGATION BAR & BACK BUTTON ---------- */
@@ -866,7 +873,7 @@
   .b-cell-sub.exp { color: var(--ios-red); }
   .b-cell-sub.inc { color: var(--ios-green); }
 
-  /* ---------- HEALTH MODULE STYLES ---------- */
+  /* ---------- HEALTH MODULE EXPANDED STYLES ---------- */
   .health-quick-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -897,29 +904,117 @@
     color: var(--ios-label-tertiary);
   }
 
-  .cycle-chip-group {
+  .cycle-chip-group, .symptom-chip-group, .mood-chip-group, .quality-chip-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 7px;
     margin-top: 6px;
   }
-  .cycle-chip {
-    padding: 6px 14px;
+  .cycle-chip, .symptom-chip, .mood-chip, .quality-chip {
+    padding: 6px 13px;
     border-radius: 999px;
     border: 0.5px solid rgba(255, 255, 255, 0.85);
     background: rgba(255, 255, 255, 0.65);
     font-family: var(--ios-font);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--ios-label);
     cursor: pointer;
     transition: all 0.15s ease;
+  }
+  .cycle-chip:hover, .symptom-chip:hover, .mood-chip:hover, .quality-chip:hover {
+    background: rgba(255, 255, 255, 0.9);
   }
   .cycle-chip.active {
     background: rgba(255, 45, 85, 0.18) !important;
     border-color: rgba(255, 45, 85, 0.5) !important;
     color: #E11D48 !important;
     font-weight: 700;
+  }
+  .symptom-chip.active {
+    background: rgba(175, 82, 222, 0.18) !important;
+    border-color: rgba(175, 82, 222, 0.5) !important;
+    color: #9333EA !important;
+    font-weight: 700;
+  }
+  .mood-chip.active, .quality-chip.active {
+    background: rgba(0, 122, 255, 0.15) !important;
+    border-color: rgba(0, 122, 255, 0.45) !important;
+    color: var(--ios-blue) !important;
+    font-weight: 700;
+  }
+
+  /* Water Hydration Component */
+  .water-box {
+    background: rgba(255, 255, 255, 0.45);
+    padding: 12px;
+    border-radius: 16px;
+    border: 0.5px solid rgba(255, 255, 255, 0.8);
+    margin-bottom: 14px;
+  }
+  .water-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .water-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .water-btn {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.65);
+    font-family: var(--ios-font);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ios-label);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .water-btn:hover {
+    background: #FFFFFF;
+    transform: scale(1.02);
+  }
+
+  /* ---------- COMPLETED NOTE CARD STYLES ---------- */
+  .note-display {
+    padding: 10px 14px 12px;
+    color: var(--ios-label);
+    font-family: var(--ios-font);
+    font-size: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border-top: 0.5px solid var(--ios-separator);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .note-display:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .add-note-inline-btn {
+    background: none;
+    border: none;
+    padding: 8px 14px 10px;
+    color: var(--ios-label-tertiary);
+    font-family: var(--ios-font);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-top: 0.5px solid var(--ios-separator);
+    width: 100%;
+    text-align: left;
+    transition: color 0.15s ease;
+  }
+  .add-note-inline-btn:hover {
+    color: var(--ios-label-secondary);
   }
 
   /* ---------- APPLE iOS FROSTED GLASS MODAL ---------- */
@@ -1384,72 +1479,11 @@
   <div class="view" id="hub">
     <div class="hub-header">
       <h1 class="hub-title">Hub</h1>
-      <p class="hub-subtitle">Personal Life &amp; Financial Dashboard</p>
-    </div>
-    <div class="hub-grid">
-      <div class="hub-card" id="cardFood">
-        <div class="hub-card-header">
-          <div class="hub-icon-badge hub-icon-food">🍲</div>
-          <span class="hub-chevron">›</span>
-        </div>
-        <div>
-          <h3>Food</h3>
-          <p>Log daily meals, swipe multi-photo posts &amp; AI calorie estimation.</p>
-        </div>
-        <div class="hub-stat" id="hubFoodStat">Loading...</div>
-      </div>
-      
-      <div class="hub-card" id="cardBudget">
-        <div class="hub-card-header">
-          <div class="hub-icon-badge hub-icon-budget">💰</div>
-          <span class="hub-chevron">›</span>
-        </div>
-        <div>
-          <h3>Budget</h3>
-          <p>6-pillar accounting, calendar logs, accounts &amp; CSV mapper.</p>
-        </div>
-        <div class="hub-stat" id="hubBudgetStat">Loading...</div>
-      </div>
-
-      <div class="hub-card" id="cardHealth">
-        <div class="hub-card-header">
-          <div class="hub-icon-badge hub-icon-health">🌸</div>
-          <span class="hub-chevron">›</span>
-        </div>
-        <div>
-          <h3>Health</h3>
-          <p>Sleep duration, bed/wake times &amp; menstrual period cycle.</p>
-        </div>
-        <div class="hub-stat" id="hubHealthStat">Loading...</div>
-      </div>
-
-      <div class="hub-card" id="cardMood">
-        <div class="hub-card-header">
-          <div class="hub-icon-badge hub-icon-mood">🎨</div>
-          <span class="hub-chevron">›</span>
-        </div>
-        <div>
-          <h3>Moodboard</h3>
-          <p>Visual inspirations, aesthetic pins, and mood notes.</p>
-        </div>
-        <div class="hub-stat" id="hubMoodStat">Loading...</div>
-      </div>
-
-      <div class="hub-card" id="cardSelfies">
-        <div class="hub-card-header">
-          <div class="hub-icon-badge hub-icon-selfies">📸</div>
-          <span class="hub-chevron">›</span>
-        </div>
-        <div>
-          <h3>Selfies</h3>
-          <p>Daily progress portraits and personal visual timeline.</p>
-        </div>
-        <div class="hub-stat" id="hubSelfiesStat">Loading...</div>
-      </div>
+      <p class="hub-subtitle">Personal Life &amp; Wellness Dashboard</p>
     </div>
 
-    <!-- HUB MASTER UNIFIED CALENDAR -->
-    <div class="mod-card" style="margin-top:20px" id="hubMasterCalendarCard">
+    <!-- HUB MASTER UNIFIED CALENDAR (PLACED AT THE TOP) -->
+    <div class="mod-card" id="hubMasterCalendarCard">
       <div class="top" style="margin-bottom:12px">
         <div class="month" id="hubMTitle" style="font-size:18px">—</div>
         <div class="nav">
@@ -1463,6 +1497,64 @@
         Synced Badges: 🍲 Meals · 💰 Budget · 🌸 Period / 🌙 Sleep<br>Tap any day to inspect full life records.
       </div>
       <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
+    </div>
+
+    <!-- RECTANGULAR APP LIST (IOS WIDGET LIST STYLE) -->
+    <div class="hub-list">
+      <div class="hub-list-row" id="cardFood">
+        <div class="hub-row-left">
+          <span class="hub-row-icon">🍲</span>
+          <span class="hub-row-title">Food Diary</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubFoodStat">Loading...</span>
+          <span class="hub-chevron">›</span>
+        </div>
+      </div>
+      
+      <div class="hub-list-row" id="cardBudget">
+        <div class="hub-row-left">
+          <span class="hub-row-icon">💰</span>
+          <span class="hub-row-title">Budget</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubBudgetStat">Loading...</span>
+          <span class="hub-chevron">›</span>
+        </div>
+      </div>
+
+      <div class="hub-list-row" id="cardHealth">
+        <div class="hub-row-left">
+          <span class="hub-row-icon">🌸</span>
+          <span class="hub-row-title">Health &amp; Wellness</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubHealthStat">Loading...</span>
+          <span class="hub-chevron">›</span>
+        </div>
+      </div>
+
+      <div class="hub-list-row" id="cardMood">
+        <div class="hub-row-left">
+          <span class="hub-row-icon">🎨</span>
+          <span class="hub-row-title">Moodboard</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubMoodStat">Loading...</span>
+          <span class="hub-chevron">›</span>
+        </div>
+      </div>
+
+      <div class="hub-list-row" id="cardSelfies">
+        <div class="hub-row-left">
+          <span class="hub-row-icon">📸</span>
+          <span class="hub-row-title">Selfies</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubSelfiesStat">Loading...</span>
+          <span class="hub-chevron">›</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1501,7 +1593,9 @@
         <button data-v="carousel">Carousel</button>
       </div>
     </div>
-    <div class="actions"><button class="action-btn" id="addNoteBtn">＋ Add note</button></div>
+    <div class="actions">
+      <button class="action-btn" id="dayAddBtn" style="padding:8px 20px;font-size:14px">＋ Add</button>
+    </div>
     <div id="dBody" class="loading">Loading</div>
   </div>
 
@@ -1744,7 +1838,7 @@
     <button class="back" id="healthBack">Hub</button>
     <div class="hub-header">
       <h1 class="hub-title">🌸 Health &amp; Wellness</h1>
-      <p class="hub-subtitle">Sleep duration, wake/bed times &amp; period cycle</p>
+      <p class="hub-subtitle">Sleep, hydration, menstrual cycle &amp; daily vitals</p>
     </div>
 
     <!-- Quick Stats Grid -->
@@ -1755,22 +1849,22 @@
         <div class="health-card-sub" id="hStatSleepTimes">--:-- to --:--</div>
       </div>
       <div class="mod-card health-card">
-        <div class="health-card-title">🌸 Period Status</div>
-        <div class="health-card-val" id="hStatCycle">None</div>
-        <div class="health-card-sub" id="hStatCycleSub">Tracking active</div>
+        <div class="health-card-title">💧 Daily Water</div>
+        <div class="health-card-val" id="hStatWater">0 ml</div>
+        <div class="health-card-sub" id="hStatWaterGoal">Goal: 2000 ml</div>
       </div>
     </div>
 
     <!-- HEALTH LOGGING FORM -->
     <div class="mod-card">
-      <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Sleep &amp; Cycle</span>
+      <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Health &amp; Wellness</span>
       
       <div class="form-group">
         <label>Date</label>
         <input type="date" id="hDate">
       </div>
 
-      <!-- SLEEP SECTION -->
+      <!-- 1. SLEEP SECTION -->
       <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
         <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌙 Sleep &amp; Wake Times</span>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
@@ -1783,15 +1877,36 @@
             <input type="time" id="hWaketime" value="07:30">
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;margin-bottom:8px">
           <span style="font-size:12.5px;color:var(--ios-label-secondary)">Calculated Duration:</span>
           <strong id="hSleepDurationTxt" style="font-size:14px;color:var(--ios-label)">8h 00m</strong>
         </div>
+        <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality (睡眠品質)</label>
+        <div class="quality-chip-group" id="hQualityChips">
+          <button class="quality-chip active" data-quality="Restful 🌙">Restful 🌙</button>
+          <button class="quality-chip" data-quality="Deep 💤">Deep 💤</button>
+          <button class="quality-chip" data-quality="Light 🥱">Light 🥱</button>
+          <button class="quality-chip" data-quality="Disturbed ⚡">Disturbed ⚡</button>
+        </div>
       </div>
 
-      <!-- MENSTRUAL PERIOD SECTION -->
+      <!-- 2. HYDRATION WATER TRACKER -->
+      <div class="water-box">
+        <div class="water-header">
+          <span style="font-size:13.5px;font-weight:700">💧 Daily Hydration (水分補給)</span>
+          <span style="font-size:13px;font-weight:700;color:var(--ios-blue)" id="hWaterValTxt">0 / 2000 ml</span>
+        </div>
+        <div class="bar"><i id="hWaterBar" style="width:0%;background:var(--ios-blue)"></i></div>
+        <div class="water-actions">
+          <button class="water-btn" id="btnWater250">＋250ml 💧</button>
+          <button class="water-btn" id="btnWater500">＋500ml 🚰</button>
+          <button class="water-btn" id="btnWaterReset" style="color:var(--ios-red)">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- 3. MENSTRUAL PERIOD SECTION -->
       <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period (生理期)</span>
+        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period (女性生理期)</span>
         <div class="cycle-chip-group" id="hPeriodChips">
           <button class="cycle-chip active" data-period="none">None</button>
           <button class="cycle-chip" data-period="started">🌸 Started</button>
@@ -1799,20 +1914,49 @@
           <button class="cycle-chip" data-period="ended">🏁 Ended</button>
         </div>
         <div id="hFlowGroup" style="margin-top:10px" hidden>
-          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (流量)</label>
-          <select id="hFlow">
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (經期流量)</label>
+          <select id="hFlow" style="margin-bottom:8px">
             <option value="Light">Light (量少)</option>
             <option value="Medium" selected>Medium (適中)</option>
             <option value="Heavy">Heavy (量多)</option>
             <option value="Spotting">Spotting (點狀)</option>
           </select>
         </div>
+        
+        <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms (症狀標籤)</label>
+        <div class="symptom-chip-group" id="hSymptomChips">
+          <button class="symptom-chip" data-sym="Cramps 😣">Cramps 😣</button>
+          <button class="symptom-chip" data-sym="Headache 🤕">Headache 🤕</button>
+          <button class="symptom-chip" data-sym="Fatigue 🥱">Fatigue 🥱</button>
+          <button class="symptom-chip" data-sym="Mood 🎭">Mood 🎭</button>
+          <button class="symptom-chip" data-sym="Bloating 🎈">Bloating 🎈</button>
+          <button class="symptom-chip" data-sym="Acne 💧">Acne 💧</button>
+          <button class="symptom-chip" data-sym="Backache ⚡">Backache ⚡</button>
+        </div>
+      </div>
+
+      <!-- 4. MOOD & VITALS -->
+      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">😊 Daily Mood &amp; Body Weight</span>
+        <div class="mood-chip-group" id="hMoodChips" style="margin-bottom:10px">
+          <button class="mood-chip active" data-mood="😊 Great">😊 Great</button>
+          <button class="mood-chip" data-mood="😌 Calm">😌 Calm</button>
+          <button class="mood-chip" data-mood="😐 Okay">😐 Okay</button>
+          <button class="mood-chip" data-mood="🥱 Tired">🥱 Tired</button>
+          <button class="mood-chip" data-mood="😫 Stressed">😫 Stressed</button>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="flex:1">
+            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Body Weight (kg)</label>
+            <input type="number" id="hWeight" placeholder="e.g. 52.5" step="0.1">
+          </div>
+        </div>
       </div>
 
       <!-- NOTES -->
       <div class="form-group">
-        <label>Wellness Notes &amp; Symptoms</label>
-        <input type="text" id="hNotes" placeholder="e.g. Felt well-rested, minor cramps, 2L water">
+        <label>Wellness Journal Notes</label>
+        <input type="text" id="hNotes" placeholder="e.g. Morning yoga 20m, 8h restful sleep, felt energized">
       </div>
 
       <button class="action-btn" id="btnSaveHealth" style="width:100%">💾 Save Health Log</button>
@@ -1829,10 +1973,13 @@
       </div>
       <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
       <div class="hub-cal-grid" id="healthCalGrid"></div>
+      <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
+        🌸 Period · 🌙 Sleep · 💧 Hydrated
+      </div>
     </div>
 
     <div class="b-month-header">
-      <h3>Health &amp; Sleep History (Newest First)</h3>
+      <h3>Health &amp; Wellness History (Newest First)</h3>
     </div>
     <div id="healthLogsList"></div>
   </div>
@@ -1878,6 +2025,32 @@
           </div>
         </button>
         <button id="btnCancelMultiPhoto" style="margin-top:4px;padding:8px;background:none;border:none;color:var(--ios-label-secondary);font-size:13px;cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UNIFIED DAY ADD MODAL ACTION SHEET -->
+<div class="modal-overlay" id="dayAddModal" hidden>
+  <div class="modal-card" style="max-width:340px">
+    <div class="modal-head">
+      <h3>＋ Add Entry</h3>
+      <button class="icon danger" id="closeDayAddModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:4px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="action-btn" id="btnDayAddPhoto" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14.5px">📸 Add Photo Meal</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Upload single or multi-photo dishes</div>
+          </div>
+        </button>
+        <button class="action-btn" id="btnDayAddNote" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14.5px">📝 Add Text Note</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Log quick recipe, restaurant, or feelings</div>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -2226,11 +2399,18 @@ async function openDaySheet(dKey){
   drawDay();
 }
 
+function escapeHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+let activeEditPostIdx = null;
+
 function drawDay(){
   const el = $('dBody');
   el.className = '';
   if(!openPosts.length){
-    el.innerHTML = `<div class="empty" style="padding:40px 16px;text-align:center;color:var(--ios-label-secondary);font-size:14px">Nothing logged this day.<br>Add a note or photo to fill it in.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:40px 16px;text-align:center;color:var(--ios-label-secondary);font-size:14px">Nothing logged this day.<br>Tap "＋ Add" above to log a meal or note.</div>`;
     return;
   }
 
@@ -2243,7 +2423,7 @@ function drawDay(){
     let mediaMarkup = '';
     if(!hasPhotos){
       mediaMarkup = `
-      <div style="padding:16px 16px 2px;display:flex;align-items:center;justify-content:space-between">
+      <div style="padding:16px 16px 4px;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:13.5px;font-weight:600;color:var(--ios-label)">📝 Text Note</span>
       </div>`;
     } else if(photos.length === 1){
@@ -2272,16 +2452,49 @@ function drawDay(){
       </div>`;
     }
 
-    // Post Reorder Controls
-    const canMoveUp = pIdx > 0;
-    const canMoveDown = pIdx < openPosts.length - 1;
+    // Post Reorder Controls: Left/Right in Carousel, Up/Down in List
+    const canMovePrev = pIdx > 0;
+    const canMoveNext = pIdx < openPosts.length - 1;
+    const prevIcon = isCarousel ? '◀' : '▲';
+    const nextIcon = isCarousel ? '▶' : '▼';
+    const prevTitle = isCarousel ? 'Move earlier (left)' : 'Move earlier (up)';
+    const nextTitle = isCarousel ? 'Move later (right)' : 'Move later (down)';
+
     const reorderBtns = (openPosts.length > 1) ? `
       <div style="display:flex;align-items:center;gap:4px;margin-right:4px">
-        ${canMoveUp ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="-1" title="Move earlier">▲</button>` : ''}
-        ${canMoveDown ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="1" title="Move later">▼</button>` : ''}
+        ${canMovePrev ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="-1" title="${prevTitle}">${prevIcon}</button>` : ''}
+        ${canMoveNext ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="1" title="${nextTitle}">${nextIcon}</button>` : ''}
       </div>` : '';
 
     const initialActive = (isCarousel && pIdx === 0) ? 'active-card' : '';
+
+    // Card Note: Finished Reading View vs Active Edit View
+    const isEditing = (activeEditPostIdx === pIdx);
+    let noteMarkup = '';
+    let footMarkup = '';
+
+    if(isEditing){
+      noteMarkup = `<textarea class="note" id="noteInput_${pIdx}" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${escapeHtml(post.note||'')}</textarea>`;
+      footMarkup = `
+        <div class="post-foot">
+          <button class="post-save-btn saved" data-doneedit="${pIdx}">✓ Done</button>
+        </div>`;
+    } else if(post.note && post.note.trim()){
+      noteMarkup = `<div class="note-display" data-startedit="${pIdx}">${escapeHtml(post.note)}</div>`;
+      footMarkup = `
+        <div class="post-foot">
+          <button class="post-save-btn saved" data-startedit="${pIdx}" style="font-size:12px;padding:3px 10px">✏️ Edit</button>
+        </div>`;
+    } else if(!hasPhotos){
+      noteMarkup = `<textarea class="note" id="noteInput_${pIdx}" rows="3" data-postnote="${pIdx}" placeholder="Write your note here...">${escapeHtml(post.note||'')}</textarea>`;
+      footMarkup = `
+        <div class="post-foot">
+          <button class="post-save-btn saved" data-doneedit="${pIdx}">✓ Done</button>
+        </div>`;
+    } else {
+      noteMarkup = `<button class="add-note-inline-btn" data-startedit="${pIdx}">＋ Add note</button>`;
+      footMarkup = '';
+    }
 
     return `
     <div class="shot ${initialActive}" id="post_card_${pIdx}" onclick="${isCarousel ? `goToDayCard(${pIdx})` : ''}">
@@ -2293,10 +2506,8 @@ function drawDay(){
           <button class="icon danger" data-delpost="${pIdx}" title="Delete entry">${CROSS}</button>
         </div>
       </div>
-      <textarea class="note" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${post.note||''}</textarea>
-      <div class="post-foot">
-        <button class="post-save-btn saved" id="saveBtn_${pIdx}" data-savenote="${pIdx}">✓ Saved</button>
-      </div>
+      ${noteMarkup}
+      ${footMarkup}
     </div>`;
   }).join('');
 
@@ -2314,10 +2525,14 @@ function drawDay(){
     openPosts[pIdx].meal = (openPosts[pIdx].meal === tag) ? null : tag;
     save(true); drawDay();
   });
+
   el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
-    openPosts.splice(+b.dataset.delpost, 1); save(); drawDay();
+    openPosts.splice(+b.dataset.delpost, 1);
+    activeEditPostIdx = null;
+    save(); drawDay();
   });
+
   el.querySelectorAll('[data-movepost]').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -2332,44 +2547,79 @@ function drawDay(){
     };
   });
 
-  let saveTimer = null;
-  el.querySelectorAll('[data-postnote]').forEach(t => {
-    const pIdx = t.dataset.postnote;
-    const saveBtn = $(`saveBtn_${pIdx}`);
-    t.onclick = (e) => e.stopPropagation();
-    t.oninput = () => {
-      openPosts[pIdx].note = t.value;
-      if(saveBtn){
-        saveBtn.classList.remove('saved');
-        saveBtn.textContent = '💾 Save Note';
-      }
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(async () => {
-        await save(true);
-        if(saveBtn){
-          saveBtn.classList.add('saved');
-          saveBtn.textContent = '✓ Saved';
-        }
-      }, 400);
-    };
-    t.onblur = async () => {
-      await save(true);
-      if(saveBtn){
-        saveBtn.classList.add('saved');
-        saveBtn.textContent = '✓ Saved';
-      }
+  // Start Edit Note Handler
+  el.querySelectorAll('[data-startedit]').forEach(elBtn => {
+    elBtn.onclick = (e) => {
+      e.stopPropagation();
+      const pIdx = +elBtn.dataset.startedit;
+      activeEditPostIdx = pIdx;
+      drawDay();
+      setTimeout(() => {
+        const inp = $(`noteInput_${pIdx}`);
+        if(inp){ inp.focus(); inp.selectionStart = inp.selectionEnd = inp.value.length; }
+      }, 50);
     };
   });
 
-  el.querySelectorAll('[data-savenote]').forEach(btn => {
+  // Done Edit Note Handler
+  el.querySelectorAll('[data-doneedit]').forEach(btn => {
     btn.onclick = async (e) => {
       e.stopPropagation();
+      activeEditPostIdx = null;
       await save();
-      btn.classList.add('saved');
-      btn.textContent = '✓ Saved';
+      drawDay();
       pill('Note Saved ✓');
     };
   });
+
+  let saveTimer = null;
+  el.querySelectorAll('[data-postnote]').forEach(t => {
+    const pIdx = +t.dataset.postnote;
+    t.onclick = (e) => e.stopPropagation();
+    t.oninput = () => {
+      openPosts[pIdx].note = t.value;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        await save(true);
+      }, 400);
+    };
+  });
+}
+
+/* ---------- UNIFIED FOOD ADD BUTTON & ACTION SHEET ---------- */
+$('dayAddBtn').onclick = () => {
+  $('dayAddModal').hidden = false;
+};
+$('closeDayAddModal').onclick = () => {
+  $('dayAddModal').hidden = true;
+};
+$('btnDayAddPhoto').onclick = () => {
+  $('dayAddModal').hidden = true;
+  $('file').click();
+};
+$('btnDayAddNote').onclick = () => {
+  $('dayAddModal').hidden = true;
+  addTextNote();
+};
+
+function addTextNote(){
+  const now = new Date();
+  openPosts.unshift({
+    id: 'post_' + Date.now(),
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    timeType: 'detail',
+    meal: null,
+    note: '',
+    photos: [],
+    aiAnalysis: null
+  });
+  activeEditPostIdx = 0;
+  save();
+  drawDay();
+  setTimeout(() => {
+    const inp = $(`noteInput_0`);
+    if(inp) inp.focus();
+  }, 60);
 }
 
 window.goToDayCard = (idx) => {
@@ -3208,6 +3458,10 @@ $('closeMultiPhotoModal').onclick = $('btnCancelMultiPhoto').onclick = () => {
 /* ================= LEVEL 2: HEALTH MODULE ================= */
 let healthCalDate = new Date();
 let selectedPeriodStatus = 'none';
+let selectedSleepQuality = 'Restful 🌙';
+let selectedMood = '😊 Great';
+let selectedSymptoms = new Set();
+let currentWaterMl = 0;
 
 function calculateSleepDuration(bed, wake){
   if(!bed || !wake) return '0h 00m';
@@ -3234,6 +3488,16 @@ function initHealthForm(){
   $('hWaketime').oninput = updateDuration;
   updateDuration();
 
+  // Sleep Quality Chips
+  $('hQualityChips').querySelectorAll('.quality-chip').forEach(chip => {
+    chip.onclick = () => {
+      $('hQualityChips').querySelectorAll('.quality-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedSleepQuality = chip.dataset.quality;
+    };
+  });
+
+  // Period Chips
   $('hPeriodChips').querySelectorAll('.cycle-chip').forEach(chip => {
     chip.onclick = () => {
       $('hPeriodChips').querySelectorAll('.cycle-chip').forEach(c => c.classList.remove('active'));
@@ -3242,6 +3506,39 @@ function initHealthForm(){
       $('hFlowGroup').hidden = (selectedPeriodStatus === 'none' || selectedPeriodStatus === 'ended');
     };
   });
+
+  // Symptoms Multi-Select Chips
+  $('hSymptomChips').querySelectorAll('.symptom-chip').forEach(chip => {
+    chip.onclick = () => {
+      const sym = chip.dataset.sym;
+      if(selectedSymptoms.has(sym)){
+        selectedSymptoms.delete(sym);
+        chip.classList.remove('active');
+      } else {
+        selectedSymptoms.add(sym);
+        chip.classList.add('active');
+      }
+    };
+  });
+
+  // Mood Chips
+  $('hMoodChips').querySelectorAll('.mood-chip').forEach(chip => {
+    chip.onclick = () => {
+      $('hMoodChips').querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedMood = chip.dataset.mood;
+    };
+  });
+
+  // Hydration Water Actions
+  const updateWaterUI = () => {
+    $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
+    $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
+  };
+  $('btnWater250').onclick = () => { currentWaterMl += 250; updateWaterUI(); };
+  $('btnWater500').onclick = () => { currentWaterMl += 500; updateWaterUI(); };
+  $('btnWaterReset').onclick = () => { currentWaterMl = 0; updateWaterUI(); };
+  updateWaterUI();
 }
 
 $('btnSaveHealth').onclick = async () => {
@@ -3250,6 +3547,7 @@ $('btnSaveHealth').onclick = async () => {
   const waketime = $('hWaketime').value;
   const sleepDuration = calculateSleepDuration(bedtime, waketime);
   const flow = $('hFlow').value;
+  const weight = parseFloat($('hWeight').value) || null;
   const notes = $('hNotes').value.trim();
 
   const healthLogs = (await store.get('health:logs')) || {};
@@ -3258,8 +3556,13 @@ $('btnSaveHealth').onclick = async () => {
     bedtime,
     waketime,
     sleepDuration,
+    sleepQuality: selectedSleepQuality,
+    water: currentWaterMl,
     period: selectedPeriodStatus,
     flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
+    symptoms: Array.from(selectedSymptoms),
+    mood: selectedMood,
+    weight,
     notes
   };
 
@@ -3277,8 +3580,11 @@ async function loadHealthModule(){
   if(dates.length > 0){
     const latest = healthLogs[dates[0]];
     $('hStatSleep').textContent = latest.sleepDuration || '-- h';
-    $('hStatSleepTimes').textContent = `${latest.bedtime || '--'} to ${latest.waketime || '--'}`;
-    $('hStatCycle').textContent = latest.period === 'started' ? '🌸 Started' : (latest.period === 'ongoing' ? '🩸 Day Active' : 'Off');
+    $('hStatSleepTimes').textContent = `${latest.bedtime || '--'} to ${latest.waketime || '--'} (${latest.sleepQuality || 'Restful'})`;
+    $('hStatWater').textContent = `${latest.water || 0} ml`;
+    currentWaterMl = latest.water || 0;
+    $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
+    $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
   }
 
   // Draw Health Calendar
@@ -3287,7 +3593,7 @@ async function loadHealthModule(){
   // Render Health Logs (Newest First)
   const el = $('healthLogsList');
   if(!dates.length){
-    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep or cycle above.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep, water or cycle above.</div>`;
     return;
   }
 
@@ -3302,15 +3608,24 @@ async function loadHealthModule(){
       periodBadge = `<span class="tag on" style="font-size:11.5px">🌸 Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
     }
 
+    let symptomsBadges = (item.symptoms || []).map(s => `<span class="tag" style="font-size:11px;background:rgba(175,82,222,0.12);color:#9333EA;border-color:rgba(175,82,222,0.3)">${s}</span>`).join(' ');
+    let waterBadge = item.water ? `<span class="tag" style="font-size:11px;background:rgba(0,122,255,0.1);color:var(--ios-blue);border-color:rgba(0,122,255,0.3)">💧 ${item.water} ml</span>` : '';
+    let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">⚖️ ${item.weight} kg</span>` : '';
+    let moodBadge = item.mood ? `<span class="tag" style="font-size:11px">${item.mood}</span>` : '';
+
     return `
     <div class="mod-card" style="margin-bottom:12px;padding:14px 16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-weight:700;font-size:14px">${dateTitle}</span>
         <button class="icon danger" onclick="delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
-        <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime})</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
         ${periodBadge}
+        ${waterBadge}
+        ${moodBadge}
+        ${weightBadge}
+        ${symptomsBadges}
       </div>
       ${item.notes ? `<div style="font-size:13px;color:var(--ios-label-secondary);margin-top:4px">📝 ${item.notes}</div>` : ''}
     </div>`;
