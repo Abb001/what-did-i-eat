@@ -758,6 +758,170 @@
     color: var(--ios-red);
   }
 
+  /* ---------- HUB MASTER CALENDAR & SYNCED BADGES ---------- */
+  .hub-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .hub-cell {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 0.5px solid rgba(255, 255, 255, 0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .hub-cell.pad { opacity: 0; pointer-events: none; }
+  .hub-cell:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: scale(1.04);
+  }
+  .hub-cell.today {
+    border: 1.5px solid var(--ios-label);
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .hub-cell b {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+  .hub-badge-row {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .hub-badge {
+    font-size: 9.5px;
+    line-height: 1;
+  }
+
+  .hub-day-drawer {
+    margin-top: 14px;
+    padding: 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid #FFFFFF;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    animation: fadeIn 0.2s ease;
+  }
+  .hub-day-drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .hub-drawer-section {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 0.5px solid rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ---------- BUDGET LOGS CALENDAR ---------- */
+  .b-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .b-cell {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 0.5px solid rgba(255, 255, 255, 0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    font-family: var(--ios-font);
+    transition: all 0.15s ease;
+  }
+  .b-cell.pad { opacity: 0; pointer-events: none; }
+  .b-cell:hover { background: rgba(255, 255, 255, 0.85); transform: scale(1.04); }
+  .b-cell.today { border: 1.5px solid var(--ios-label); font-weight: 700; }
+  .b-cell b { font-size: 12px; line-height: 1; }
+  .b-cell-sub { font-size: 9px; font-weight: 700; }
+  .b-cell-sub.exp { color: var(--ios-red); }
+  .b-cell-sub.inc { color: var(--ios-green); }
+
+  /* ---------- HEALTH MODULE STYLES ---------- */
+  .health-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .health-card {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .health-card-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .health-card-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ios-label);
+  }
+  .health-card-sub {
+    font-size: 11px;
+    color: var(--ios-label-tertiary);
+  }
+
+  .cycle-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .cycle-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.65);
+    font-family: var(--ios-font);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ios-label);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .cycle-chip.active {
+    background: rgba(255, 45, 85, 0.18) !important;
+    border-color: rgba(255, 45, 85, 0.5) !important;
+    color: #E11D48 !important;
+    font-weight: 700;
+  }
+
   /* ---------- APPLE iOS FROSTED GLASS MODAL ---------- */
   .modal-overlay {
     position: fixed;
@@ -1243,9 +1407,21 @@
         </div>
         <div>
           <h3>Budget</h3>
-          <p>6-pillar accounting, bank accounts, subscriptions &amp; smart CSV mapper.</p>
+          <p>6-pillar accounting, calendar logs, accounts &amp; CSV mapper.</p>
         </div>
         <div class="hub-stat" id="hubBudgetStat">Loading...</div>
+      </div>
+
+      <div class="hub-card" id="cardHealth">
+        <div class="hub-card-header">
+          <div class="hub-icon-badge hub-icon-health">🌸</div>
+          <span class="hub-chevron">›</span>
+        </div>
+        <div>
+          <h3>Health</h3>
+          <p>Sleep duration, bed/wake times &amp; menstrual period cycle.</p>
+        </div>
+        <div class="hub-stat" id="hubHealthStat">Loading...</div>
       </div>
 
       <div class="hub-card" id="cardMood">
@@ -1271,6 +1447,23 @@
         </div>
         <div class="hub-stat" id="hubSelfiesStat">Loading...</div>
       </div>
+    </div>
+
+    <!-- HUB MASTER UNIFIED CALENDAR -->
+    <div class="mod-card" style="margin-top:20px" id="hubMasterCalendarCard">
+      <div class="top" style="margin-bottom:12px">
+        <div class="month" id="hubMTitle" style="font-size:18px">—</div>
+        <div class="nav">
+          <button id="hubPrev" aria-label="Previous month">←</button>
+          <button id="hubNext" aria-label="Next month">→</button>
+        </div>
+      </div>
+      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="hub-cal-grid" id="hubGrid"></div>
+      <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
+        Synced Badges: 🍲 Meals · 💰 Budget · 🌸 Period / 🌙 Sleep<br>Tap any day to inspect full life records.
+      </div>
+      <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
     </div>
   </div>
 
@@ -1325,6 +1518,7 @@
     <!-- 6-PILLAR SUB-NAVIGATION -->
     <div class="b-sub-nav" id="bSubNav">
       <button class="active" data-btab="overview">Overview</button>
+      <button data-btab="logs">📅 Logs &amp; Calendar</button>
       <button data-btab="transfers">Transfers</button>
       <button data-btab="envelopes">Envelopes</button>
       <button data-btab="subscriptions">Subscriptions</button>
@@ -1403,11 +1597,32 @@
       </div>
 
       <div class="b-month-header">
-        <h3>Daily &amp; Monthly Records</h3>
+        <h3>Recent Transactions</h3>
         <select id="bMonthFilter" class="b-month-select"></select>
       </div>
 
       <div id="bList"></div>
+    </div>
+
+    <!-- SUB-TAB: LOGS & CALENDAR -->
+    <div class="b-panel" id="bp-logs" hidden>
+      <div class="mod-card">
+        <div class="top" style="margin-bottom:12px">
+          <div class="month" id="bCalMTitle" style="font-size:18px">—</div>
+          <div class="nav">
+            <button id="bCalPrev" aria-label="Previous month">←</button>
+            <button id="bCalNext" aria-label="Next month">→</button>
+          </div>
+        </div>
+        <div class="tally" style="margin-bottom:12px"><span id="bCalTallyTxt">$0.00 spent this month</span><span class="bar"><i id="bCalTallyBar" style="width:0%"></i></span></div>
+        <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="b-cal-grid" id="bCalGrid"></div>
+      </div>
+
+      <div class="b-month-header">
+        <h3 id="bMonthLogsTitle">Monthly Logs (Newest First)</h3>
+      </div>
+      <div id="bMonthLogsList"></div>
     </div>
 
     <!-- SUB-TAB 2: TRANSFERS -->
@@ -1524,6 +1739,104 @@
     </div>
     <input type="file" id="selfieFile" accept="image/*">
     <div id="selfieGrid" class="selfie-grid"></div>
+  </div>
+
+  <!-- LEVEL 2: HEALTH MODULE -->
+  <div class="view" id="healthView" hidden>
+    <button class="back" id="healthBack">Hub</button>
+    <div class="hub-header">
+      <h1 class="hub-title">🌸 Health &amp; Wellness</h1>
+      <p class="hub-subtitle">Sleep duration, wake/bed times &amp; period cycle</p>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="health-quick-grid">
+      <div class="mod-card health-card">
+        <div class="health-card-title">🌙 Last Sleep</div>
+        <div class="health-card-val" id="hStatSleep">-- h</div>
+        <div class="health-card-sub" id="hStatSleepTimes">--:-- to --:--</div>
+      </div>
+      <div class="mod-card health-card">
+        <div class="health-card-title">🌸 Period Status</div>
+        <div class="health-card-val" id="hStatCycle">None</div>
+        <div class="health-card-sub" id="hStatCycleSub">Tracking active</div>
+      </div>
+    </div>
+
+    <!-- HEALTH LOGGING FORM -->
+    <div class="mod-card">
+      <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Sleep &amp; Cycle</span>
+      
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="hDate">
+      </div>
+
+      <!-- SLEEP SECTION -->
+      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌙 Sleep &amp; Wake Times</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+          <div>
+            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime (入睡)</label>
+            <input type="time" id="hBedtime" value="23:30">
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Wake Time (起床)</label>
+            <input type="time" id="hWaketime" value="07:30">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px">
+          <span style="font-size:12.5px;color:var(--ios-label-secondary)">Calculated Duration:</span>
+          <strong id="hSleepDurationTxt" style="font-size:14px;color:var(--ios-label)">8h 00m</strong>
+        </div>
+      </div>
+
+      <!-- MENSTRUAL PERIOD SECTION -->
+      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period (生理期)</span>
+        <div class="cycle-chip-group" id="hPeriodChips">
+          <button class="cycle-chip active" data-period="none">None</button>
+          <button class="cycle-chip" data-period="started">🌸 Started</button>
+          <button class="cycle-chip" data-period="ongoing">🩸 Ongoing</button>
+          <button class="cycle-chip" data-period="ended">🏁 Ended</button>
+        </div>
+        <div id="hFlowGroup" style="margin-top:10px" hidden>
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (流量)</label>
+          <select id="hFlow">
+            <option value="Light">Light (量少)</option>
+            <option value="Medium" selected>Medium (適中)</option>
+            <option value="Heavy">Heavy (量多)</option>
+            <option value="Spotting">Spotting (點狀)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="form-group">
+        <label>Wellness Notes &amp; Symptoms</label>
+        <input type="text" id="hNotes" placeholder="e.g. Felt well-rested, minor cramps, 2L water">
+      </div>
+
+      <button class="action-btn" id="btnSaveHealth" style="width:100%">💾 Save Health Log</button>
+    </div>
+
+    <!-- HEALTH CALENDAR -->
+    <div class="mod-card">
+      <div class="top" style="margin-bottom:12px">
+        <div class="month" id="healthMTitle" style="font-size:18px">—</div>
+        <div class="nav">
+          <button id="healthPrev" aria-label="Previous month">←</button>
+          <button id="healthNext" aria-label="Next month">→</button>
+        </div>
+      </div>
+      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="hub-cal-grid" id="healthCalGrid"></div>
+    </div>
+
+    <div class="b-month-header">
+      <h3>Health &amp; Sleep History (Newest First)</h3>
+    </div>
+    <div id="healthLogsList"></div>
   </div>
 
   <!-- SETTINGS MODAL VIEW -->
@@ -1655,19 +1968,22 @@ function showView(viewId){
   });
   activeView = viewId;
   $('addBtn').hidden = (viewId !== 'sheet');
-  if(viewId === 'hub') loadHubStats();
+  if(viewId === 'hub'){ loadHubStats(); loadHubMasterCalendar(); }
   if(viewId === 'budgetView') loadBudgetModule();
+  if(viewId === 'healthView') loadHealthModule();
   if(viewId === 'moodView') loadMoodboardModule();
   if(viewId === 'selfiesView') loadSelfiesModule();
 }
 
 $('cardFood').onclick = () => showView('cal');
 $('cardBudget').onclick = () => showView('budgetView');
+$('cardHealth').onclick = () => showView('healthView');
 $('cardMood').onclick = () => showView('moodView');
 $('cardSelfies').onclick = () => showView('selfiesView');
 
 $('calBack').onclick = () => showView('hub');
 $('budgetBack').onclick = () => showView('hub');
+$('healthBack').onclick = () => showView('hub');
 $('moodBack').onclick = () => showView('hub');
 $('selfiesBack').onclick = () => showView('hub');
 
@@ -1692,12 +2008,139 @@ async function loadHubStats(){
   const bTotal = bList.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
   $('hubBudgetStat').textContent = `$${bTotal.toFixed(2)}`;
 
+  const healthLogs = (await store.get('health:logs')) || {};
+  const healthCount = Object.keys(healthLogs).length;
+  $('hubHealthStat').textContent = `${healthCount} records`;
+
   const mPins = (await store.get('mood:pins')) || [];
   $('hubMoodStat').textContent = `${mPins.length} pins`;
 
   const sPics = (await store.get('selfies:photos')) || [];
   $('hubSelfiesStat').textContent = `${sPics.length} photos`;
 }
+
+/* ================= HUB MASTER UNIFIED CALENDAR ================= */
+let hubViewDate = new Date();
+
+async function loadHubMasterCalendar(){
+  $('hubMTitle').innerHTML = `${MONTHS[hubViewDate.getMonth()]} <span class="yr">${hubViewDate.getFullYear()}</span>`;
+  const y = hubViewDate.getFullYear();
+  const m = hubViewDate.getMonth();
+  const first = new Date(y, m, 1);
+  let start = first.getDay() - 1; if(start === -1) start = 6;
+  const daysInM = new Date(y, m + 1, 0).getDate();
+  const total = Math.ceil((start + daysInM) / 7) * 7;
+
+  // Fetch month data from Food, Budget, Health
+  const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
+  const budgetEntries = (await store.get('budget:entries')) || [];
+  const healthLogs = (await store.get('health:logs')) || {};
+
+  const curMonthKey = `${y}-${pad(m + 1)}`;
+  const today = new Date();
+  const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+
+  let html = '';
+  for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
+
+  for(let d = 1; d <= daysInM; d++){
+    const dd = pad(d);
+    const dateStr = `${curMonthKey}-${dd}`;
+    const isToday = isThisMonth && today.getDate() === d;
+
+    // Check Food
+    const foodItem = foodMonthIdx[dd];
+    const hasFood = !!foodItem;
+
+    // Check Budget
+    const dayBudget = budgetEntries.filter(b => b.date === dateStr);
+    const hasBudget = dayBudget.length > 0;
+    const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+
+    // Check Health
+    const healthItem = healthLogs[dateStr];
+    const hasSleep = !!(healthItem && healthItem.sleepDuration);
+    const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
+
+    // Build badges
+    let badges = '';
+    if(hasFood) badges += `<span class="hub-badge" title="Meals">🍲</span>`;
+    if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget">💰</span>`;
+    if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}">🌸</span>`;
+    else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}">🌙</span>`;
+
+    html += `
+    <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
+      <b>${d}</b>
+      <div class="hub-badge-row">${badges}</div>
+    </div>`;
+  }
+
+  for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
+  $('hubGrid').innerHTML = html;
+
+  $('hubGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
+    cell.onclick = () => openHubDayDetail(cell.dataset.hubdate, foodMonthIdx, budgetEntries, healthLogs);
+  });
+}
+
+$('hubPrev').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() - 1); loadHubMasterCalendar(); };
+$('hubNext').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() + 1); loadHubMasterCalendar(); };
+
+async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs){
+  const [y, m, d] = dateStr.split('-');
+  const dt = new Date(+y, +m - 1, +d);
+  const detailEl = $('hubDayDetail');
+  detailEl.hidden = false;
+
+  const rawFood = (await store.get(`day:${dateStr}`)) || [];
+  const dayFoodPosts = normalizeToPosts(rawFood);
+  const dayBudget = budgetEntries.filter(b => b.date === dateStr);
+  const healthItem = healthLogs[dateStr];
+
+  const dateFormatted = `${WD[dt.getDay()]}, ${MONTHS[dt.getMonth()]} ${+d}, ${y}`;
+
+  let foodSection = `
+  <div class="hub-drawer-section">
+    <div>
+      <div style="font-weight:600;font-size:13.5px">🍲 Food Diary</div>
+      <div style="font-size:12px;color:var(--ios-label-secondary)">${dayFoodPosts.length ? `${dayFoodPosts.length} meal(s) logged` : 'No meals recorded'}</div>
+    </div>
+    <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="openFoodForDay('${dateStr}')">Open ➔</button>
+  </div>`;
+
+  let budgetNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+  let budgetSection = `
+  <div class="hub-drawer-section">
+    <div>
+      <div style="font-weight:600;font-size:13.5px">💰 Budget &amp; Transactions</div>
+      <div style="font-size:12px;color:var(--ios-label-secondary)">${dayBudget.length ? `${dayBudget.length} item(s) · Net: ${budgetNet>=0?'+':''}$${budgetNet.toFixed(2)}` : 'No expenses recorded'}</div>
+    </div>
+    <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('budgetView')">Open ➔</button>
+  </div>`;
+
+  let healthSection = `
+  <div class="hub-drawer-section">
+    <div>
+      <div style="font-weight:600;font-size:13.5px">🌸 Health &amp; Sleep</div>
+      <div style="font-size:12px;color:var(--ios-label-secondary)">${healthItem ? `Sleep: ${healthItem.sleepDuration || '--'} · Period: ${healthItem.period || 'None'}` : 'No health log'}</div>
+    </div>
+    <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('healthView')">Open ➔</button>
+  </div>`;
+
+  detailEl.innerHTML = `
+  <div class="hub-day-drawer-head">
+    <span>${dateFormatted}</span>
+    <button class="icon" onclick="$('hubDayDetail').hidden = true" style="width:24px;height:24px;border:none;background:none;color:var(--ios-label);cursor:pointer">✕</button>
+  </div>
+  ${foodSection}
+  ${budgetSection}
+  ${healthSection}`;
+}
+
+window.openFoodForDay = async (dateStr) => {
+  await openDaySheet(dateStr);
+};
 
 /* ================= FOOD MODULE & POSTS ================= */
 let view = new Date(), monthIdx = {}, openDay = null, openPosts = [], dayViewMode = 'list';
@@ -2041,6 +2484,7 @@ async function save(quiet){
 
 /* ================= 6-PILLAR EXPANDED BUDGET MODULE ================= */
 let activeBTab = 'overview';
+let bCalDate = new Date();
 
 $('bSubNav').onclick = e => {
   const btn = e.target.closest('button');
@@ -2048,13 +2492,130 @@ $('bSubNav').onclick = e => {
   activeBTab = btn.dataset.btab;
   $('bSubNav').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
   
-  const panels = ['overview', 'transfers', 'envelopes', 'subscriptions', 'reports', 'goals', 'security'];
+  const panels = ['overview', 'logs', 'transfers', 'envelopes', 'subscriptions', 'reports', 'goals', 'security'];
   panels.forEach(p => {
     const el = $(`bp-${p}`);
     if(el) el.hidden = (p !== activeBTab);
   });
+  if(activeBTab === 'logs') drawBudgetLogsTab();
   if(activeBTab === 'reports') drawReportsChart();
 };
+
+async function drawBudgetLogsTab(){
+  const y = bCalDate.getFullYear();
+  const m = bCalDate.getMonth();
+  $('bCalMTitle').innerHTML = `${MONTHS[m]} <span class="yr">${y}</span>`;
+  const first = new Date(y, m, 1);
+  let start = first.getDay() - 1; if(start === -1) start = 6;
+  const daysInM = new Date(y, m + 1, 0).getDate();
+  const total = Math.ceil((start + daysInM) / 7) * 7;
+
+  const entries = (await store.get('budget:entries')) || [];
+  const curMonthKey = `${y}-${pad(m + 1)}`;
+  const monthEntries = entries.filter(e => e.date && e.date.startsWith(curMonthKey));
+
+  // Tally for the month
+  let monthSpent = 0, monthInc = 0;
+  const dayTotals = {};
+  monthEntries.forEach(e => {
+    if(e.type === 'exp') monthSpent += e.amt;
+    else monthInc += e.amt;
+    const dStr = e.date;
+    if(!dayTotals[dStr]) dayTotals[dStr] = { exp: 0, inc: 0 };
+    if(e.type === 'exp') dayTotals[dStr].exp += e.amt;
+    else dayTotals[dStr].inc += e.amt;
+  });
+
+  $('bCalTallyTxt').textContent = `$${monthSpent.toFixed(2)} spent · +$${monthInc.toFixed(2)} income`;
+  const target = (await store.get('budget:target')) || 2000;
+  $('bCalTallyBar').style.width = `${Math.min(100, Math.round((monthSpent / target) * 100))}%`;
+
+  const today = new Date();
+  const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+
+  let html = '';
+  for(let i = 0; i < start; i++) html += `<div class="b-cell pad"></div>`;
+
+  for(let d = 1; d <= daysInM; d++){
+    const dd = pad(d);
+    const dateStr = `${curMonthKey}-${dd}`;
+    const isToday = isThisMonth && today.getDate() === d;
+    const dtInfo = dayTotals[dateStr];
+
+    let subHtml = '';
+    if(dtInfo){
+      if(dtInfo.exp > 0) subHtml += `<span class="b-cell-sub exp">-$${Math.round(dtInfo.exp)}</span>`;
+      else if(dtInfo.inc > 0) subHtml += `<span class="b-cell-sub inc">+$${Math.round(dtInfo.inc)}</span>`;
+    }
+
+    html += `
+    <div class="b-cell ${isToday ? 'today' : ''}" data-bdate="${dateStr}">
+      <b>${d}</b>
+      ${subHtml}
+    </div>`;
+  }
+
+  for(let i = start + daysInM; i < total; i++) html += `<div class="b-cell pad"></div>`;
+  $('bCalGrid').innerHTML = html;
+
+  // Render that month's logs below calendar, newest first!
+  renderMonthLogsList(monthEntries);
+}
+
+$('bCalPrev').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() - 1); drawBudgetLogsTab(); };
+$('bCalNext').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() + 1); drawBudgetLogsTab(); };
+
+function renderMonthLogsList(monthEntries){
+  const el = $('bMonthLogsList');
+  if(!monthEntries.length){
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No transactions recorded for this month.</div>`;
+    return;
+  }
+
+  // Group by date, sorted NEWEST first
+  const dayGroups = {};
+  monthEntries.forEach(item => {
+    const dKey = item.date || 'Earlier';
+    if(!dayGroups[dKey]) dayGroups[dKey] = [];
+    dayGroups[dKey].push(item);
+  });
+
+  const sortedDays = Object.keys(dayGroups).sort().reverse();
+
+  el.innerHTML = sortedDays.map(dKey => {
+    const items = dayGroups[dKey];
+    const dayNet = items.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+    const dayNetStr = (dayNet >= 0 ? `+$${dayNet.toFixed(2)}` : `-$${Math.abs(dayNet).toFixed(2)}`);
+
+    let dayTitle = dKey;
+    if(dKey.includes('-')){
+      const [y, m, d] = dKey.split('-');
+      const dt = new Date(+y, +m - 1, +d);
+      const isToday = (dKey === new Date().toISOString().slice(0, 10));
+      dayTitle = `${isToday ? 'Today, ' : ''}${MONTHS[dt.getMonth()]} ${+d}, ${y}`;
+    }
+
+    return `
+    <div class="b-day-group">
+      <div class="b-day-head">
+        <span class="b-day-title">${dayTitle}</span>
+        <span class="b-day-total" style="color:${dayNet>=0?'var(--ios-green)':'var(--ios-red)'}">${dayNetStr}</span>
+      </div>
+      <div class="b-item-list">
+        ${items.map(item => `
+        <div class="b-item-row">
+          <div class="b-item-info">
+            <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
+            <span class="b-item-desc">${item.date}</span>
+          </div>
+          <div class="b-item-right">
+            <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
 
 async function loadBudgetModule(){
   let accounts = await store.get('budget:accounts');
@@ -2665,6 +3226,169 @@ $('closeMultiPhotoModal').onclick = $('btnCancelMultiPhoto').onclick = () => {
   pendingProcessedPhotos = [];
   $('multiPhotoModal').hidden = true;
 };
+
+/* ================= LEVEL 2: HEALTH MODULE ================= */
+let healthCalDate = new Date();
+let selectedPeriodStatus = 'none';
+
+function calculateSleepDuration(bed, wake){
+  if(!bed || !wake) return '0h 00m';
+  const [bH, bM] = bed.split(':').map(Number);
+  const [wH, wM] = wake.split(':').map(Number);
+  let bedMins = bH * 60 + bM;
+  let wakeMins = wH * 60 + wM;
+  if(wakeMins <= bedMins) wakeMins += 24 * 60; // overnight
+  const diff = wakeMins - bedMins;
+  const hours = Math.floor(diff / 60);
+  const mins = diff % 60;
+  return `${hours}h ${pad(mins)}m`;
+}
+
+function initHealthForm(){
+  if($('hDate') && !$('hDate').value){
+    $('hDate').value = new Date().toISOString().slice(0, 10);
+  }
+  const updateDuration = () => {
+    const dur = calculateSleepDuration($('hBedtime').value, $('hWaketime').value);
+    $('hSleepDurationTxt').textContent = dur;
+  };
+  $('hBedtime').oninput = updateDuration;
+  $('hWaketime').oninput = updateDuration;
+  updateDuration();
+
+  $('hPeriodChips').querySelectorAll('.cycle-chip').forEach(chip => {
+    chip.onclick = () => {
+      $('hPeriodChips').querySelectorAll('.cycle-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedPeriodStatus = chip.dataset.period;
+      $('hFlowGroup').hidden = (selectedPeriodStatus === 'none' || selectedPeriodStatus === 'ended');
+    };
+  });
+}
+
+$('btnSaveHealth').onclick = async () => {
+  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+  const bedtime = $('hBedtime').value;
+  const waketime = $('hWaketime').value;
+  const sleepDuration = calculateSleepDuration(bedtime, waketime);
+  const flow = $('hFlow').value;
+  const notes = $('hNotes').value.trim();
+
+  const healthLogs = (await store.get('health:logs')) || {};
+  healthLogs[dateVal] = {
+    date: dateVal,
+    bedtime,
+    waketime,
+    sleepDuration,
+    period: selectedPeriodStatus,
+    flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
+    notes
+  };
+
+  await store.set('health:logs', healthLogs);
+  pill('Health Log Saved ✓');
+  loadHealthModule();
+};
+
+async function loadHealthModule(){
+  initHealthForm();
+  const healthLogs = (await store.get('health:logs')) || {};
+  const dates = Object.keys(healthLogs).sort().reverse();
+
+  // Update quick stats
+  if(dates.length > 0){
+    const latest = healthLogs[dates[0]];
+    $('hStatSleep').textContent = latest.sleepDuration || '-- h';
+    $('hStatSleepTimes').textContent = `${latest.bedtime || '--'} to ${latest.waketime || '--'}`;
+    $('hStatCycle').textContent = latest.period === 'started' ? '🌸 Started' : (latest.period === 'ongoing' ? '🩸 Day Active' : 'Off');
+  }
+
+  // Draw Health Calendar
+  drawHealthCalendar(healthLogs);
+
+  // Render Health Logs (Newest First)
+  const el = $('healthLogsList');
+  if(!dates.length){
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep or cycle above.</div>`;
+    return;
+  }
+
+  el.innerHTML = dates.map(dKey => {
+    const item = healthLogs[dKey];
+    const [y, m, d] = dKey.split('-');
+    const dt = new Date(+y, +m - 1, +d);
+    const dateTitle = `${MONTHS[dt.getMonth()]} ${+d}, ${y}`;
+
+    let periodBadge = '';
+    if(item.period && item.period !== 'none'){
+      periodBadge = `<span class="tag on" style="font-size:11.5px">🌸 Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
+    }
+
+    return `
+    <div class="mod-card" style="margin-bottom:12px;padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-weight:700;font-size:14px">${dateTitle}</span>
+        <button class="icon danger" onclick="delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+        <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime})</span>
+        ${periodBadge}
+      </div>
+      ${item.notes ? `<div style="font-size:13px;color:var(--ios-label-secondary);margin-top:4px">📝 ${item.notes}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+window.delHealthLog = async (dateKey) => {
+  if(!confirm('Delete this health log?')) return;
+  const healthLogs = (await store.get('health:logs')) || {};
+  delete healthLogs[dateKey];
+  await store.set('health:logs', healthLogs);
+  pill('Log Deleted');
+  loadHealthModule();
+};
+
+function drawHealthCalendar(healthLogs){
+  const y = healthCalDate.getFullYear();
+  const m = healthCalDate.getMonth();
+  $('healthMTitle').innerHTML = `${MONTHS[m]} <span class="yr">${y}</span>`;
+  const first = new Date(y, m, 1);
+  let start = first.getDay() - 1; if(start === -1) start = 6;
+  const daysInM = new Date(y, m + 1, 0).getDate();
+  const total = Math.ceil((start + daysInM) / 7) * 7;
+
+  const curMonthKey = `${y}-${pad(m + 1)}`;
+  const today = new Date();
+  const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+
+  let html = '';
+  for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
+
+  for(let d = 1; d <= daysInM; d++){
+    const dd = pad(d);
+    const dateStr = `${curMonthKey}-${dd}`;
+    const isToday = isThisMonth && today.getDate() === d;
+    const item = healthLogs[dateStr];
+
+    let badges = '';
+    if(item){
+      if(item.period && item.period !== 'none') badges += `<span class="hub-badge">🌸</span>`;
+      if(item.sleepDuration) badges += `<span class="hub-badge">🌙</span>`;
+    }
+
+    html += `
+    <div class="hub-cell ${isToday ? 'today' : ''}" data-hdate="${dateStr}">
+      <b>${d}</b>
+      <div class="hub-badge-row">${badges}</div>
+    </div>`;
+  }
+
+  for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
+  $('healthCalGrid').innerHTML = html;
+}
+
+$('healthPrev').onclick = () => { healthCalDate.setMonth(healthCalDate.getMonth() - 1); loadHealthModule(); };
+$('healthNext').onclick = () => { healthCalDate.setMonth(healthCalDate.getMonth() + 1); loadHealthModule(); };
 
 /* ================= LEVEL 2: MOODBOARD MODULE ================= */
 async function loadMoodboardModule(){
