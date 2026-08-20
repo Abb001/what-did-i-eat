@@ -1076,25 +1076,87 @@
     border-radius: 999px;
   }
 
-  /* Carousel View Mode for Day Sheet */
+  /* Carousel View Mode for Day Sheet (Horizontal Swipeable Feed) */
   .shots.carousel-view {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 16px;
-    padding-bottom: 12px;
+    padding: 4px 2px 14px;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .shots.carousel-view::-webkit-scrollbar { display: none; }
   .shots.carousel-view .shot {
     flex: 0 0 100%;
     min-width: 100%;
-    scroll-snap-align: start;
+    max-width: 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
 
-  /* Post Bottom Action Bar (Save button & Add photo to note) */
+  .day-carousel-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 16px;
+  }
+  .day-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(60, 60, 67, 0.25);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .day-dot.active {
+    background: var(--ios-label);
+    width: 16px;
+    border-radius: 999px;
+  }
+
+  /* Post Reorder Buttons */
+  .move-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--ios-label-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.15s ease;
+  }
+  .move-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ios-label);
+    transform: scale(1.08);
+  }
+  .move-btn:disabled {
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  /* Drag & Drop Photos Target */
+  .shot.drag-target {
+    border: 2px dashed var(--ios-label) !important;
+    transform: scale(1.015);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15) !important;
+  }
+  .photo-slide img {
+    cursor: grab;
+  }
+  .photo-slide img:active {
+    cursor: grabbing;
+  }
+
+  /* Post Bottom Action Bar (Save button & States) */
   .post-foot {
-    padding: 8px 14px 12px;
+    padding: 10px 14px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1105,13 +1167,15 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 12px;
+    color: var(--ios-label-secondary);
   }
   .post-save-btn {
-    background: rgba(255, 255, 255, 0.82) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
     color: var(--ios-label) !important;
     border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
     border-radius: 999px;
-    padding: 6px 14px;
+    padding: 6px 16px;
     font-family: var(--ios-font);
     font-size: 12.5px;
     font-weight: 600;
@@ -1119,72 +1183,23 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 1px #FFFFFF !important;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
   }
   .post-save-btn:hover {
     background: #FFFFFF !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 1px #FFFFFF !important;
     transform: translateY(-1px);
   }
+  .post-save-btn.saved {
+    background: rgba(52, 199, 89, 0.18) !important;
+    color: #16A34A !important;
+    border-color: rgba(52, 199, 89, 0.45) !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12), inset 0 1px 1px #FFFFFF !important;
+  }
   .post-save-btn:active { transform: scale(0.96); }
-
-  .post-attach-btn {
-    background: rgba(255, 255, 255, 0.6) !important;
-    color: var(--ios-label-secondary) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
-    border-radius: 999px;
-    padding: 5px 12px;
-    font-family: var(--ios-font);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .post-attach-btn:hover {
-    border-color: var(--ios-label) !important;
-    color: var(--ios-label) !important;
-    background: rgba(255, 255, 255, 0.9) !important;
-  }
-
-  /* Day Sheet Carousel Navigation */
-  .day-carousel-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 14px;
-    margin-bottom: 14px;
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03), inset 0 1px 1px #FFFFFF;
-  }
-  .day-carousel-controls span {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ios-label);
-  }
-  .day-carousel-btn {
-    background: rgba(255, 255, 255, 0.85);
-    border: 0.5px solid rgba(255, 255, 255, 0.95);
-    border-radius: 999px;
-    padding: 5px 12px;
-    font-family: var(--ios-font);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ios-label);
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 1px #FFFFFF;
-    transition: transform 0.15s, background 0.15s;
-  }
-  .day-carousel-btn:hover { background: #FFFFFF; transform: scale(1.04); }
 
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -1529,6 +1544,34 @@
 
 </div>
 
+<!-- MULTI-PHOTO UPLOAD MODAL -->
+<div class="modal-overlay" id="multiPhotoModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="multiPhotoTitle">Multiple Photos Selected</h3>
+      <button class="icon danger" id="closeMultiPhotoModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:16px;line-height:1.45">How would you like to log these photos?</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="action-btn" id="btnUploadSameMeal" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14px">🍲 Same Meal</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Combine into 1 card with swipeable carousel</div>
+          </div>
+        </button>
+        <button class="action-btn" id="btnUploadDiffMeals" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14px">🍽️ Different Meals</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Create separate cards for each photo</div>
+          </div>
+        </button>
+        <button id="btnCancelMultiPhoto" style="margin-top:4px;padding:8px;background:none;border:none;color:var(--ios-label-secondary);font-size:13px;cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SMART CSV CONVERTER MODAL -->
 <div class="modal-overlay" id="csvModal" hidden>
   <div class="modal-card">
@@ -1750,17 +1793,8 @@ function drawDay(){
     return;
   }
 
-  let dayCarouselNav = '';
-  if(dayViewMode === 'carousel' && openPosts.length > 1){
-    dayCarouselNav = `
-    <div class="day-carousel-controls">
-      <button class="day-carousel-btn" onclick="slideDayPost(-1)">‹ Prev Entry</button>
-      <span>${openPosts.length} Entries (Swipe ↔)</span>
-      <button class="day-carousel-btn" onclick="slideDayPost(1)">Next Entry ›</button>
-    </div>`;
-  }
-
-  el.innerHTML = dayCarouselNav + `<div class="shots ${dayViewMode === 'carousel' ? 'carousel-view' : ''}" id="shotsTrack">` + openPosts.map((post, pIdx) => {
+  const isCarousel = (dayViewMode === 'carousel');
+  const shotsMarkup = openPosts.map((post, pIdx) => {
     const photos = post.photos || [];
     const hasPhotos = photos.length > 0;
     const order = post.meal ? [post.meal, ...MEALS.filter(t=>t!==post.meal)] : MEALS;
@@ -1768,14 +1802,15 @@ function drawDay(){
     let mediaMarkup = '';
     if(!hasPhotos){
       mediaMarkup = `
-      <div style="padding:16px 14px 6px;display:flex;align-items:center;justify-content:space-between">
+      <div style="padding:14px 16px 2px;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:13px;font-weight:600;color:var(--ios-label);display:flex;align-items:center;gap:6px">📝 Text Note</span>
-        <button class="post-attach-btn" data-attachphoto="${pIdx}">＋ Add Photo</button>
       </div>`;
     } else if(photos.length === 1){
       mediaMarkup = `
       <div class="photo-carousel">
-        <div class="photo-slide"><img src="${photos[0].src}" alt=""></div>
+        <div class="photo-slide">
+          <img src="${photos[0].src}" alt="" draggable="true" ondragstart="onPhotoDragStart(event, ${pIdx}, 0)">
+        </div>
       </div>`;
     } else {
       mediaMarkup = `
@@ -1784,30 +1819,55 @@ function drawDay(){
         <button class="carousel-nav-btn prev" onclick="slidePhoto(${pIdx}, -1)">‹</button>
         <button class="carousel-nav-btn next" onclick="slidePhoto(${pIdx}, 1)">›</button>
         <div class="photo-track" id="track_${pIdx}" onscroll="onTrackScroll(${pIdx}, ${photos.length})">
-          ${photos.map((ph, phIdx) => `<div class="photo-slide"><img src="${ph.src}" alt=""></div>`).join('')}
+          ${photos.map((ph, phIdx) => `
+            <div class="photo-slide">
+              <img src="${ph.src}" alt="" draggable="true" ondragstart="onPhotoDragStart(event, ${pIdx}, ${phIdx})">
+            </div>
+          `).join('')}
         </div>
         <div class="carousel-dots" id="dots_${pIdx}">
           ${photos.map((_, phIdx) => `<span class="carousel-dot ${phIdx===0?'active':''}"></span>`).join('')}
         </div>
       </div>`;
     }
+
+    // Post Reorder Controls
+    const canMoveUp = pIdx > 0;
+    const canMoveDown = pIdx < openPosts.length - 1;
+    const reorderBtns = (openPosts.length > 1) ? `
+      <div style="display:flex;align-items:center;gap:4px;margin-right:4px">
+        ${canMoveUp ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="-1" title="Move earlier">▲</button>` : ''}
+        ${canMoveDown ? `<button class="move-btn" data-movepost="${pIdx}" data-dir="1" title="Move later">▼</button>` : ''}
+      </div>` : '';
+
     return `
-    <div class="shot" id="post_card_${pIdx}">
+    <div class="shot" id="post_card_${pIdx}" ondragover="onCardDragOver(event)" ondragleave="onCardDragLeave(event)" ondrop="onCardDrop(event, ${pIdx})">
       ${mediaMarkup}
       <div class="shotbar">
         <div class="tags">${order.map(t=>`<button class="tag ${post.meal===t?'on':''}" data-post="${pIdx}" data-t="${t}">${t}</button>`).join('')}</div>
-        <button class="icon danger" data-delpost="${pIdx}" title="Delete entry">${CROSS}</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${reorderBtns}
+          <button class="icon danger" data-delpost="${pIdx}" title="Delete entry">${CROSS}</button>
+        </div>
       </div>
       <textarea class="note" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${post.note||''}</textarea>
       <div class="post-foot">
         <div class="post-foot-left">
-          ${hasPhotos ? `<button class="post-attach-btn" data-attachphoto="${pIdx}">＋ Add More Photos</button>` : ''}
+          ${hasPhotos ? `<span style="font-size:11.5px;color:var(--ios-label-tertiary)">Drag photo ↔ to move between cards</span>` : ''}
         </div>
-        <button class="post-save-btn" data-savenote="${pIdx}">💾 Save Note</button>
+        <button class="post-save-btn saved" id="saveBtn_${pIdx}" data-savenote="${pIdx}">✓ Saved</button>
       </div>
     </div>`;
-  }).join('') + `</div>`;
+  }).join('');
 
+  let dotsMarkup = '';
+  if(isCarousel && openPosts.length > 1){
+    dotsMarkup = `<div class="day-carousel-dots" id="dayDots">${openPosts.map((_, i) => `<span class="day-dot ${i===0?'active':''}"></span>`).join('')}</div>`;
+  }
+
+  el.innerHTML = `<div class="shots ${isCarousel ? 'carousel-view' : ''}" id="shotsTrack" onscroll="onDayCarouselScroll(${openPosts.length})">${shotsMarkup}</div>` + dotsMarkup;
+
+  // Event handlers
   el.querySelectorAll('[data-post]').forEach(b => b.onclick = () => {
     const pIdx = +b.dataset.post, tag = b.dataset.t;
     openPosts[pIdx].meal = (openPosts[pIdx].meal === tag) ? null : tag;
@@ -1816,28 +1876,117 @@ function drawDay(){
   el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = () => {
     openPosts.splice(+b.dataset.delpost, 1); save(); drawDay();
   });
+  el.querySelectorAll('[data-movepost]').forEach(btn => {
+    btn.onclick = () => {
+      const pIdx = +btn.dataset.movepost, dir = +btn.dataset.dir;
+      const targetIdx = pIdx + dir;
+      if(targetIdx < 0 || targetIdx >= openPosts.length) return;
+      const temp = openPosts[pIdx];
+      openPosts[pIdx] = openPosts[targetIdx];
+      openPosts[targetIdx] = temp;
+      save(true);
+      drawDay();
+    };
+  });
+
   let saveTimer = null;
   el.querySelectorAll('[data-postnote]').forEach(t => {
+    const pIdx = t.dataset.postnote;
+    const saveBtn = $(`saveBtn_${pIdx}`);
     t.oninput = () => {
-      openPosts[t.dataset.postnote].note = t.value;
+      openPosts[pIdx].note = t.value;
+      if(saveBtn){
+        saveBtn.classList.remove('saved');
+        saveBtn.textContent = '💾 Save Note';
+      }
       clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => save(true), 350);
+      saveTimer = setTimeout(async () => {
+        await save(true);
+        if(saveBtn){
+          saveBtn.classList.add('saved');
+          saveBtn.textContent = '✓ Saved';
+        }
+      }, 400);
     };
-    t.onblur = () => save(true);
+    t.onblur = async () => {
+      await save(true);
+      if(saveBtn){
+        saveBtn.classList.add('saved');
+        saveBtn.textContent = '✓ Saved';
+      }
+    };
   });
+
   el.querySelectorAll('[data-savenote]').forEach(btn => {
     btn.onclick = async () => {
       await save();
+      btn.classList.add('saved');
+      btn.textContent = '✓ Saved';
       pill('Note Saved ✓');
     };
   });
-  el.querySelectorAll('[data-attachphoto]').forEach(btn => {
-    btn.onclick = () => {
-      targetAttachPostIdx = +btn.dataset.attachphoto;
-      $('postAttachFile').click();
-    };
-  });
 }
+
+/* ---------- PHOTO DRAG & DROP BETWEEN CARDS ---------- */
+window.onPhotoDragStart = (e, pIdx, phIdx) => {
+  e.dataTransfer.setData('text/plain', JSON.stringify({ sourcePostIdx: pIdx, photoIdx: phIdx }));
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+window.onCardDragOver = (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const card = e.currentTarget;
+  if(card) card.classList.add('drag-target');
+};
+
+window.onCardDragLeave = (e) => {
+  const card = e.currentTarget;
+  if(card) card.classList.remove('drag-target');
+};
+
+window.onCardDrop = async (e, targetPostIdx) => {
+  e.preventDefault();
+  const card = e.currentTarget;
+  if(card) card.classList.remove('drag-target');
+
+  try {
+    const dataStr = e.dataTransfer.getData('text/plain');
+    if(!dataStr) return;
+    const { sourcePostIdx, photoIdx } = JSON.parse(dataStr);
+    if(sourcePostIdx === targetPostIdx) return;
+
+    const sourcePost = openPosts[sourcePostIdx];
+    const targetPost = openPosts[targetPostIdx];
+    if(!sourcePost || !targetPost || !sourcePost.photos || !sourcePost.photos[photoIdx]) return;
+
+    // Move photo from source to target
+    const [movedPhoto] = sourcePost.photos.splice(photoIdx, 1);
+    targetPost.photos = targetPost.photos || [];
+    targetPost.photos.push(movedPhoto);
+
+    // If source post is now completely empty (no photos and no text), clean it up
+    if(sourcePost.photos.length === 0 && (!sourcePost.note || !sourcePost.note.trim())){
+      openPosts.splice(sourcePostIdx, 1);
+    }
+
+    await save();
+    drawDay();
+    pill('Photo moved to card ✓');
+  } catch(err){
+    console.error('Drag drop error:', err);
+  }
+};
+
+window.onDayCarouselScroll = (total) => {
+  const track = $('shotsTrack');
+  if(!track) return;
+  const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
+  const dots = $('dayDots');
+  if(dots){
+    dots.querySelectorAll('.day-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+  }
+};
 
 window.slidePhoto = (pIdx, dir) => {
   const track = $(`track_${pIdx}`);
@@ -1855,12 +2004,6 @@ window.onTrackScroll = (pIdx, total) => {
   if(dots){
     dots.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
   }
-};
-window.slideDayPost = (dir) => {
-  const track = $('shotsTrack');
-  if(!track) return;
-  const w = track.clientWidth;
-  track.scrollBy({ left: dir * w, behavior: 'smooth' });
 };
 
 $('viewToggle').onclick = e => {
@@ -2439,22 +2582,28 @@ $('addNoteBtn').onclick = async () => {
   await save(); drawDay();
 };
 
+let pendingProcessedPhotos = [];
+
 $('file').onchange = async e => {
   const files = [...e.target.files]; e.target.value = '';
   if(!files.length) return;
   const btn = $('addBtn'); btn.textContent = 'Working…';
-  pill(`Adding ${files.length} photo(s)...`, true);
+  pill(`Processing ${files.length} photo(s)...`, true);
   
-  const newPhotos = [];
+  const photos = [];
   for(const f of files){
     try {
       const img = await loadImg(await fileToDataURL(f));
       const src = downscale(img, 1400, .78);
-      newPhotos.push({ src, orig:src, thumb: await makeThumb(src), edit:null });
+      photos.push({ src, orig:src, thumb: await makeThumb(src), edit:null });
     } catch(err){ console.error(err); }
   }
 
-  if(newPhotos.length){
+  btn.textContent = '＋ Add photo';
+
+  if(!photos.length) return;
+
+  if(photos.length === 1){
     const now = new Date();
     openPosts.unshift({
       id: 'post_' + Date.now(),
@@ -2462,28 +2611,59 @@ $('file').onchange = async e => {
       timeType: 'detail',
       meal: null,
       note: '',
-      photos: newPhotos,
+      photos: photos,
       aiAnalysis: null
     });
     await save(); drawDay();
+    pill('Photo Logged');
+  } else {
+    pendingProcessedPhotos = photos;
+    $('multiPhotoTitle').textContent = `${photos.length} Photos Selected`;
+    $('multiPhotoModal').hidden = false;
   }
-  btn.textContent = '＋ Add photo';
 };
 
-let targetAttachPostIdx = null;
-$('postAttachFile').onchange = async e => {
-  const files = [...e.target.files]; e.target.value = '';
-  if(!files.length || targetAttachPostIdx === null || !openPosts[targetAttachPostIdx]) return;
-  pill(`Attaching ${files.length} photo(s)...`, true);
-  for(const f of files){
-    try {
-      const img = await loadImg(await fileToDataURL(f));
-      const src = downscale(img, 1400, .78);
-      openPosts[targetAttachPostIdx].photos = openPosts[targetAttachPostIdx].photos || [];
-      openPosts[targetAttachPostIdx].photos.push({ src, orig:src, thumb: await makeThumb(src), edit:null });
-    } catch(err){ console.error(err); }
-  }
+$('btnUploadSameMeal').onclick = async () => {
+  if(!pendingProcessedPhotos.length) return;
+  const now = new Date();
+  openPosts.unshift({
+    id: 'post_' + Date.now(),
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    timeType: 'detail',
+    meal: null,
+    note: '',
+    photos: [...pendingProcessedPhotos],
+    aiAnalysis: null
+  });
+  pendingProcessedPhotos = [];
+  $('multiPhotoModal').hidden = true;
   await save(); drawDay();
+  pill('Meal Logged with Carousel');
+};
+
+$('btnUploadDiffMeals').onclick = async () => {
+  if(!pendingProcessedPhotos.length) return;
+  const now = new Date();
+  pendingProcessedPhotos.forEach((photo, idx) => {
+    openPosts.unshift({
+      id: 'post_' + (Date.now() + idx),
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      timeType: 'detail',
+      meal: null,
+      note: '',
+      photos: [photo],
+      aiAnalysis: null
+    });
+  });
+  pendingProcessedPhotos = [];
+  $('multiPhotoModal').hidden = true;
+  await save(); drawDay();
+  pill('Separate Meal Cards Created');
+};
+
+$('closeMultiPhotoModal').onclick = $('btnCancelMultiPhoto').onclick = () => {
+  pendingProcessedPhotos = [];
+  $('multiPhotoModal').hidden = true;
 };
 
 /* ================= LEVEL 2: MOODBOARD MODULE ================= */
