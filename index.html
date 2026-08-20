@@ -432,6 +432,20 @@
     color: var(--ios-label-secondary);
   }
   .cell.has b { color: #FFFFFF; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+  .cell.has-text {
+    background: rgba(255, 255, 255, 0.88);
+    border: 0.5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF;
+  }
+  .cell.has-text::before {
+    content: '📝';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 11px;
+    line-height: 1;
+  }
+  .cell.has-text b { color: var(--ios-label); font-weight: 700; }
   .cell.today {
     box-shadow: 0 0 0 2px rgba(60, 60, 67, 0.85), inset 0 1px 1px #FFFFFF !important;
   }
@@ -932,7 +946,7 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 16px;
-    padding-bottom: 8px;
+    padding-bottom: 12px;
     scrollbar-width: none;
   }
   .shots.carousel-view::-webkit-scrollbar { display: none; }
@@ -941,6 +955,100 @@
     min-width: 100%;
     scroll-snap-align: start;
   }
+
+  /* Post Bottom Action Bar (Save button & Add photo to note) */
+  .post-foot {
+    padding: 8px 14px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 0.5px solid var(--ios-separator);
+  }
+  .post-foot-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-save-btn {
+    background: rgba(255, 255, 255, 0.82) !important;
+    color: var(--ios-label) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: var(--ios-font);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 1px #FFFFFF !important;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .post-save-btn:hover {
+    background: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 1px #FFFFFF !important;
+    transform: translateY(-1px);
+  }
+  .post-save-btn:active { transform: scale(0.96); }
+
+  .post-attach-btn {
+    background: rgba(255, 255, 255, 0.6) !important;
+    color: var(--ios-label-secondary) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: var(--ios-font);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .post-attach-btn:hover {
+    border-color: var(--ios-label) !important;
+    color: var(--ios-label) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Day Sheet Carousel Navigation */
+  .day-carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03), inset 0 1px 1px #FFFFFF;
+  }
+  .day-carousel-controls span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ios-label);
+  }
+  .day-carousel-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border: 0.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: var(--ios-font);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ios-label);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 1px #FFFFFF;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .day-carousel-btn:hover { background: #FFFFFF; transform: scale(1.04); }
 
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -1051,6 +1159,7 @@
       </div>
     </div>
     <div class="actions"><button class="action-btn" id="addNoteBtn">＋ Add note</button></div>
+    <input type="file" id="postAttachFile" accept="image/*" multiple>
     <div id="dBody" class="loading">Loading</div>
   </div>
 
@@ -1442,12 +1551,14 @@ function drawMonth(){
   for(let d=1; d<=daysInM; d++){
     const dd = pad(d);
     const item = monthIdx[dd];
-    const isLogged = !!(item && item.thumb);
+    const isLogged = !!item;
+    const hasPhoto = !!(item && item.thumb);
+    const hasTextOnly = isLogged && !hasPhoto;
     if(isLogged) logged++;
     const isToday = isThisMonth && today.getDate() === d;
     const isFuture = isThisMonth && d > today.getDate();
-    const style = isLogged ? ` style="background-image:url(${item.thumb})"` : '';
-    const cls = ['cell', isLogged?'has':'', isToday?'today':'', isFuture?'future':''].filter(Boolean).join(' ');
+    const style = hasPhoto ? ` style="background-image:url(${item.thumb})"` : '';
+    const cls = ['cell', hasPhoto?'has':'', hasTextOnly?'has-text':'', isToday?'today':'', isFuture?'future':''].filter(Boolean).join(' ');
     const countBadge = (item && item.n > 1) ? `<span class="n">${item.n}</span>` : '';
     html += `<button class="${cls}"${style} data-d="${dd}"><b>${d}</b>${countBadge}</button>`;
   }
@@ -1493,17 +1604,32 @@ function drawDay(){
   const el = $('dBody');
   el.className = '';
   if(!openPosts.length){
-    el.innerHTML = `<div class="empty" style="padding:40px 16px;text-align:center;color:var(--ios-label-secondary);font-size:14px">Nothing logged this day.<br>Add a photo to fill it in.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:40px 16px;text-align:center;color:var(--ios-label-secondary);font-size:14px">Nothing logged this day.<br>Add a note or photo to fill it in.</div>`;
     return;
   }
-  el.innerHTML = `<div class="shots ${dayViewMode === 'carousel' ? 'carousel-view' : ''}">` + openPosts.map((post, pIdx) => {
+
+  let dayCarouselNav = '';
+  if(dayViewMode === 'carousel' && openPosts.length > 1){
+    dayCarouselNav = `
+    <div class="day-carousel-controls">
+      <button class="day-carousel-btn" onclick="slideDayPost(-1)">‹ Prev Entry</button>
+      <span>${openPosts.length} Entries (Swipe ↔)</span>
+      <button class="day-carousel-btn" onclick="slideDayPost(1)">Next Entry ›</button>
+    </div>`;
+  }
+
+  el.innerHTML = dayCarouselNav + `<div class="shots ${dayViewMode === 'carousel' ? 'carousel-view' : ''}" id="shotsTrack">` + openPosts.map((post, pIdx) => {
     const photos = post.photos || [];
     const hasPhotos = photos.length > 0;
     const order = post.meal ? [post.meal, ...MEALS.filter(t=>t!==post.meal)] : MEALS;
     
     let mediaMarkup = '';
     if(!hasPhotos){
-      mediaMarkup = `<div class="no-photo" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">📝 Text-only entry</div>`;
+      mediaMarkup = `
+      <div style="padding:16px 14px 6px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:600;color:var(--ios-label);display:flex;align-items:center;gap:6px">📝 Text Note</span>
+        <button class="post-attach-btn" data-attachphoto="${pIdx}">＋ Add Photo</button>
+      </div>`;
     } else if(photos.length === 1){
       mediaMarkup = `
       <div class="photo-carousel">
@@ -1524,27 +1650,50 @@ function drawDay(){
       </div>`;
     }
     return `
-    <div class="shot">
+    <div class="shot" id="post_card_${pIdx}">
       ${mediaMarkup}
       <div class="shotbar">
         <div class="tags">${order.map(t=>`<button class="tag ${post.meal===t?'on':''}" data-post="${pIdx}" data-t="${t}">${t}</button>`).join('')}</div>
-        <button class="icon danger" data-delpost="${pIdx}">${CROSS}</button>
+        <button class="icon danger" data-delpost="${pIdx}" title="Delete entry">${CROSS}</button>
       </div>
-      <textarea class="note" rows="2" data-postnote="${pIdx}" placeholder="Add notes...">${post.note||''}</textarea>
+      <textarea class="note" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${post.note||''}</textarea>
+      <div class="post-foot">
+        <div class="post-foot-left">
+          ${hasPhotos ? `<button class="post-attach-btn" data-attachphoto="${pIdx}">＋ Add More Photos</button>` : ''}
+        </div>
+        <button class="post-save-btn" data-savenote="${pIdx}">💾 Save Note</button>
+      </div>
     </div>`;
   }).join('') + `</div>`;
 
   el.querySelectorAll('[data-post]').forEach(b => b.onclick = () => {
     const pIdx = +b.dataset.post, tag = b.dataset.t;
     openPosts[pIdx].meal = (openPosts[pIdx].meal === tag) ? null : tag;
-    save(); drawDay();
+    save(true); drawDay();
   });
   el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = () => {
     openPosts.splice(+b.dataset.delpost, 1); save(); drawDay();
   });
+  let saveTimer = null;
   el.querySelectorAll('[data-postnote]').forEach(t => {
-    t.oninput = () => { openPosts[t.dataset.postnote].note = t.value; };
-    t.onblur = save;
+    t.oninput = () => {
+      openPosts[t.dataset.postnote].note = t.value;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => save(true), 350);
+    };
+    t.onblur = () => save(true);
+  });
+  el.querySelectorAll('[data-savenote]').forEach(btn => {
+    btn.onclick = async () => {
+      await save();
+      pill('Note Saved ✓');
+    };
+  });
+  el.querySelectorAll('[data-attachphoto]').forEach(btn => {
+    btn.onclick = () => {
+      targetAttachPostIdx = +btn.dataset.attachphoto;
+      $('postAttachFile').click();
+    };
   });
 }
 
@@ -1565,6 +1714,12 @@ window.onTrackScroll = (pIdx, total) => {
     dots.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
   }
 };
+window.slideDayPost = (dir) => {
+  const track = $('shotsTrack');
+  if(!track) return;
+  const w = track.clientWidth;
+  track.scrollBy({ left: dir * w, behavior: 'smooth' });
+};
 
 $('viewToggle').onclick = e => {
   const b = e.target.closest('button');
@@ -1582,11 +1737,21 @@ async function save(quiet){
   await store.set(`day:${openDay}`, openPosts);
   const mk = `month:${y}-${m}`;
   const idx = (await store.get(mk)) || {};
-  if(flatPhotos.length) idx[dd] = { n: flatPhotos.length, thumb: flatPhotos[0].thumb };
-  else delete idx[dd];
+  if(openPosts.length > 0){
+    idx[dd] = { 
+      n: openPosts.length, 
+      thumb: flatPhotos[0]?.thumb || null,
+      hasText: openPosts.some(p => (p.note && p.note.trim()) || (p.photos && !p.photos.length))
+    };
+  } else {
+    delete idx[dd];
+  }
   await store.set(mk, idx);
-  if(`${y}-${m}` === `${view.getFullYear()}-${pad(view.getMonth()+1)}`){ monthIdx = idx; drawMonth(); }
-  if(!quiet) pill('Autosaved');
+  if(`${y}-${m}` === `${view.getFullYear()}-${pad(view.getMonth()+1)}`){ 
+    monthIdx = idx; 
+    drawMonth(); 
+  }
+  if(!quiet) pill('Saved ✓');
 }
 
 /* ================= 6-PILLAR EXPANDED BUDGET MODULE ================= */
@@ -2031,6 +2196,22 @@ $('file').onchange = async e => {
     await save(); drawDay();
   }
   btn.textContent = '＋ Add photo';
+};
+
+let targetAttachPostIdx = null;
+$('postAttachFile').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  if(!files.length || targetAttachPostIdx === null || !openPosts[targetAttachPostIdx]) return;
+  pill(`Attaching ${files.length} photo(s)...`, true);
+  for(const f of files){
+    try {
+      const img = await loadImg(await fileToDataURL(f));
+      const src = downscale(img, 1400, .78);
+      openPosts[targetAttachPostIdx].photos = openPosts[targetAttachPostIdx].photos || [];
+      openPosts[targetAttachPostIdx].photos.push({ src, orig:src, thumb: await makeThumb(src), edit:null });
+    } catch(err){ console.error(err); }
+  }
+  await save(); drawDay();
 };
 
 /* ================= LEVEL 2: MOODBOARD MODULE ================= */
