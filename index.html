@@ -200,23 +200,22 @@
     text-align: left;
   }
 
-  /* iOS App Icon Style Squircle Badges */
+  /* Transparent App Icons without background box */
   .hub-icon-badge {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+    font-size: 32px;
+    line-height: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    justify-content: flex-start;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
     flex-shrink: 0;
   }
-  .hub-icon-food { background: linear-gradient(135deg, #FF9500 0%, #FF3B30 100%); }
-  .hub-icon-budget { background: linear-gradient(135deg, #34C759 0%, #059669 100%); }
-  .hub-icon-mood { background: linear-gradient(135deg, #AF52DE 0%, #6366F1 100%); }
-  .hub-icon-selfies { background: linear-gradient(135deg, #007AFF 0%, #06B6D4 100%); }
+  .hub-icon-food, .hub-icon-budget, .hub-icon-mood, .hub-icon-selfies {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
 
   .hub-card-header {
     display: flex;
@@ -230,7 +229,7 @@
     transition: transform 0.2s ease, color 0.2s ease;
   }
   .hub-card:hover .hub-chevron {
-    color: var(--ios-blue);
+    color: var(--ios-label);
     transform: translateX(2px);
   }
 
@@ -252,15 +251,17 @@
   .hub-stat {
     font-size: 11.5px;
     font-weight: 600;
-    color: var(--ios-blue);
-    background: rgba(0, 122, 255, 0.09);
-    border: 0.5px solid rgba(0, 122, 255, 0.20);
+    color: var(--ios-label);
+    background: rgba(255, 255, 255, 0.70);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 4px 10px;
     border-radius: 999px;
     width: fit-content;
     margin-top: auto;
     letter-spacing: -0.01em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03), inset 0 1px 1px #FFFFFF;
   }
 
   /* ---------- APPLE iOS NAVIGATION BAR & BACK BUTTON ---------- */
@@ -272,7 +273,7 @@
     backdrop-filter: blur(20px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
     border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
-    color: var(--ios-blue) !important;
+    color: var(--ios-label) !important;
     font-family: var(--ios-font);
     font-size: 14.5px;
     font-weight: 500;
@@ -364,7 +365,7 @@
   .bar i {
     display: block;
     height: 100%;
-    background: var(--ios-blue);
+    background: rgba(60, 60, 67, 0.75);
     border-radius: 999px;
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -411,7 +412,7 @@
     z-index: 2;
     background: rgba(255, 255, 255, 0.85);
     border-color: #FFFFFF;
-    box-shadow: 0 8px 20px rgba(0, 122, 255, 0.16), inset 0 1.5px 1.5px #FFFFFF;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px #FFFFFF;
   }
   .cell:not(.pad):active { transform: scale(0.92); }
   .cell.has::after {
@@ -432,10 +433,10 @@
   }
   .cell.has b { color: #FFFFFF; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
   .cell.today {
-    box-shadow: 0 0 0 2px var(--ios-blue), inset 0 1px 1px #FFFFFF !important;
+    box-shadow: 0 0 0 2px rgba(60, 60, 67, 0.85), inset 0 1px 1px #FFFFFF !important;
   }
-  .cell.today:not(.has) { background: rgba(0, 122, 255, 0.12); }
-  .cell.today:not(.has) b { color: var(--ios-blue); font-weight: 700; }
+  .cell.today:not(.has) { background: rgba(255, 255, 255, 0.85); }
+  .cell.today:not(.has) b { color: var(--ios-label); font-weight: 700; }
 
   .legend {
     margin-top: 18px;
@@ -458,20 +459,20 @@
     border: none;
     font-family: var(--ios-font);
     font-size: 13px;
-    color: var(--ios-blue);
+    color: var(--ios-label-secondary);
     cursor: pointer;
     padding: 0;
     font-weight: 500;
-    transition: opacity 0.2s;
+    transition: color 0.2s;
   }
-  .foot button:hover { opacity: 0.75; }
+  .foot button:hover { color: var(--ios-label); }
   .foot small { font-size: 12px; color: var(--ios-label-tertiary); margin-left: auto; }
 
   .dhead {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
   .dnum {
     font-size: 44px;
@@ -484,6 +485,13 @@
     font-size: 14px;
     color: var(--ios-label-secondary);
     margin-top: 4px;
+  }
+
+  /* Actions container with clear gap */
+  .actions {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
   }
 
   /* ---------- APPLE iOS SEGMENTED CONTROL ---------- */
@@ -549,11 +557,11 @@
     transform: translateY(-1.5px);
   }
   .b-sub-nav button.active {
-    background: var(--ios-label) !important;
-    color: #FFFFFF !important;
-    border-color: transparent !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
-    font-weight: 600;
+    background: #FFFFFF !important;
+    color: var(--ios-label) !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10), inset 0 1px 1px #FFFFFF !important;
+    font-weight: 700;
   }
 
   .b-recap-card { padding: 18px; margin-bottom: 18px; }
@@ -672,10 +680,10 @@
     transform: translateX(-50%);
     bottom: calc(24px + env(safe-area-inset-bottom));
     z-index: 50;
-    background: rgba(255, 255, 255, 0.88) !important;
+    background: rgba(255, 255, 255, 0.80) !important;
     backdrop-filter: blur(28px) saturate(200%) !important;
     -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    border: 0.5px solid #FFFFFF !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
     color: var(--ios-label) !important;
     border-radius: 999px !important;
     padding: 12px 30px !important;
@@ -683,7 +691,7 @@
     font-size: 14.5px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px #FFFFFF !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px #FFFFFF !important;
     transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease !important;
     display: inline-flex;
     align-items: center;
@@ -691,33 +699,36 @@
   }
   .add:hover {
     transform: translateX(-50%) translateY(-2.5px) scale(1.02) !important;
-    background: #FFFFFF !important;
-    box-shadow: 0 16px 40px rgba(0, 122, 255, 0.18), inset 0 1.5px 1.5px #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), inset 0 1.5px 1.5px #FFFFFF !important;
   }
   .add:active { transform: translateX(-50%) scale(0.96) !important; }
   .add[hidden] { display: none !important; }
 
-  /* ---------- NATIVE iOS PRIMARY & TINTED BUTTONS ---------- */
+  /* ---------- TRANSPARENT LIQUID GLASS ACTION BUTTONS (NO SOLID BLUE) ---------- */
   .action-btn {
-    background: var(--ios-blue);
-    color: #FFFFFF;
-    border: none;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: var(--ios-label) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.90) !important;
     border-radius: 14px;
-    padding: 11px 20px;
+    padding: 10px 18px;
     font-family: var(--ios-font);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.35);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease, box-shadow 0.2s ease;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF !important;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
   }
   .action-btn:hover {
+    background: rgba(255, 255, 255, 0.95) !important;
     transform: translateY(-1.5px);
-    box-shadow: 0 6px 18px rgba(0, 122, 255, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08), inset 0 1px 1px #FFFFFF !important;
   }
   .action-btn:active { transform: scale(0.96); opacity: 0.9; }
 
@@ -738,8 +749,8 @@
   }
   .form-group input:focus, .form-group select:focus {
     outline: none;
-    border-color: var(--ios-blue);
-    box-shadow: 0 0 0 3.5px rgba(0, 122, 255, 0.22);
+    border-color: rgba(60, 60, 67, 0.6);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
   }
 
   /* ---------- APPLE iOS DAY POSTS & TAG CAPSULES ---------- */
@@ -779,11 +790,11 @@
     color: var(--ios-label);
   }
   .tag.on {
-    background: var(--ios-blue) !important;
-    color: #FFFFFF !important;
-    border-color: transparent !important;
-    box-shadow: 0 3px 10px rgba(0, 122, 255, 0.35), inset 0 1px 1px rgba(255,255,255,0.4) !important;
-    font-weight: 600;
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: var(--ios-label) !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12), inset 0 1px 1px #FFFFFF !important;
+    font-weight: 700;
   }
   .icon {
     width: 32px;
@@ -815,6 +826,121 @@
     resize: none;
   }
   .note::placeholder { color: var(--ios-label-tertiary); }
+
+  /* ---------- MULTI-PHOTO CAROUSEL SLIDER ---------- */
+  .photo-carousel {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    border-radius: 20px 20px 0 0;
+    background: rgba(0, 0, 0, 0.04);
+  }
+  .photo-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .photo-track::-webkit-scrollbar { display: none; }
+  .photo-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+  }
+  .photo-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 0.5px solid rgba(255, 255, 255, 0.9);
+    color: var(--ios-label);
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 1px #FFFFFF;
+    z-index: 5;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .carousel-nav-btn:hover { background: rgba(255, 255, 255, 0.95); transform: translateY(-50%) scale(1.1); }
+  .carousel-nav-btn.prev { left: 10px; }
+  .carousel-nav-btn.next { right: 10px; }
+  .carousel-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    z-index: 5;
+    letter-spacing: 0.02em;
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
+  }
+  .carousel-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  .carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s;
+  }
+  .carousel-dot.active {
+    background: #FFFFFF;
+    width: 14px;
+    border-radius: 999px;
+  }
+
+  /* Carousel View Mode for Day Sheet */
+  .shots.carousel-view {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .shots.carousel-view::-webkit-scrollbar { display: none; }
+  .shots.carousel-view .shot {
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+  }
 
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -969,14 +1095,14 @@
           </div>
           <div class="b-recap-box">
             <label>Net Savings</label>
-            <span style="color:var(--blue)" id="bRecapNet">$0</span>
+            <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
           </div>
         </div>
 
         <div class="b-budget-bar-box">
           <div class="b-budget-row">
             <span>Spent: <strong id="bCurrExp">$0</strong></span>
-            <span>Remaining: <strong id="bRemain" style="color:var(--blue)">$0</strong></span>
+            <span>Remaining: <strong id="bRemain" style="color:var(--ios-label)">$0</strong></span>
           </div>
           <div class="bar"><i id="bBar" style="width:0%"></i></div>
         </div>
@@ -1367,7 +1493,7 @@ function drawDay(){
   const el = $('dBody');
   el.className = '';
   if(!openPosts.length){
-    el.innerHTML = `<div class="empty">Nothing logged this day.<br>Add a photo to fill it in.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:40px 16px;text-align:center;color:var(--ios-label-secondary);font-size:14px">Nothing logged this day.<br>Add a photo to fill it in.</div>`;
     return;
   }
   el.innerHTML = `<div class="shots ${dayViewMode === 'carousel' ? 'carousel-view' : ''}">` + openPosts.map((post, pIdx) => {
@@ -1377,9 +1503,25 @@ function drawDay(){
     
     let mediaMarkup = '';
     if(!hasPhotos){
-      mediaMarkup = `<div class="no-photo" style="padding:20px;text-align:center;color:var(--mid)">Text-only entry</div>`;
+      mediaMarkup = `<div class="no-photo" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">📝 Text-only entry</div>`;
+    } else if(photos.length === 1){
+      mediaMarkup = `
+      <div class="photo-carousel">
+        <div class="photo-slide"><img src="${photos[0].src}" alt=""></div>
+      </div>`;
     } else {
-      mediaMarkup = `<div class="carousel-box" style="position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:14px 14px 0 0"><img src="${photos[0].src}" style="width:100%;height:100%;object-fit:cover" alt=""></div>`;
+      mediaMarkup = `
+      <div class="photo-carousel" id="carousel_${pIdx}">
+        <span class="carousel-counter" id="counter_${pIdx}">1 / ${photos.length}</span>
+        <button class="carousel-nav-btn prev" onclick="slidePhoto(${pIdx}, -1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="slidePhoto(${pIdx}, 1)">›</button>
+        <div class="photo-track" id="track_${pIdx}" onscroll="onTrackScroll(${pIdx}, ${photos.length})">
+          ${photos.map((ph, phIdx) => `<div class="photo-slide"><img src="${ph.src}" alt=""></div>`).join('')}
+        </div>
+        <div class="carousel-dots" id="dots_${pIdx}">
+          ${photos.map((_, phIdx) => `<span class="carousel-dot ${phIdx===0?'active':''}"></span>`).join('')}
+        </div>
+      </div>`;
     }
     return `
     <div class="shot">
@@ -1392,6 +1534,11 @@ function drawDay(){
     </div>`;
   }).join('') + `</div>`;
 
+  el.querySelectorAll('[data-post]').forEach(b => b.onclick = () => {
+    const pIdx = +b.dataset.post, tag = b.dataset.t;
+    openPosts[pIdx].meal = (openPosts[pIdx].meal === tag) ? null : tag;
+    save(); drawDay();
+  });
   el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = () => {
     openPosts.splice(+b.dataset.delpost, 1); save(); drawDay();
   });
@@ -1400,6 +1547,32 @@ function drawDay(){
     t.onblur = save;
   });
 }
+
+window.slidePhoto = (pIdx, dir) => {
+  const track = $(`track_${pIdx}`);
+  if(!track) return;
+  const w = track.clientWidth;
+  track.scrollBy({ left: dir * w, behavior: 'smooth' });
+};
+window.onTrackScroll = (pIdx, total) => {
+  const track = $(`track_${pIdx}`);
+  if(!track) return;
+  const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
+  const counter = $(`counter_${pIdx}`);
+  if(counter) counter.textContent = `${currentIdx + 1} / ${total}`;
+  const dots = $(`dots_${pIdx}`);
+  if(dots){
+    dots.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+  }
+};
+
+$('viewToggle').onclick = e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  dayViewMode = b.dataset.v;
+  $('viewToggle').querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn === b));
+  drawDay();
+};
 
 async function save(quiet){
   if(!openDay) return;
@@ -1561,7 +1734,7 @@ async function loadTransfersHistory(){
       <div class="b-cat">🔄 ${t.fromName} ➔ ${t.toName}</div>
       <div class="b-date">${t.date}</div>
     </div>
-    <span class="b-amt" style="color:var(--blue)">$${t.amt.toFixed(2)}</span>
+    <span class="b-amt" style="color:var(--ios-label)">$${t.amt.toFixed(2)}</span>
   </div>`).join('');
 }
 
@@ -1587,7 +1760,7 @@ async function loadEnvelopes(){
         <span>${cat.name}</span>
         <span>$${spent.toFixed(2)} / $${limit}</span>
       </div>
-      <div class="bar"><i style="width:${pct}%;background:${isWarn?'#DC2626':'var(--blue)'}"></i></div>
+      <div class="bar"><i style="width:${pct}%;background:${isWarn?'#DC2626':'rgba(60,60,67,0.75)'}"></i></div>
     </div>`;
   }).join('');
 }
@@ -1647,7 +1820,7 @@ async function drawReportsChart(){
   const total = Object.values(catTotals).reduce((a, b) => a + b, 0);
 
   if(!total){
-    ctx.font = '14px Familjen Grotesk, sans-serif';
+    ctx.font = '14px -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.textAlign = 'center';
     ctx.fillText('No expenses to analyze', canvas.width/2, canvas.height/2);
@@ -1710,7 +1883,7 @@ async function loadGoals(){
         <span>🎯 ${g.name}</span>
         <span>$${g.current} / $${g.target}</span>
       </div>
-      <div class="bar" style="margin-bottom:10px"><i style="width:${pct}%;background:var(--blue)"></i></div>
+      <div class="bar" style="margin-bottom:10px"><i style="width:${pct}%;background:rgba(60,60,67,0.75)"></i></div>
       <button class="action-btn" style="padding:4px 12px;font-size:12px" onclick="depositGoal(${idx})">＋ Deposit $100</button>
     </div>`;
   }).join('');
