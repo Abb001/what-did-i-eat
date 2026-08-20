@@ -1904,9 +1904,9 @@
         </div>
       </div>
 
-      <!-- 3. MENSTRUAL PERIOD SECTION -->
+      <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
       <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period (女性生理期)</span>
+        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period &amp; Intimacy (生理期與性生活)</span>
         <div class="cycle-chip-group" id="hPeriodChips">
           <button class="cycle-chip active" data-period="none">None</button>
           <button class="cycle-chip" data-period="started">🌸 Started</button>
@@ -1932,6 +1932,24 @@
           <button class="symptom-chip" data-sym="Bloating 🎈">Bloating 🎈</button>
           <button class="symptom-chip" data-sym="Acne 💧">Acne 💧</button>
           <button class="symptom-chip" data-sym="Backache ⚡">Backache ⚡</button>
+        </div>
+
+        <!-- SEXUAL ACTIVITY & INTIMACY -->
+        <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.12)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">💕 Sexual Activity (性行為次數)</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="move-btn" id="btnIntimacyMinus" style="width:26px;height:26px;font-size:13px">－</button>
+              <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 次</strong>
+              <button class="move-btn" id="btnIntimacyPlus" style="width:26px;height:26px;font-size:13px">＋</button>
+            </div>
+          </div>
+          <div class="symptom-chip-group" id="hIntimacyChips" style="margin-top:6px">
+            <button class="symptom-chip active" data-protect="none">None (無)</button>
+            <button class="symptom-chip" data-protect="Protected 🛡️">Protected 🛡️ (有防護)</button>
+            <button class="symptom-chip" data-protect="Unprotected ⚠️">Unprotected ⚠️ (無防護)</button>
+            <button class="symptom-chip" data-protect="High Drive 🔥">High Drive 🔥</button>
+          </div>
         </div>
       </div>
 
@@ -2232,13 +2250,17 @@ async function loadHubMasterCalendar(){
     const healthItem = healthLogs[dateStr];
     const hasSleep = !!(healthItem && healthItem.sleepDuration);
     const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
+    const hasIntimacy = !!(healthItem && healthItem.intimacy > 0);
+    const hasWater = !!(healthItem && healthItem.water >= 1500);
 
     // Build badges
     let badges = '';
     if(hasFood) badges += `<span class="hub-badge" title="Meals">🍲</span>`;
     if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget">💰</span>`;
     if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}">🌸</span>`;
+    if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}">💕</span>`;
     else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}">🌙</span>`;
+    if(hasWater) badges += `<span class="hub-badge" title="Hydrated">💧</span>`;
 
     html += `
     <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
@@ -3462,6 +3484,8 @@ let selectedSleepQuality = 'Restful 🌙';
 let selectedMood = '😊 Great';
 let selectedSymptoms = new Set();
 let currentWaterMl = 0;
+let intimacyCount = 0;
+let selectedProtection = 'none';
 
 function calculateSleepDuration(bed, wake){
   if(!bed || !wake) return '0h 00m';
@@ -3521,6 +3545,25 @@ function initHealthForm(){
     };
   });
 
+  // Sexual Activity & Intimacy Counter & Chips
+  $('btnIntimacyMinus').onclick = () => {
+    if(intimacyCount > 0){
+      intimacyCount--;
+      $('hIntimacyCountTxt').textContent = `${intimacyCount} 次`;
+    }
+  };
+  $('btnIntimacyPlus').onclick = () => {
+    intimacyCount++;
+    $('hIntimacyCountTxt').textContent = `${intimacyCount} 次`;
+  };
+  $('hIntimacyChips').querySelectorAll('.symptom-chip').forEach(chip => {
+    chip.onclick = () => {
+      $('hIntimacyChips').querySelectorAll('.symptom-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedProtection = chip.dataset.protect;
+    };
+  });
+
   // Mood Chips
   $('hMoodChips').querySelectorAll('.mood-chip').forEach(chip => {
     chip.onclick = () => {
@@ -3561,6 +3604,8 @@ $('btnSaveHealth').onclick = async () => {
     period: selectedPeriodStatus,
     flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
     symptoms: Array.from(selectedSymptoms),
+    intimacy: intimacyCount,
+    protection: selectedProtection,
     mood: selectedMood,
     weight,
     notes
@@ -3593,7 +3638,7 @@ async function loadHealthModule(){
   // Render Health Logs (Newest First)
   const el = $('healthLogsList');
   if(!dates.length){
-    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep, water or cycle above.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep, water, cycle or intimacy above.</div>`;
     return;
   }
 
@@ -3608,6 +3653,7 @@ async function loadHealthModule(){
       periodBadge = `<span class="tag on" style="font-size:11.5px">🌸 Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
     }
 
+    let intimacyBadge = item.intimacy ? `<span class="tag" style="font-size:11px;background:rgba(255,45,85,0.12);color:#E11D48;border-color:rgba(255,45,85,0.3)">💕 性生活: ${item.intimacy} 次${item.protection && item.protection !== 'none' ? ` (${item.protection})` : ''}</span>` : '';
     let symptomsBadges = (item.symptoms || []).map(s => `<span class="tag" style="font-size:11px;background:rgba(175,82,222,0.12);color:#9333EA;border-color:rgba(175,82,222,0.3)">${s}</span>`).join(' ');
     let waterBadge = item.water ? `<span class="tag" style="font-size:11px;background:rgba(0,122,255,0.1);color:var(--ios-blue);border-color:rgba(0,122,255,0.3)">💧 ${item.water} ml</span>` : '';
     let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">⚖️ ${item.weight} kg</span>` : '';
@@ -3622,6 +3668,7 @@ async function loadHealthModule(){
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
         <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
         ${periodBadge}
+        ${intimacyBadge}
         ${waterBadge}
         ${moodBadge}
         ${weightBadge}
@@ -3666,7 +3713,9 @@ function drawHealthCalendar(healthLogs){
     let badges = '';
     if(item){
       if(item.period && item.period !== 'none') badges += `<span class="hub-badge">🌸</span>`;
+      if(item.intimacy > 0) badges += `<span class="hub-badge">💕</span>`;
       if(item.sleepDuration) badges += `<span class="hub-badge">🌙</span>`;
+      if(item.water >= 1500) badges += `<span class="hub-badge">💧</span>`;
     }
 
     html += `
