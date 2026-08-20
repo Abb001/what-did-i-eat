@@ -614,13 +614,149 @@
   .acc-spent { font-size: 11.5px; color: var(--ios-label-secondary); margin-top: 2px; }
 
   .mod-card { padding: 18px; margin-bottom: 16px; }
-  .budget-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid var(--ios-separator); }
-  .budget-item:last-child { border-bottom: none; }
-  .b-cat { font-size: 14px; font-weight: 500; }
-  .b-date { font-size: 11.5px; color: var(--ios-label-secondary); margin-top: 2px; }
-  .b-amt { font-size: 15px; font-weight: 700; }
-  .b-amt.exp { color: var(--ios-red); }
-  .b-amt.inc { color: var(--ios-green); }
+
+  /* Daily & Monthly Grouped Transactions */
+  .b-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0 12px;
+    padding: 0 2px;
+  }
+  .b-month-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ios-label);
+  }
+  .b-month-select {
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.7);
+    font-family: var(--ios-font);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ios-label);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .b-day-group {
+    margin-bottom: 14px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 0.5px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+  }
+  .b-day-head {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom: 0.5px solid var(--ios-separator);
+  }
+  .b-day-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ios-label);
+  }
+  .b-day-total {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+  }
+  .b-item-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .b-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--ios-separator);
+    transition: background 0.15s ease;
+  }
+  .b-item-row:last-child {
+    border-bottom: none;
+  }
+  .b-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .b-item-cat {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ios-label);
+  }
+  .b-item-desc {
+    font-size: 12px;
+    color: var(--ios-label-secondary);
+  }
+  .b-item-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .b-item-amt {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .b-item-amt.exp { color: var(--ios-red); }
+  .b-item-amt.inc { color: var(--ios-green); }
+
+  /* Clean iOS Subscription Cards (No broken layout, No emoji icons) */
+  .sub-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+    border: 0.5px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: 18px !important;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .sub-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .sub-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ios-label);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sub-cycle {
+    font-size: 12px;
+    color: var(--ios-label-secondary);
+  }
+  .sub-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .sub-amt {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-red);
+  }
 
   /* ---------- APPLE iOS FROSTED GLASS MODAL ---------- */
   .modal-overlay {
@@ -1228,15 +1364,15 @@
         <div class="form-group">
           <label>Type, Amount &amp; Account</label>
           <div style="display:flex;gap:8px">
-            <select id="bType" style="width:110px"><option value="exp">Expense (-)</option><option value="inc">Income (+)</option></select>
+            <select id="bType" style="width:115px"><option value="exp">Expense (-)</option><option value="inc">Income (+)</option></select>
             <input type="number" id="bAmt" placeholder="0.00" step="0.01">
             <select id="bAccountSelect" style="flex:1"></select>
           </div>
         </div>
         <div class="form-group">
-          <label>Category &amp; Description</label>
-          <div style="display:flex;gap:8px">
-            <select id="bCat" style="width:120px">
+          <label>Category, Date &amp; Description</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <select id="bCat" style="width:125px">
               <option value="Food">Food 🍲</option>
               <option value="Transport">Transport 🚗</option>
               <option value="Shopping">Shopping 🛍️</option>
@@ -1244,19 +1380,25 @@
               <option value="Entertainment">Fun 🎮</option>
               <option value="General">Other 📁</option>
             </select>
-            <input type="text" id="bDesc" placeholder="What was this for?">
+            <input type="date" id="bDate" style="flex:1">
           </div>
+          <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
         </div>
-        <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:4px">＋ Log Transaction</button>
+        <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ Log Transaction</button>
       </div>
 
-      <div id="bList" class="shots"></div>
+      <div class="b-month-header">
+        <h3>Daily &amp; Monthly Records</h3>
+        <select id="bMonthFilter" class="b-month-select"></select>
+      </div>
+
+      <div id="bList"></div>
     </div>
 
     <!-- SUB-TAB 2: TRANSFERS -->
     <div class="b-panel" id="bp-transfers" hidden>
       <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">🔄 Transfer Money Between Accounts</span>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Transfer Money Between Accounts</span>
         <div class="form-group">
           <label>From Account (Source)</label>
           <select id="trFromAcc"></select>
@@ -1271,13 +1413,13 @@
         </div>
         <button class="action-btn" id="btnExecuteTransfer" style="width:100%">Execute Account Transfer</button>
       </div>
-      <div id="trHistoryList" class="shots"></div>
+      <div id="trHistoryList"></div>
     </div>
 
     <!-- SUB-TAB 3: ENVELOPES -->
     <div class="b-panel" id="bp-envelopes" hidden>
       <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:6px">✉️ Category Envelope Budgets</span>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:6px">Category Envelope Budgets</span>
         <p style="font-size:13px;color:var(--mid);margin-bottom:14px">Set specific budget limits for categories. Progress bars alert you when you near 100%.</p>
         <div id="envelopeList" style="display:flex;flex-direction:column;gap:12px"></div>
       </div>
@@ -1286,7 +1428,7 @@
     <!-- SUB-TAB 4: SUBSCRIPTIONS -->
     <div class="b-panel" id="bp-subscriptions" hidden>
       <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">📅 Recurring Subscriptions &amp; Bills</span>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Recurring Subscriptions &amp; Bills</span>
         <div class="form-group">
           <label>Subscription Name</label>
           <input type="text" id="subName" placeholder="e.g. Netflix, Spotify, Rent">
@@ -1300,7 +1442,7 @@
         </div>
         <button class="action-btn" id="btnAddSub" style="width:100%">＋ Add Subscription</button>
       </div>
-      <div id="subList" class="shots"></div>
+      <div id="subList"></div>
     </div>
 
     <!-- SUB-TAB 5: REPORTS -->
@@ -1787,16 +1929,26 @@ async function loadBudgetModule(){
 
   const entries = (await store.get('budget:entries')) || [];
   
+  // Set default date in logging form
+  if($('bDate') && !$('bDate').value){
+    $('bDate').value = new Date().toISOString().slice(0, 10);
+  }
+
+  // Calculate monthly stats based on current month
+  const curMonthKey = new Date().toISOString().slice(0, 7);
   let monthExpense = 0, monthIncome = 0;
   accounts.forEach(a => a.spentMonth = 0);
 
   entries.forEach(item => {
-    if(item.type === 'exp'){
-      monthExpense += item.amt;
-      const acc = accounts.find(a => a.id === item.accountId);
-      if(acc) acc.spentMonth += item.amt;
-    } else {
-      monthIncome += item.amt;
+    const isThisMonth = item.date ? item.date.startsWith(curMonthKey) : true;
+    if(isThisMonth){
+      if(item.type === 'exp'){
+        monthExpense += item.amt;
+        const acc = accounts.find(a => a.id === item.accountId);
+        if(acc) acc.spentMonth += item.amt;
+      } else {
+        monthIncome += item.amt;
+      }
     }
   });
 
@@ -1829,32 +1981,147 @@ async function loadBudgetModule(){
     </div>
   `).join('');
 
-  // Render Transactions List
-  const el = $('bList');
-  if(!entries.length){
-    el.innerHTML = `<div class="empty">No transactions logged yet.<br>Add an expense or income above.</div>`;
-  } else {
-    el.innerHTML = entries.map((item, idx) => {
-      const acc = accounts.find(a => a.id === item.accountId);
-      return `
-      <div class="mod-card budget-item">
-        <div>
-          <div class="b-cat">${item.cat} · ${item.desc || 'No description'}</div>
-          <div class="b-date">${acc ? acc.name : 'Account'} · ${item.date}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="b-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
-          <button class="icon danger" onclick="delBudget(${idx})" style="background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.1);color:var(--mid);width:28px;height:28px;border-radius:6px;cursor:pointer">${CROSS}</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
+  // Setup Monthly Filter
+  const monthSet = new Set();
+  monthSet.add(curMonthKey);
+  entries.forEach(e => {
+    if(e.date && e.date.length >= 7) monthSet.add(e.date.slice(0, 7));
+  });
+  const sortedMonths = [...monthSet].sort().reverse();
+  const currentFilterVal = $('bMonthFilter').value || curMonthKey;
+
+  $('bMonthFilter').innerHTML = `<option value="all">All Months</option>` + sortedMonths.map(m => {
+    const [yr, mo] = m.split('-');
+    return `<option value="${m}" ${m===currentFilterVal?'selected':''}>${MONTHS[+mo-1]} ${yr}</option>`;
+  }).join('');
+
+  $('bMonthFilter').onchange = () => {
+    renderBudgetTransactions(entries, accounts, $('bMonthFilter').value);
+  };
+
+  renderBudgetTransactions(entries, accounts, $('bMonthFilter').value);
 
   loadEnvelopes();
   loadSubscriptions();
   loadGoals();
   loadTransfersHistory();
 }
+
+function renderBudgetTransactions(entries, accounts, monthFilter){
+  const filtered = (monthFilter === 'all')
+    ? entries
+    : entries.filter(e => (e.date && e.date.startsWith(monthFilter)));
+
+  const el = $('bList');
+  if(!filtered.length){
+    el.innerHTML = `<div class="empty" style="padding:32px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No bookkeeping records for this period.<br>Log a transaction above to start tracking.</div>`;
+    return;
+  }
+
+  // Group transactions by date (YYYY-MM-DD)
+  const dayGroups = {};
+  filtered.forEach(item => {
+    const dKey = item.date || 'Earlier';
+    if(!dayGroups[dKey]) dayGroups[dKey] = [];
+    dayGroups[dKey].push(item);
+  });
+
+  const sortedDayKeys = Object.keys(dayGroups).sort().reverse();
+
+  el.innerHTML = sortedDayKeys.map(dKey => {
+    const items = dayGroups[dKey];
+    const dayNet = items.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+    const dayNetStr = (dayNet >= 0 ? `+$${dayNet.toFixed(2)}` : `-$${Math.abs(dayNet).toFixed(2)}`);
+
+    let dayTitle = dKey;
+    if(dKey.includes('-')){
+      const [y, m, d] = dKey.split('-');
+      const dt = new Date(+y, +m-1, +d);
+      const isToday = (dKey === new Date().toISOString().slice(0, 10));
+      dayTitle = `${isToday ? 'Today, ' : ''}${MONTHS[dt.getMonth()]} ${+d}, ${y}`;
+    }
+
+    return `
+    <div class="b-day-group">
+      <div class="b-day-head">
+        <span class="b-day-title">${dayTitle}</span>
+        <span class="b-day-total" style="color:${dayNet>=0?'var(--ios-green)':'var(--ios-red)'}">${dayNetStr}</span>
+      </div>
+      <div class="b-item-list">
+        ${items.map(item => {
+          const origIdx = entries.indexOf(item);
+          const acc = accounts.find(a => a.id === item.accountId);
+          return `
+          <div class="b-item-row">
+            <div class="b-item-info">
+              <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
+              <span class="b-item-desc">${acc ? acc.name : 'Account'}</span>
+            </div>
+            <div class="b-item-right">
+              <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+              <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+$('bAddBtn').onclick = async () => {
+  const type = $('bType').value;
+  const amt = parseFloat($('bAmt').value);
+  const accountId = $('bAccountSelect').value;
+  const cat = $('bCat').value;
+  const dateVal = $('bDate').value || new Date().toISOString().slice(0, 10);
+  const desc = $('bDesc').value.trim();
+  if(isNaN(amt) || amt <= 0) return alert('Please enter a valid amount.');
+
+  const accounts = (await store.get('budget:accounts')) || [];
+  const acc = accounts.find(a => a.id === accountId);
+  if(acc){
+    if(type === 'exp') acc.balance -= amt;
+    else acc.balance += amt;
+    await store.set('budget:accounts', accounts);
+  }
+
+  const entries = (await store.get('budget:entries')) || [];
+  entries.unshift({
+    id: 'tx_' + Date.now(),
+    type,
+    amt,
+    accountId,
+    cat,
+    desc: desc || (type === 'inc' ? 'Income' : 'Expense'),
+    date: dateVal,
+    dateKey: dateVal.slice(0, 7)
+  });
+  await store.set('budget:entries', entries);
+  $('bAmt').value = '';
+  $('bDesc').value = '';
+  pill('Transaction Logged');
+  loadBudgetModule();
+};
+
+window.delBudget = async (idx) => {
+  const entries = (await store.get('budget:entries')) || [];
+  const item = entries[idx];
+  if(!item) return;
+  if(!confirm('Delete this transaction record?')) return;
+  
+  // Refund balance
+  const accounts = (await store.get('budget:accounts')) || [];
+  const acc = accounts.find(a => a.id === item.accountId);
+  if(acc){
+    if(item.type === 'exp') acc.balance += item.amt;
+    else acc.balance -= item.amt;
+    await store.set('budget:accounts', accounts);
+  }
+  entries.splice(idx, 1);
+  await store.set('budget:entries', entries);
+  pill('Transaction Deleted');
+  loadBudgetModule();
+};
 
 /* ---------- PILLAR 1: ACCOUNT TRANSFERS ---------- */
 $('btnExecuteTransfer').onclick = async () => {
@@ -1890,16 +2157,16 @@ async function loadTransfersHistory(){
   const transfers = (await store.get('budget:transfers')) || [];
   const el = $('trHistoryList');
   if(!transfers.length){
-    el.innerHTML = `<div class="empty">No account transfers logged yet.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:24px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13px">No account transfers logged yet.</div>`;
     return;
   }
   el.innerHTML = transfers.map(t => `
-  <div class="mod-card budget-item">
-    <div>
-      <div class="b-cat">🔄 ${t.fromName} ➔ ${t.toName}</div>
-      <div class="b-date">${t.date}</div>
+  <div class="sub-card">
+    <div class="sub-info">
+      <div class="sub-name">${t.fromName} ➔ ${t.toName}</div>
+      <div class="sub-cycle">${t.date}</div>
     </div>
-    <span class="b-amt" style="color:var(--ios-label)">$${t.amt.toFixed(2)}</span>
+    <span class="b-item-amt" style="color:var(--ios-label)">$${t.amt.toFixed(2)}</span>
   </div>`).join('');
 }
 
@@ -1920,7 +2187,7 @@ async function loadEnvelopes(){
     const pct = Math.min(100, Math.round((spent / limit) * 100));
     const isWarn = pct >= 80;
     return `
-    <div style="background:rgba(255,255,255,0.5);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.8)">
+    <div style="background:rgba(255,255,255,0.5);padding:12px;border-radius:14px;border:0.5px solid rgba(255,255,255,0.85);margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px">
         <span>${cat.name}</span>
         <span>$${spent.toFixed(2)} / $${limit}</span>
@@ -1930,7 +2197,7 @@ async function loadEnvelopes(){
   }).join('');
 }
 
-/* ---------- PILLAR 3: SUBSCRIPTIONS & REMINDERS ---------- */
+/* ---------- PILLAR 3: SUBSCRIPTIONS & REMINDERS (NO ICONS, NO OVERFLOW) ---------- */
 $('btnAddSub').onclick = async () => {
   const name = $('subName').value.trim();
   const amt = parseFloat($('subAmt').value);
@@ -1949,15 +2216,20 @@ async function loadSubscriptions(){
     { name: 'Spotify Premium', amt: 10.99, cycle: 'Monthly' }
   ];
   await store.set('budget:subscriptions', subs);
-  $('subList').innerHTML = subs.map((s, idx) => `
-  <div class="mod-card budget-item">
-    <div>
-      <div class="b-cat">📅 ${s.name}</div>
-      <div class="b-date">${s.cycle} Auto-Renew</div>
+  const el = $('subList');
+  if(!subs.length){
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No recurring subscriptions added yet.</div>`;
+    return;
+  }
+  el.innerHTML = subs.map((s, idx) => `
+  <div class="sub-card">
+    <div class="sub-info">
+      <div class="sub-name">${s.name}</div>
+      <div class="sub-cycle">${s.cycle} Auto-Renew</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="b-amt exp">-$${s.amt.toFixed(2)}</span>
-      <button class="icon danger" onclick="delSub(${idx})" style="background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.1);color:var(--mid);width:28px;height:28px;border-radius:6px;cursor:pointer">${CROSS}</button>
+    <div class="sub-right">
+      <span class="sub-amt">-$${s.amt.toFixed(2)}</span>
+      <button class="icon danger" onclick="delSub(${idx})" title="Delete">${CROSS}</button>
     </div>
   </div>`).join('');
 }
