@@ -2856,19 +2856,19 @@ function drawDay(){
       noteMarkup = `<textarea class="note" id="noteInput_${pIdx}" rows="3" data-postnote="${pIdx}" placeholder="Write notes, recipe, ingredients, feelings...">${escapeHtml(post.note||'')}</textarea>`;
       footMarkup = `
         <div class="post-foot">
-          <button class="post-save-btn saved" data-doneedit="${pIdx}">✓ Done</button>
+          <button class="post-save-btn" data-doneedit="${pIdx}" style="background:var(--ios-blue)!important;color:#FFFFFF!important;border:none!important;font-weight:700">💾 Save Note</button>
         </div>`;
     } else if(post.note && post.note.trim()){
       noteMarkup = `<div class="note-display" data-startedit="${pIdx}">${escapeHtml(post.note)}</div>`;
       footMarkup = `
         <div class="post-foot">
-          <button class="post-save-btn saved" data-startedit="${pIdx}" style="font-size:12px;padding:3px 10px">✏️ Edit</button>
+          <button class="post-save-btn saved" data-startedit="${pIdx}" style="font-size:12px;padding:4px 12px">✏️ Edit Note</button>
         </div>`;
     } else if(!hasPhotos){
       noteMarkup = `<textarea class="note" id="noteInput_${pIdx}" rows="3" data-postnote="${pIdx}" placeholder="Write your note here...">${escapeHtml(post.note||'')}</textarea>`;
       footMarkup = `
         <div class="post-foot">
-          <button class="post-save-btn saved" data-doneedit="${pIdx}">✓ Done</button>
+          <button class="post-save-btn" data-doneedit="${pIdx}" style="background:var(--ios-blue)!important;color:#FFFFFF!important;border:none!important;font-weight:700">💾 Save Note</button>
         </div>`;
     } else {
       noteMarkup = `<button class="add-note-inline-btn" data-startedit="${pIdx}">＋ Add note</button>`;
@@ -2940,10 +2940,15 @@ function drawDay(){
     };
   });
 
-  // Done Edit Note Handler
+  // Done / Save Edit Note Handler
   el.querySelectorAll('[data-doneedit]').forEach(btn => {
     btn.onclick = async (e) => {
       e.stopPropagation();
+      const pIdx = +btn.dataset.doneedit;
+      const inp = $(`noteInput_${pIdx}`);
+      if(inp){
+        openPosts[pIdx].note = inp.value;
+      }
       activeEditPostIdx = null;
       await save();
       drawDay();
@@ -2961,6 +2966,10 @@ function drawDay(){
       saveTimer = setTimeout(async () => {
         await save(true);
       }, 400);
+    };
+    t.onblur = async () => {
+      openPosts[pIdx].note = t.value;
+      await save(true);
     };
   });
 }
