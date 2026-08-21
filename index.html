@@ -290,6 +290,108 @@
     transform: translateX(3px);
   }
 
+  /* ---------- HUB WEEKLY OVERVIEW STRIP ROWS ---------- */
+  .hub-week-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 6px;
+  }
+  .hub-week-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.60);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 1px #FFFFFF;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hub-week-strip:hover {
+    background: rgba(255, 255, 255, 0.90);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF;
+  }
+  .hub-week-strip.today {
+    background: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 3px 10px rgba(0, 122, 255, 0.12), inset 0 1px 1px #FFFFFF !important;
+  }
+  .hub-strip-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+  .hub-strip-dow {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ios-label-secondary);
+    min-width: 28px;
+  }
+  .hub-week-strip.today .hub-strip-dow {
+    color: var(--ios-blue);
+  }
+  .hub-strip-date {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-label);
+    min-width: 22px;
+  }
+  .hub-strip-today-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1.5px 5px;
+    border-radius: 999px;
+    background: rgba(0, 122, 255, 0.12);
+    color: var(--ios-blue);
+    letter-spacing: 0.04em;
+  }
+  .hub-strip-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 4px;
+  }
+  .hub-strip-content::-webkit-scrollbar { display: none; }
+  .hub-strip-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 8px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: #FFFFFF;
+    border: 0.5px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    color: var(--ios-label);
+    white-space: nowrap;
+  }
+  .hub-strip-tag svg {
+    width: 12px;
+    height: 12px;
+  }
+  .hub-strip-empty {
+    font-size: 12px;
+    color: var(--ios-label-tertiary);
+  }
+  .hub-strip-right {
+    color: var(--ios-label-tertiary);
+    display: flex;
+    align-items: center;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
   /* ---------- APPLE iOS NAVIGATION BAR & BACK BUTTON ---------- */
   .back {
     display: inline-flex !important;
@@ -1559,19 +1661,35 @@
       </button>
     </div>
 
-    <!-- HUB MASTER UNIFIED CALENDAR (PLACED AT THE TOP) -->
+    <!-- HUB MASTER UNIFIED OVERVIEW (WEEKLY STRIPS BY DEFAULT / MONTHLY CALENDAR TOGGLE) -->
     <div class="mod-card" id="hubMasterCalendarCard">
-      <div class="top" style="margin-bottom:12px">
-        <div class="month" id="hubMTitle" style="font-size:18px">—</div>
-        <div class="nav">
-          <button id="hubPrev" aria-label="Previous month">←</button>
-          <button id="hubNext" aria-label="Next month">→</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="month" id="hubMTitle" style="font-size:16px;font-weight:700">—</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="view-toggle" id="hubCalToggle" style="padding:2px">
+            <button class="active" data-hview="week" style="padding:4px 10px;font-size:11.5px">Week</button>
+            <button data-hview="month" style="padding:4px 10px;font-size:11.5px">Month</button>
+          </div>
+          <div class="nav" style="display:flex;gap:4px">
+            <button id="hubPrev" aria-label="Previous" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+            <button id="hubNext" aria-label="Next" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
+          </div>
         </div>
       </div>
-      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-      <div class="hub-cal-grid" id="hubGrid"></div>
+
+      <!-- WEEK VIEW (DEFAULT): 7 HORIZONTAL STRIPS -->
+      <div id="hubWeekView">
+        <div class="hub-week-list" id="hubWeekList"></div>
+      </div>
+
+      <!-- MONTH VIEW: 7-COL MONTHLY GRID -->
+      <div id="hubMonthView" hidden>
+        <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="hub-cal-grid" id="hubGrid"></div>
+      </div>
+
       <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
-        Synced Badges: 🍲 Meals · 💰 Budget · 🌸 Period / 🌙 Sleep<br>Tap any day to inspect full life records.
+        Meals · Budget · Health &amp; Sleep<br>Tap any day to inspect full life records.
       </div>
       <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
     </div>
@@ -1581,8 +1699,10 @@
       <div class="hub-list-row" id="cardFood">
         <div class="hub-row-left">
           <span class="hub-row-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+              <path d="M7 2v20"/>
+              <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
             </svg>
           </span>
           <span class="hub-row-title">Food Diary</span>
@@ -2631,82 +2751,240 @@ async function loadHubStats(){
   }
 }
 
-/* ================= HUB MASTER UNIFIED CALENDAR ================= */
+/* ================= HUB MASTER UNIFIED OVERVIEW (WEEKLY / MONTHLY) ================= */
 let hubViewDate = new Date();
+let hubMasterMode = 'week';
+
+function getWeekDays(refDate){
+  const d = new Date(refDate);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  const mon = new Date(d.setDate(diff));
+  const days = [];
+  for(let i = 0; i < 7; i++){
+    const cur = new Date(mon);
+    cur.setDate(mon.getDate() + i);
+    days.push(cur);
+  }
+  return days;
+}
 
 async function loadHubMasterCalendar(){
   try {
-    if($('hubMTitle')) $('hubMTitle').innerHTML = `${MONTHS[hubViewDate.getMonth()]} <span class="yr">${hubViewDate.getFullYear()}</span>`;
-    const y = hubViewDate.getFullYear();
-    const m = hubViewDate.getMonth();
-    const first = new Date(y, m, 1);
-    let start = first.getDay() - 1; if(start === -1) start = 6;
-    const daysInM = new Date(y, m + 1, 0).getDate();
-    const total = Math.ceil((start + daysInM) / 7) * 7;
-
-    // Fetch month data from Food, Budget, Health
-    const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
     const budgetEntries = (await store.get('budget:entries')) || [];
     const healthLogs = (await store.get('health:logs')) || {};
-
-    const curMonthKey = `${y}-${pad(m + 1)}`;
     const today = new Date();
-    const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-    let html = '';
-    for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
+    if(hubMasterMode === 'week'){
+      const weekDays = getWeekDays(hubViewDate);
+      const startDt = weekDays[0];
+      const endDt = weekDays[6];
+      
+      const isStartSameMonth = (startDt.getMonth() === endDt.getMonth());
+      const titleStr = isStartSameMonth
+        ? `${MONTHS[startDt.getMonth()]} ${startDt.getDate()} – ${endDt.getDate()} <span class="yr">${endDt.getFullYear()}</span>`
+        : `${MONTHS[startDt.getMonth()].slice(0,3)} ${startDt.getDate()} – ${MONTHS[endDt.getMonth()].slice(0,3)} ${endDt.getDate()} <span class="yr">${endDt.getFullYear()}</span>`;
+      
+      if($('hubMTitle')) $('hubMTitle').innerHTML = titleStr;
 
-    for(let d = 1; d <= daysInM; d++){
-      const dd = pad(d);
-      const dateStr = `${curMonthKey}-${dd}`;
-      const isToday = isThisMonth && today.getDate() === d;
+      let weekHtml = '';
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-      // Check Food
-      const foodItem = foodMonthIdx[dd];
-      const hasFood = !!foodItem;
+      for(let i = 0; i < 7; i++){
+        const dt = weekDays[i];
+        const y = dt.getFullYear();
+        const m = dt.getMonth();
+        const d = dt.getDate();
+        const dd = pad(d);
+        const dateStr = `${y}-${pad(m + 1)}-${dd}`;
+        const isToday = (dateStr === todayStr);
 
-      // Check Budget
-      const dayBudget = budgetEntries.filter(b => b.date === dateStr);
-      const hasBudget = dayBudget.length > 0;
-      const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+        // Fetch Food
+        const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
+        const foodItem = foodMonthIdx[dd];
 
-      // Check Health
-      const healthItem = healthLogs[dateStr];
-      const hasSleep = !!(healthItem && healthItem.sleepDuration);
-      const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
-      const hasIntimacy = !!(healthItem && healthItem.intimacy > 0);
-      const hasWater = !!(healthItem && healthItem.water >= 1500);
+        // Fetch Budget
+        const dayBudget = budgetEntries.filter(b => b.date === dateStr);
+        const hasBudget = dayBudget.length > 0;
+        const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
 
-      // Build badges
-      let badges = '';
-      if(hasFood) badges += `<span class="hub-badge" title="Meals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></span>`;
-      if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>`;
-      if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
-      if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
-      else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></span>`;
-      if(hasWater) badges += `<span class="hub-badge" title="Hydrated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 21a7.5 7.5 0 0 0 7.5-7.5c0-4.5-7.5-10.5-7.5-10.5S4.5 9 4.5 13.5A7.5 7.5 0 0 0 12 21Z"/></svg></span>`;
+        // Fetch Health
+        const healthItem = healthLogs[dateStr];
 
-      html += `
-      <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
-        <b>${d}</b>
-        <div class="hub-badge-row">${badges}</div>
-      </div>`;
-    }
+        // Highlights
+        let highlights = '';
+        let hasAnything = false;
 
-    for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
-    if($('hubGrid')) $('hubGrid').innerHTML = html;
+        if(foodItem){
+          hasAnything = true;
+          highlights += `
+          <span class="hub-strip-tag" title="Food Diary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            ${foodItem.count ? `${foodItem.count} meals` : 'Meals'}
+          </span>`;
+        }
 
-    if($('hubGrid')){
-      $('hubGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
-        cell.onclick = () => openHubDayDetail(cell.dataset.hubdate, foodMonthIdx, budgetEntries, healthLogs);
-      });
+        if(hasBudget){
+          hasAnything = true;
+          highlights += `
+          <span class="hub-strip-tag" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget Net">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+            ${bNet>=0?'+':''}$${bNet.toFixed(2)}
+          </span>`;
+        }
+
+        if(healthItem){
+          if(healthItem.period && healthItem.period !== 'none'){
+            hasAnything = true;
+            highlights += `
+            <span class="hub-strip-tag" style="color:#E11D48" title="Period">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+              Period
+            </span>`;
+          }
+          if(healthItem.sleepDuration){
+            hasAnything = true;
+            highlights += `
+            <span class="hub-strip-tag" title="Sleep Duration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+              ${healthItem.sleepDuration}
+            </span>`;
+          }
+          if(healthItem.water >= 1500){
+            hasAnything = true;
+            highlights += `
+            <span class="hub-strip-tag" style="color:var(--ios-blue)" title="Hydration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M12 21a7.5 7.5 0 0 0 7.5-7.5c0-4.5-7.5-10.5-7.5-10.5S4.5 9 4.5 13.5A7.5 7.5 0 0 0 12 21Z"/></svg>
+              ${healthItem.water}ml
+            </span>`;
+          }
+        }
+
+        if(!hasAnything){
+          highlights = `<span class="hub-strip-empty">No records</span>`;
+        }
+
+        weekHtml += `
+        <div class="hub-week-strip ${isToday ? 'today' : ''}" data-hubdate="${dateStr}">
+          <div class="hub-strip-left">
+            <span class="hub-strip-dow">${dayNames[i]}</span>
+            <span class="hub-strip-date">${d}</span>
+            ${isToday ? '<span class="hub-strip-today-badge">TODAY</span>' : ''}
+          </div>
+          <div class="hub-strip-content">${highlights}</div>
+          <div class="hub-strip-right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>`;
+      }
+
+      if($('hubWeekList')) $('hubWeekList').innerHTML = weekHtml;
+
+      if($('hubWeekList')){
+        $('hubWeekList').querySelectorAll('.hub-week-strip').forEach(strip => {
+          strip.onclick = async () => {
+            const dateStr = strip.dataset.hubdate;
+            const [y, m, d] = dateStr.split('-');
+            const foodMonthIdx = (await store.get(`month:${y}-${m}`)) || {};
+            openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs);
+          };
+        });
+      }
+    } else {
+      // MONTH VIEW
+      if($('hubMTitle')) $('hubMTitle').innerHTML = `${MONTHS[hubViewDate.getMonth()]} <span class="yr">${hubViewDate.getFullYear()}</span>`;
+      const y = hubViewDate.getFullYear();
+      const m = hubViewDate.getMonth();
+      const first = new Date(y, m, 1);
+      let start = first.getDay() - 1; if(start === -1) start = 6;
+      const daysInM = new Date(y, m + 1, 0).getDate();
+      const total = Math.ceil((start + daysInM) / 7) * 7;
+
+      const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
+      const curMonthKey = `${y}-${pad(m + 1)}`;
+      const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+
+      let html = '';
+      for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
+
+      for(let d = 1; d <= daysInM; d++){
+        const dd = pad(d);
+        const dateStr = `${curMonthKey}-${dd}`;
+        const isToday = isThisMonth && today.getDate() === d;
+
+        const foodItem = foodMonthIdx[dd];
+        const hasFood = !!foodItem;
+
+        const dayBudget = budgetEntries.filter(b => b.date === dateStr);
+        const hasBudget = dayBudget.length > 0;
+        const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+
+        const healthItem = healthLogs[dateStr];
+        const hasSleep = !!(healthItem && healthItem.sleepDuration);
+        const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
+        const hasIntimacy = !!(healthItem && healthItem.intimacy > 0);
+        const hasWater = !!(healthItem && healthItem.water >= 1500);
+
+        let badges = '';
+        if(hasFood) badges += `<span class="hub-badge" title="Meals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></span>`;
+        if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>`;
+        if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+        if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+        else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></span>`;
+        if(hasWater) badges += `<span class="hub-badge" title="Hydrated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 21a7.5 7.5 0 0 0 7.5-7.5c0-4.5-7.5-10.5-7.5-10.5S4.5 9 4.5 13.5A7.5 7.5 0 0 0 12 21Z"/></svg></span>`;
+
+        html += `
+        <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
+          <b>${d}</b>
+          <div class="hub-badge-row">${badges}</div>
+        </div>`;
+      }
+
+      for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
+      if($('hubGrid')) $('hubGrid').innerHTML = html;
+
+      if($('hubGrid')){
+        $('hubGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
+          cell.onclick = () => openHubDayDetail(cell.dataset.hubdate, foodMonthIdx, budgetEntries, healthLogs);
+        });
+      }
     }
   } catch(err){
     console.error('loadHubMasterCalendar error:', err);
   }
 }
-$('hubPrev').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() - 1); loadHubMasterCalendar(); };
-$('hubNext').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() + 1); loadHubMasterCalendar(); };
+
+if($('hubCalToggle')){
+  $('hubCalToggle').querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      $('hubCalToggle').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      hubMasterMode = btn.dataset.hview;
+      if($('hubWeekView')) $('hubWeekView').hidden = (hubMasterMode !== 'week');
+      if($('hubMonthView')) $('hubMonthView').hidden = (hubMasterMode !== 'month');
+      loadHubMasterCalendar();
+    };
+  });
+}
+
+$('hubPrev').onclick = () => {
+  if(hubMasterMode === 'week'){
+    hubViewDate.setDate(hubViewDate.getDate() - 7);
+  } else {
+    hubViewDate.setMonth(hubViewDate.getMonth() - 1);
+  }
+  loadHubMasterCalendar();
+};
+
+$('hubNext').onclick = () => {
+  if(hubMasterMode === 'week'){
+    hubViewDate.setDate(hubViewDate.getDate() + 7);
+  } else {
+    hubViewDate.setMonth(hubViewDate.getMonth() + 1);
+  }
+  loadHubMasterCalendar();
+};
 
 async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs){
   const [y, m, d] = dateStr.split('-');
@@ -2724,8 +3002,11 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let foodSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">Food Diary</div>
-      <div style="font-size:12px;color:var(--ios-label-secondary)">${dayFoodPosts.length ? `${dayFoodPosts.length} meal(s) logged` : 'No meals recorded'}</div>
+      <div style="font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        Food Diary
+      </div>
+      <div style="font-size:12px;color:var(--ios-label-secondary);margin-top:2px">${dayFoodPosts.length ? `${dayFoodPosts.length} meal(s) logged` : 'No meals recorded'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="openFoodForDay('${dateStr}')">Open ➔</button>
   </div>`;
@@ -2734,8 +3015,11 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let budgetSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">Budget &amp; Transactions</div>
-      <div style="font-size:12px;color:var(--ios-label-secondary)">${dayBudget.length ? `${dayBudget.length} item(s) · Net: ${budgetNet>=0?'+':''}$${budgetNet.toFixed(2)}` : 'No expenses recorded'}</div>
+      <div style="font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+        Budget &amp; Transactions
+      </div>
+      <div style="font-size:12px;color:var(--ios-label-secondary);margin-top:2px">${dayBudget.length ? `${dayBudget.length} item(s) · Net: ${budgetNet>=0?'+':''}$${budgetNet.toFixed(2)}` : 'No expenses recorded'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('budgetView')">Open ➔</button>
   </div>`;
@@ -2743,8 +3027,11 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let healthSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">Health &amp; Sleep</div>
-      <div style="font-size:12px;color:var(--ios-label-secondary)">${healthItem ? `Sleep: ${healthItem.sleepDuration || '--'} · Period: ${healthItem.period || 'None'}` : 'No health log'}</div>
+      <div style="font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+        Health &amp; Sleep
+      </div>
+      <div style="font-size:12px;color:var(--ios-label-secondary);margin-top:2px">${healthItem ? `Sleep: ${healthItem.sleepDuration || '--'} · Period: ${healthItem.period || 'None'}` : 'No health log'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('healthView')">Open ➔</button>
   </div>`;
