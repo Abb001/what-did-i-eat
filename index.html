@@ -2142,6 +2142,7 @@
     </div>
 
     <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
+    <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
     <div class="mod-card" style="margin-bottom:16px">
       <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">📦 本機檔案快速備份與還原 (最簡單、零設定)</span>
       <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
@@ -2157,24 +2158,8 @@
       </div>
     </div>
 
-    <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
-    <div class="mod-card" style="margin-bottom:16px">
-      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">📦 本機檔案備份與還原 (Offline Backup)</span>
-      <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
-        無需任何設定，一鍵將手機所有歷史記錄下載為單一 `.json` 備份檔，並可於任何時候還原。
-      </p>
-      <div style="display:flex;gap:8px;flex-direction:column">
-        <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px">
-          📤 匯出完整備份檔 (Export Backup JSON)
-        </button>
-        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7)">
-          📥 匯入還原備份檔 (Import &amp; Restore JSON)
-        </button>
-      </div>
-    </div>
-
     <!-- 3. AI SETTINGS CARD -->
-    <div class="mod-card">
+    <div class="mod-card" style="margin-bottom:16px">
       <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">🤖 AI Vision Service</span>
       <div class="form-group">
         <label>Google Gemini API Key (For Calorie &amp; Recipe Estimation)</label>
@@ -2182,6 +2167,14 @@
         <small style="color:var(--ios-label-secondary);margin-top:4px;display:block">Your key is stored locally in your private IndexedDB on this device.</small>
       </div>
       <button class="action-btn" id="saveSettingsBtn" style="width:100%">Save Settings</button>
+    </div>
+
+    <!-- 4. APP VERSION & FORCE RELOAD -->
+    <div class="mod-card" style="text-align:center;padding:16px">
+      <div style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:8px">App Version: <b>v3.2 (Latest)</b></div>
+      <button class="action-btn" onclick="forceAppUpdate()" style="width:100%;padding:10px 14px;justify-content:center;font-size:12.5px;background:rgba(255,255,255,0.75)">
+        🔄 強制更新至最新版本 (Clear Cache &amp; Reload)
+      </button>
     </div>
   </div>
 
@@ -4314,9 +4307,37 @@ async function migrateLegacyStorage(){
   }
 }
 
+window.forceAppUpdate = async () => {
+  pill('Updating App to Latest...', true);
+  try {
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for(const r of regs) await r.unregister();
+    }
+    if('caches' in window){
+      const keys = await caches.keys();
+      for(const k of keys) await caches.delete(k);
+    }
+  } catch(e){}
+  window.location.reload();
+};
+
 $('mode').textContent = `Storage: ${backend}`;
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  navigator.serviceWorker.register('service-worker.js').then(reg => {
+    reg.update().catch(()=>{});
+    reg.onupdatefound = () => {
+      const w = reg.installing;
+      if(w){
+        w.onstatechange = () => {
+          if(w.state === 'installed' && navigator.serviceWorker.controller){
+            pill('App Updated! Reloading...');
+            setTimeout(() => window.location.reload(), 900);
+          }
+        };
+      }
+    };
+  }).catch(() => {});
 }
 
 async function initApp(){
