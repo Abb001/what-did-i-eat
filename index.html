@@ -1527,9 +1527,12 @@
 <div class="wrap">
   <!-- LEVEL 1: HUB LANDING DASHBOARD -->
   <div class="view" id="hub">
-    <div class="hub-header">
-      <h1 class="hub-title">Hub</h1>
-      <p class="hub-subtitle">Personal Life &amp; Wellness Dashboard</p>
+    <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h1 class="hub-title">Hub</h1>
+        <p class="hub-subtitle">Personal Life &amp; Wellness Dashboard</p>
+      </div>
+      <button class="action-btn" id="hubSettingsBtn" style="padding:8px 12px;font-size:14px;border-radius:999px" title="Settings & Backup">⚙️ Settings</button>
     </div>
 
     <!-- HUB MASTER UNIFIED CALENDAR (PLACED AT THE TOP) -->
@@ -2087,17 +2090,37 @@
     <div id="healthLogsList"></div>
   </div>
 
-  <!-- SETTINGS MODAL VIEW -->
+  <!-- SETTINGS & DATA SYNC VIEW -->
   <div class="view" id="settingsView" hidden>
-    <button class="back" id="settingsBack">Calendar</button>
+    <button class="back" id="settingsBack">Hub</button>
     <div class="hub-header">
-      <h1 class="hub-title">⚙️ App Settings</h1>
+      <h1 class="hub-title">⚙️ Settings &amp; Data</h1>
+      <p class="hub-subtitle">Backup, restore &amp; manage your personal data</p>
     </div>
+
+    <!-- 1. BACKUP & RESTORE CARD -->
+    <div class="mod-card" style="margin-bottom:16px">
+      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">📦 Data Backup &amp; Transfer (備份與還原)</span>
+      <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:14px">
+        更換桌面圖示或跨裝置使用時，可點擊下方按鈕將手機上的所有資料（餐點照片、記帳、健康與生理期紀錄）一鍵下載為備份檔，並隨時還原。
+      </p>
+      <div style="display:flex;gap:10px;flex-direction:column">
+        <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px">
+          📤 匯出完整備份檔 (Export Backup JSON)
+        </button>
+        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7)">
+          📥 匯入還原備份檔 (Import &amp; Restore JSON)
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. AI SETTINGS CARD -->
     <div class="mod-card">
+      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">🤖 AI Vision Service</span>
       <div class="form-group">
-        <label>Gemini Vision API Key (For AI Calorie Analysis)</label>
+        <label>Google Gemini API Key (For Calorie &amp; Recipe Estimation)</label>
         <input type="password" id="geminiApiKey" placeholder="AIzaSy...">
-        <small style="color:var(--soft);margin-top:4px;display:block">Your key is stored locally on your device in IndexedDB and never shared.</small>
+        <small style="color:var(--ios-label-secondary);margin-top:4px;display:block">Your key is stored locally in your private IndexedDB on this device.</small>
       </div>
       <button class="action-btn" id="saveSettingsBtn" style="width:100%">Save Settings</button>
     </div>
@@ -2260,16 +2283,22 @@ $('healthBack').onclick = () => showView('hub');
 $('moodBack').onclick = () => showView('hub');
 $('selfiesBack').onclick = () => showView('hub');
 
-$('settingsBtn').onclick = () => {
+let previousSettingsView = 'hub';
+
+const openSettings = (fromView) => {
+  previousSettingsView = fromView || 'hub';
   store.get('config:geminiKey').then(k => { $('geminiApiKey').value = k || ''; });
   showView('settingsView');
 };
-$('settingsBack').onclick = () => showView('cal');
+
+$('settingsBtn').onclick = () => openSettings('cal');
+$('hubSettingsBtn').onclick = () => openSettings('hub');
+$('settingsBack').onclick = () => showView(previousSettingsView || 'hub');
 $('saveSettingsBtn').onclick = async () => {
   const val = $('geminiApiKey').value.trim();
   await store.set('config:geminiKey', val);
   pill('API Key Saved');
-  showView('cal');
+  showView(previousSettingsView || 'hub');
 };
 
 async function loadHubStats(){
@@ -3926,7 +3955,7 @@ window.delSelfie = async (idx) => {
 };
 
 /* ---------- BACKUP EXPORT / RESTORE ---------- */
-$('exportBtn').onclick = async () => {
+const triggerExportBackup = async () => {
   const keys = await store.keys();
   const data = {};
   for(const k of keys) data[k] = await store.get(k);
@@ -3936,9 +3965,17 @@ $('exportBtn').onclick = async () => {
   a.download = `my-personal-app-backup-${key(new Date())}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  pill('Backup Downloaded ✓');
 };
 
-$('importBtn').onclick = () => $('restore').click();
+const triggerImportBackup = () => $('restore').click();
+
+if($('exportBtn')) $('exportBtn').onclick = triggerExportBackup;
+if($('settingsExportBtn')) $('settingsExportBtn').onclick = triggerExportBackup;
+
+if($('importBtn')) $('importBtn').onclick = triggerImportBackup;
+if($('settingsImportBtn')) $('settingsImportBtn').onclick = triggerImportBackup;
+
 $('restore').onchange = e => {
   const f = e.target.files[0]; e.target.value = '';
   if(!f) return;
