@@ -2519,24 +2519,6 @@ $('btnGistPull').onclick = async () => {
     alert('從 GitHub Gist 還原失敗: ' + err.message);
   }
 };
-      alert('Backup file on Google Drive is empty.');
-      return;
-    }
-
-    if(!confirm(`Restore ${entries.length} data records from Google Drive? Existing local records will be updated.`)) return;
-
-    for(const [k, val] of entries){
-      await store.set(k, val);
-    }
-
-    pill('Restored from Google Drive ✓');
-    alert(`✅ Successfully restored ${entries.length} records from Google Drive!`);
-    showView('hub');
-  } catch(err){
-    console.error('Google Drive Pull Error:', err);
-    alert('Failed to pull from Google Drive: ' + err.message);
-  }
-};
 
 async function loadHubStats(){
   try {
