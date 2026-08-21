@@ -1106,7 +1106,7 @@
   .selfie-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
   .selfie-meta { padding: 10px; font-size: 12px; color: var(--ios-label-secondary); display: flex; justify-content: space-between; }
 
-  .saved {
+  #savedPill {
     position: fixed;
     left: 50%;
     top: calc(14px + env(safe-area-inset-top));
@@ -1129,9 +1129,9 @@
     align-items: center;
     gap: 7px;
   }
-  .saved.show { opacity: 1; transform: translate(-50%, 0); }
-  .saved i { width: 6px; height: 6px; border-radius: 50%; background: var(--ios-green); display: block; }
-  .saved.working i { background: var(--ios-orange); }
+  #savedPill.show, #savedPill.on { opacity: 1; transform: translate(-50%, 0); }
+  #savedPill i { width: 6px; height: 6px; border-radius: 50%; background: var(--ios-green); display: block; }
+  #savedPill.working i { background: var(--ios-orange); }
 
   /* ---------- FLOATING ACTION BUTTON (iOS VisionOS Orb) ---------- */
   .add {
