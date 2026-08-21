@@ -1,4 +1,4 @@
-const CACHE = 'meals-shell-v2';
+const CACHE = 'meals-shell-v3';
 const ASSETS = ['./', './index.html', './service-worker.js', './manifest.json', './favicon.png', './apple-touch-icon.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -24,8 +24,10 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
       fetch(request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(request, copy));
+        if(response.status === 200){
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(request, copy));
+        }
         return response;
       }).catch(() => caches.match('./index.html'))
     );
