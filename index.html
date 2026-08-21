@@ -1941,165 +1941,181 @@
       <p class="hub-subtitle">Sleep, hydration, menstrual cycle &amp; daily vitals</p>
     </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="health-quick-grid">
-      <div class="mod-card health-card">
-        <div class="health-card-title">🌙 Last Sleep</div>
-        <div class="health-card-val" id="hStatSleep">-- h</div>
-        <div class="health-card-sub" id="hStatSleepTimes">--:-- to --:--</div>
-      </div>
-      <div class="mod-card health-card">
-        <div class="health-card-title">💧 Daily Water</div>
-        <div class="health-card-val" id="hStatWater">0 ml</div>
-        <div class="health-card-sub" id="hStatWaterGoal">Goal: 2000 ml</div>
-      </div>
+    <!-- HEALTH 3-PILLAR SUB-NAVIGATION -->
+    <div class="b-sub-nav" id="healthSubNav" style="margin-bottom:16px">
+      <button class="active" data-htab="cal">📅 Calendar &amp; History</button>
+      <button data-htab="form">📝 New Health Log</button>
+      <button data-htab="stats">📊 Vitals &amp; Summary</button>
     </div>
 
-    <!-- HEALTH LOGGING FORM -->
-    <div class="mod-card">
-      <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Health &amp; Wellness</span>
-      
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="hDate">
-      </div>
-
-      <!-- 1. SLEEP SECTION -->
-      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌙 Sleep &amp; Wake Times</span>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-          <div>
-            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime (入睡)</label>
-            <input type="time" id="hBedtime" value="23:30">
-          </div>
-          <div>
-            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Wake Time (起床)</label>
-            <input type="time" id="hWaketime" value="07:30">
+    <!-- SUB-TAB 1: CALENDAR & HISTORY (CALENDAR AT THE VERY TOP) -->
+    <div class="h-panel" id="hp-cal">
+      <!-- 1. HEALTH CALENDAR (PLACED AT THE VERY TOP) -->
+      <div class="mod-card" style="margin-bottom:16px">
+        <div class="top" style="margin-bottom:12px">
+          <div class="month" id="healthMTitle" style="font-size:18px">—</div>
+          <div class="nav">
+            <button id="healthPrev" aria-label="Previous month">←</button>
+            <button id="healthNext" aria-label="Next month">→</button>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;margin-bottom:8px">
-          <span style="font-size:12.5px;color:var(--ios-label-secondary)">Calculated Duration:</span>
-          <strong id="hSleepDurationTxt" style="font-size:14px;color:var(--ios-label)">8h 00m</strong>
-        </div>
-        <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality (睡眠品質)</label>
-        <div class="quality-chip-group" id="hQualityChips">
-          <button class="quality-chip active" data-quality="Restful 🌙">Restful 🌙</button>
-          <button class="quality-chip" data-quality="Deep 💤">Deep 💤</button>
-          <button class="quality-chip" data-quality="Light 🥱">Light 🥱</button>
-          <button class="quality-chip" data-quality="Disturbed ⚡">Disturbed ⚡</button>
+        <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="hub-cal-grid" id="healthCalGrid"></div>
+        <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
+          🌸 Period · 🌙 Sleep · 💧 Hydrated · 💕 Intimacy<br>Tap any day to view or edit its health records.
         </div>
       </div>
 
-      <!-- 2. HYDRATION WATER TRACKER -->
-      <div class="water-box">
-        <div class="water-header">
-          <span style="font-size:13.5px;font-weight:700">💧 Daily Hydration (水分補給)</span>
-          <span style="font-size:13px;font-weight:700;color:var(--ios-blue)" id="hWaterValTxt">0 / 2000 ml</span>
-        </div>
-        <div class="bar"><i id="hWaterBar" style="width:0%;background:var(--ios-blue)"></i></div>
-        <div class="water-actions">
-          <button class="water-btn" id="btnWater250">＋250ml 💧</button>
-          <button class="water-btn" id="btnWater500">＋500ml 🚰</button>
-          <button class="water-btn" id="btnWaterReset" style="color:var(--ios-red)">↺ Reset</button>
-        </div>
+      <!-- 2. HEALTH HISTORY LIST -->
+      <div class="b-month-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3>Health &amp; Wellness History (Newest First)</h3>
+        <button class="action-btn" id="btnGoNewHealthLog" style="padding:4px 12px;font-size:12px">＋ New Log</button>
       </div>
+      <div id="healthLogsList"></div>
+    </div>
 
-      <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
-      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period &amp; Intimacy (生理期與性生活)</span>
-        <div class="cycle-chip-group" id="hPeriodChips">
-          <button class="cycle-chip active" data-period="none">None</button>
-          <button class="cycle-chip" data-period="started">🌸 Started</button>
-          <button class="cycle-chip" data-period="ongoing">🩸 Ongoing</button>
-          <button class="cycle-chip" data-period="ended">🏁 Ended</button>
-        </div>
-        <div id="hFlowGroup" style="margin-top:10px" hidden>
-          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (經期流量)</label>
-          <select id="hFlow" style="margin-bottom:8px">
-            <option value="Light">Light (量少)</option>
-            <option value="Medium" selected>Medium (適中)</option>
-            <option value="Heavy">Heavy (量多)</option>
-            <option value="Spotting">Spotting (點狀)</option>
-          </select>
-        </div>
+    <!-- SUB-TAB 2: HEALTH LOGGING FORM -->
+    <div class="h-panel" id="hp-form" hidden>
+      <div class="mod-card">
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">📝 Log Daily Health &amp; Wellness</span>
         
-        <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms (症狀標籤)</label>
-        <div class="symptom-chip-group" id="hSymptomChips">
-          <button class="symptom-chip" data-sym="Cramps 😣">Cramps 😣</button>
-          <button class="symptom-chip" data-sym="Headache 🤕">Headache 🤕</button>
-          <button class="symptom-chip" data-sym="Fatigue 🥱">Fatigue 🥱</button>
-          <button class="symptom-chip" data-sym="Mood 🎭">Mood 🎭</button>
-          <button class="symptom-chip" data-sym="Bloating 🎈">Bloating 🎈</button>
-          <button class="symptom-chip" data-sym="Acne 💧">Acne 💧</button>
-          <button class="symptom-chip" data-sym="Backache ⚡">Backache ⚡</button>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="hDate">
         </div>
 
-        <!-- SEXUAL ACTIVITY & INTIMACY -->
-        <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.12)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">💕 Sexual Activity (性行為次數)</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="move-btn" id="btnIntimacyMinus" style="width:26px;height:26px;font-size:13px">－</button>
-              <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 次</strong>
-              <button class="move-btn" id="btnIntimacyPlus" style="width:26px;height:26px;font-size:13px">＋</button>
+        <!-- 1. SLEEP SECTION -->
+        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌙 Sleep &amp; Wake Times</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+            <div>
+              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime (入睡)</label>
+              <input type="time" id="hBedtime" value="23:30">
+            </div>
+            <div>
+              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Wake Time (起床)</label>
+              <input type="time" id="hWaketime" value="07:30">
             </div>
           </div>
-          <div class="symptom-chip-group" id="hIntimacyChips" style="margin-top:6px">
-            <button class="symptom-chip active" data-protect="none">None (無)</button>
-            <button class="symptom-chip" data-protect="Protected 🛡️">Protected 🛡️ (有防護)</button>
-            <button class="symptom-chip" data-protect="Unprotected ⚠️">Unprotected ⚠️ (無防護)</button>
-            <button class="symptom-chip" data-protect="High Drive 🔥">High Drive 🔥</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;margin-bottom:8px">
+            <span style="font-size:12.5px;color:var(--ios-label-secondary)">Calculated Duration:</span>
+            <strong id="hSleepDurationTxt" style="font-size:14px;color:var(--ios-label)">8h 00m</strong>
+          </div>
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality (睡眠品質)</label>
+          <div class="quality-chip-group" id="hQualityChips">
+            <button class="quality-chip active" data-quality="Restful 🌙">Restful 🌙</button>
+            <button class="quality-chip" data-quality="Deep 💤">Deep 💤</button>
+            <button class="quality-chip" data-quality="Light 🥱">Light 🥱</button>
+            <button class="quality-chip" data-quality="Disturbed ⚡">Disturbed ⚡</button>
           </div>
         </div>
-      </div>
 
-      <!-- 4. MOOD & VITALS -->
-      <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-        <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">😊 Daily Mood &amp; Body Weight</span>
-        <div class="mood-chip-group" id="hMoodChips" style="margin-bottom:10px">
-          <button class="mood-chip active" data-mood="😊 Great">😊 Great</button>
-          <button class="mood-chip" data-mood="😌 Calm">😌 Calm</button>
-          <button class="mood-chip" data-mood="😐 Okay">😐 Okay</button>
-          <button class="mood-chip" data-mood="🥱 Tired">🥱 Tired</button>
-          <button class="mood-chip" data-mood="😫 Stressed">😫 Stressed</button>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <div style="flex:1">
-            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Body Weight (kg)</label>
-            <input type="number" id="hWeight" placeholder="e.g. 52.5" step="0.1">
+        <!-- 2. HYDRATION WATER TRACKER -->
+        <div class="water-box" style="margin-bottom:14px">
+          <div class="water-header">
+            <span style="font-size:13.5px;font-weight:700">💧 Daily Hydration (水分補給)</span>
+            <span style="font-size:13px;font-weight:700;color:var(--ios-blue)" id="hWaterValTxt">0 / 2000 ml</span>
+          </div>
+          <div class="bar"><i id="hWaterBar" style="width:0%;background:var(--ios-blue)"></i></div>
+          <div class="water-actions">
+            <button class="water-btn" id="btnWater250">＋250ml 💧</button>
+            <button class="water-btn" id="btnWater500">＋500ml 🚰</button>
+            <button class="water-btn" id="btnWaterReset" style="color:var(--ios-red)">↺ Reset</button>
           </div>
         </div>
-      </div>
 
-      <!-- NOTES -->
-      <div class="form-group">
-        <label>Wellness Journal Notes</label>
-        <input type="text" id="hNotes" placeholder="e.g. Morning yoga 20m, 8h restful sleep, felt energized">
-      </div>
+        <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
+        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period &amp; Intimacy (生理期與性生活)</span>
+          <div class="cycle-chip-group" id="hPeriodChips">
+            <button class="cycle-chip active" data-period="none">None</button>
+            <button class="cycle-chip" data-period="started">🌸 Started</button>
+            <button class="cycle-chip" data-period="ongoing">🩸 Ongoing</button>
+            <button class="cycle-chip" data-period="ended">🏁 Ended</button>
+          </div>
+          <div id="hFlowGroup" style="margin-top:10px" hidden>
+            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (經期流量)</label>
+            <select id="hFlow" style="margin-bottom:8px">
+              <option value="Light">Light (量少)</option>
+              <option value="Medium" selected>Medium (適中)</option>
+              <option value="Heavy">Heavy (量多)</option>
+              <option value="Spotting">Spotting (點狀)</option>
+            </select>
+          </div>
+          
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms (症狀標籤)</label>
+          <div class="symptom-chip-group" id="hSymptomChips">
+            <button class="symptom-chip" data-sym="Cramps 😣">Cramps 😣</button>
+            <button class="symptom-chip" data-sym="Headache 🤕">Headache 🤕</button>
+            <button class="symptom-chip" data-sym="Fatigue 🥱">Fatigue 🥱</button>
+            <button class="symptom-chip" data-sym="Mood 🎭">Mood 🎭</button>
+            <button class="symptom-chip" data-sym="Bloating 🎈">Bloating 🎈</button>
+            <button class="symptom-chip" data-sym="Acne 💧">Acne 💧</button>
+            <button class="symptom-chip" data-sym="Backache ⚡">Backache ⚡</button>
+          </div>
 
-      <button class="action-btn" id="btnSaveHealth" style="width:100%">💾 Save Health Log</button>
+          <!-- SEXUAL ACTIVITY & INTIMACY -->
+          <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.12)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">💕 Sexual Activity (性行為次數)</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button class="move-btn" id="btnIntimacyMinus" style="width:26px;height:26px;font-size:13px">－</button>
+                <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 次</strong>
+                <button class="move-btn" id="btnIntimacyPlus" style="width:26px;height:26px;font-size:13px">＋</button>
+              </div>
+            </div>
+            <div class="symptom-chip-group" id="hIntimacyChips" style="margin-top:6px">
+              <button class="symptom-chip active" data-protect="none">None (無)</button>
+              <button class="symptom-chip" data-protect="Protected 🛡️">Protected 🛡️ (有防護)</button>
+              <button class="symptom-chip" data-protect="Unprotected ⚠️">Unprotected ⚠️ (無防護)</button>
+              <button class="symptom-chip" data-protect="High Drive 🔥">High Drive 🔥</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. MOOD & VITALS -->
+        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">😊 Daily Mood &amp; Body Weight</span>
+          <div class="mood-chip-group" id="hMoodChips" style="margin-bottom:10px">
+            <button class="mood-chip active" data-mood="😊 Great">😊 Great</button>
+            <button class="mood-chip" data-mood="😌 Calm">😌 Calm</button>
+            <button class="mood-chip" data-mood="😐 Okay">😐 Okay</button>
+            <button class="mood-chip" data-mood="🥱 Tired">🥱 Tired</button>
+            <button class="mood-chip" data-mood="😫 Stressed">😫 Stressed</button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="flex:1">
+              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Body Weight (kg)</label>
+              <input type="number" id="hWeight" placeholder="e.g. 52.5" step="0.1">
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="form-group">
+          <label>Wellness Journal Notes</label>
+          <input type="text" id="hNotes" placeholder="e.g. Morning yoga 20m, 8h restful sleep, felt energized">
+        </div>
+
+        <button class="action-btn" id="btnSaveHealth" style="width:100%">💾 Save Health Log</button>
+      </div>
     </div>
 
-    <!-- HEALTH CALENDAR -->
-    <div class="mod-card">
-      <div class="top" style="margin-bottom:12px">
-        <div class="month" id="healthMTitle" style="font-size:18px">—</div>
-        <div class="nav">
-          <button id="healthPrev" aria-label="Previous month">←</button>
-          <button id="healthNext" aria-label="Next month">→</button>
+    <!-- SUB-TAB 3: VITALS & STATS -->
+    <div class="h-panel" id="hp-stats" hidden>
+      <div class="health-quick-grid" style="margin-bottom:16px">
+        <div class="mod-card health-card">
+          <div class="health-card-title">🌙 Last Sleep</div>
+          <div class="health-card-val" id="hStatSleep">-- h</div>
+          <div class="health-card-sub" id="hStatSleepTimes">--:-- to --:--</div>
+        </div>
+        <div class="mod-card health-card">
+          <div class="health-card-title">💧 Daily Water</div>
+          <div class="health-card-val" id="hStatWater">0 ml</div>
+          <div class="health-card-sub" id="hStatWaterGoal">Goal: 2000 ml</div>
         </div>
       </div>
-      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-      <div class="hub-cal-grid" id="healthCalGrid"></div>
-      <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
-        🌸 Period · 🌙 Sleep · 💧 Hydrated
-      </div>
     </div>
-
-    <div class="b-month-header">
-      <h3>Health &amp; Wellness History (Newest First)</h3>
-    </div>
-    <div id="healthLogsList"></div>
   </div>
 
   <!-- SETTINGS & DATA SYNC VIEW -->
@@ -3961,6 +3977,43 @@ function initHealthForm(){
   updateWaterUI();
 }
 
+/* ---------- HEALTH SUB-NAVIGATION ---------- */
+function showHealthTab(tabId){
+  const tabs = ['cal', 'form', 'stats'];
+  tabs.forEach(t => {
+    const el = $(`hp-${t}`);
+    if(el) el.hidden = (t !== tabId);
+  });
+  if($('healthSubNav')){
+    $('healthSubNav').querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.htab === tabId);
+    });
+  }
+}
+
+if($('healthSubNav')){
+  $('healthSubNav').querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => showHealthTab(btn.dataset.htab);
+  });
+}
+
+if($('btnGoNewHealthLog')){
+  $('btnGoNewHealthLog').onclick = () => showHealthTab('form');
+}
+
+function openHealthDay(dateStr, healthLogs){
+  $('hDate').value = dateStr;
+  const item = healthLogs[dateStr];
+  if(item){
+    if(item.bedtime) $('hBedtime').value = item.bedtime;
+    if(item.waketime) $('hWaketime').value = item.waketime;
+    if(item.weight) $('hWeight').value = item.weight;
+    if(item.notes) $('hNotes').value = item.notes;
+    if(item.water) { currentWaterMl = item.water; $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`; $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`; }
+  }
+  showHealthTab('form');
+}
+
 $('btnSaveHealth').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
   const bedtime = $('hBedtime').value;
@@ -3991,6 +4044,7 @@ $('btnSaveHealth').onclick = async () => {
   await store.set('health:logs', healthLogs);
   pill('Health Log Saved ✓');
   loadHealthModule();
+  showHealthTab('cal');
 };
 
 async function loadHealthModule(){
@@ -4015,7 +4069,7 @@ async function loadHealthModule(){
   // Render Health Logs (Newest First)
   const el = $('healthLogsList');
   if(!dates.length){
-    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Log your sleep, water, cycle or intimacy above.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Tap "＋ New Log" to track your day.</div>`;
     return;
   }
 
@@ -4037,10 +4091,10 @@ async function loadHealthModule(){
     let moodBadge = item.mood ? `<span class="tag" style="font-size:11px">${item.mood}</span>` : '';
 
     return `
-    <div class="mod-card" style="margin-bottom:12px;padding:14px 16px">
+    <div class="mod-card" style="margin-bottom:12px;padding:14px 16px;cursor:pointer" onclick="openHealthDay('${dKey}', window.latestHealthLogs)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-weight:700;font-size:14px">${dateTitle}</span>
-        <button class="icon danger" onclick="delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
+        <button class="icon danger" onclick="event.stopPropagation();delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
         <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
@@ -4054,6 +4108,8 @@ async function loadHealthModule(){
       ${item.notes ? `<div style="font-size:13px;color:var(--ios-label-secondary);margin-top:4px">📝 ${item.notes}</div>` : ''}
     </div>`;
   }).join('');
+
+  window.latestHealthLogs = healthLogs;
 }
 
 window.delHealthLog = async (dateKey) => {
@@ -4096,7 +4152,7 @@ function drawHealthCalendar(healthLogs){
     }
 
     html += `
-    <div class="hub-cell ${isToday ? 'today' : ''}" data-hdate="${dateStr}">
+    <div class="hub-cell ${isToday ? 'today' : ''}" data-hdate="${dateStr}" style="cursor:pointer">
       <b>${d}</b>
       <div class="hub-badge-row">${badges}</div>
     </div>`;
@@ -4104,6 +4160,10 @@ function drawHealthCalendar(healthLogs){
 
   for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
   $('healthCalGrid').innerHTML = html;
+
+  $('healthCalGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
+    cell.onclick = () => openHealthDay(cell.dataset.hdate, healthLogs);
+  });
 }
 
 $('healthPrev').onclick = () => { healthCalDate.setMonth(healthCalDate.getMonth() - 1); loadHealthModule(); };
