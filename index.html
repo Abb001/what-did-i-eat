@@ -236,18 +236,16 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    background: #FFFFFF !important;
+    color: var(--ios-label) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF !important;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .hub-row-icon svg {
     width: 20px;
     height: 20px;
   }
-  .icon-food { background: rgba(255, 149, 0, 0.12); color: #FF9500; border: 0.5px solid rgba(255, 149, 0, 0.22); }
-  .icon-budget { background: rgba(52, 199, 89, 0.12); color: #34C759; border: 0.5px solid rgba(52, 199, 89, 0.22); }
-  .icon-health { background: rgba(255, 45, 85, 0.12); color: #FF2D55; border: 0.5px solid rgba(255, 45, 85, 0.22); }
-  .icon-mood { background: rgba(175, 82, 222, 0.12); color: #AF52DE; border: 0.5px solid rgba(175, 82, 222, 0.22); }
-  .icon-selfies { background: rgba(0, 122, 255, 0.12); color: #007AFF; border: 0.5px solid rgba(0, 122, 255, 0.22); }
-  .icon-settings { background: rgba(142, 142, 147, 0.12); color: #636366; border: 0.5px solid rgba(142, 142, 147, 0.22); }
 
   .hub-row-title {
     font-size: 15.5px;
@@ -1578,11 +1576,11 @@
       <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
     </div>
 
-    <!-- RECTANGULAR APP LIST (HEROICONS & APPLE WIDGET STYLE) -->
+    <!-- RECTANGULAR APP LIST (PURE WHITE HEROICONS & APPLE WIDGET STYLE) -->
     <div class="hub-list">
       <div class="hub-list-row" id="cardFood">
         <div class="hub-row-left">
-          <span class="hub-row-icon icon-food">
+          <span class="hub-row-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
             </svg>
@@ -1597,7 +1595,7 @@
       
       <div class="hub-list-row" id="cardBudget">
         <div class="hub-row-left">
-          <span class="hub-row-icon icon-budget">
+          <span class="hub-row-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="6" width="20" height="12" rx="2"/>
               <circle cx="12" cy="12" r="2.5"/>
@@ -1614,7 +1612,7 @@
 
       <div class="hub-list-row" id="cardHealth">
         <div class="hub-row-left">
-          <span class="hub-row-icon icon-health">
+          <span class="hub-row-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
             </svg>
@@ -1629,7 +1627,7 @@
 
       <div class="hub-list-row" id="cardMood">
         <div class="hub-row-left">
-          <span class="hub-row-icon icon-mood">
+          <span class="hub-row-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="3"/>
               <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -1646,7 +1644,7 @@
 
       <div class="hub-list-row" id="cardSelfies">
         <div class="hub-row-left">
-          <span class="hub-row-icon icon-selfies">
+          <span class="hub-row-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/>
               <path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/>
@@ -1659,32 +1657,17 @@
           <span class="hub-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
         </div>
       </div>
-
-      <div class="hub-list-row" id="cardSettings" style="background:rgba(255,255,255,0.78);border-color:rgba(255,255,255,0.95)">
-        <div class="hub-row-left">
-          <span class="hub-row-icon icon-settings">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.216.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-            </svg>
-          </span>
-          <span class="hub-row-title">Settings &amp; Cloud Sync</span>
-        </div>
-        <div class="hub-row-right">
-          <span class="hub-stat" id="hubSyncStat">Drive / Backup</span>
-          <span class="hub-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
-        </div>
-      </div>
     </div>
   </div>
 
   <!-- LEVEL 2: FOOD MODULE (Calendar View) -->
   <div class="view" id="cal" hidden>
-    <button class="back" id="calBack">Hub</button>
+    <button class="back" id="calBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="top">
       <div class="month" id="mTitle">—</div>
       <div class="nav">
-        <button id="prev" aria-label="Previous month">←</button>
-        <button id="next" aria-label="Next month">→</button>
+        <button id="prev" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+        <button id="next" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
       </div>
     </div>
     <div class="tally"><span id="tallyTxt">Loading</span><span class="bar"><i id="tallyBar" style="width:0"></i></span></div>
@@ -1694,14 +1677,17 @@
     <div class="foot">
       <button id="exportBtn">Export backup</button>
       <button id="importBtn">Restore backup</button>
-      <button id="settingsBtn">⚙️ AI Key</button>
+      <button id="settingsBtn" style="display:inline-flex;align-items:center;gap:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/></svg>
+        AI Key
+      </button>
       <small id="mode"></small>
     </div>
   </div>
 
   <!-- LEVEL 2: FOOD DAY SHEET -->
   <div class="view" id="sheet" hidden>
-    <button class="back" id="back">Calendar</button>
+    <button class="back" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Calendar</button>
     <div class="dhead">
       <div>
         <div class="dnum" id="dNum">—</div>
@@ -1713,23 +1699,29 @@
       </div>
     </div>
     <div class="actions">
-      <button class="action-btn" id="dayAddBtn" style="padding:8px 20px;font-size:14px">＋ Add</button>
+      <button class="action-btn" id="dayAddBtn" style="padding:8px 20px;font-size:14px;display:inline-flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Add
+      </button>
     </div>
     <div id="dBody" class="loading">Loading</div>
   </div>
 
   <!-- LEVEL 2: EXPANDED 6-PILLAR BUDGET MODULE -->
   <div class="view" id="budgetView" hidden>
-    <button class="back" id="budgetBack">Hub</button>
+    <button class="back" id="budgetBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center">
-      <h1 class="hub-title">💰 Budget</h1>
-      <button class="action-btn" id="openCsvBtn" style="padding:6px 14px;font-size:12.5px">📊 Import CSV</button>
+      <h1 class="hub-title">Budget</h1>
+      <button class="action-btn" id="openCsvBtn" style="padding:6px 14px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+        Import CSV
+      </button>
     </div>
 
     <!-- 6-PILLAR SUB-NAVIGATION -->
     <div class="b-sub-nav" id="bSubNav">
       <button class="active" data-btab="overview">Overview</button>
-      <button data-btab="logs">📅 Logs &amp; Calendar</button>
+      <button data-btab="logs">Logs &amp; Calendar</button>
       <button data-btab="transfers">Transfers</button>
       <button data-btab="envelopes">Envelopes</button>
       <button data-btab="subscriptions">Subscriptions</button>
@@ -1755,12 +1747,12 @@
           <label>Category, Date &amp; Description</label>
           <div style="display:flex;gap:8px;margin-bottom:8px">
             <select id="bCat" style="width:125px">
-              <option value="Food">Food 🍲</option>
-              <option value="Transport">Transport 🚗</option>
-              <option value="Shopping">Shopping 🛍️</option>
-              <option value="Bills">Bills 📄</option>
-              <option value="Entertainment">Fun 🎮</option>
-              <option value="General">Other 📁</option>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Bills">Bills</option>
+              <option value="Entertainment">Fun</option>
+              <option value="General">Other</option>
             </select>
             <input type="date" id="bDate" style="flex:1">
           </div>
@@ -1963,12 +1955,15 @@
 
   <!-- LEVEL 2: MOODBOARD MODULE -->
   <div class="view" id="moodView" hidden>
-    <button class="back" id="moodBack">Hub</button>
+    <button class="back" id="moodBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="hub-header">
-      <h1 class="hub-title">🎨 Moodboard</h1>
+      <h1 class="hub-title">Moodboard</h1>
     </div>
     <div class="actions">
-      <button class="action-btn" id="addMoodBtn">＋ Add Photo Pin</button>
+      <button class="action-btn" id="addMoodBtn" style="display:inline-flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Add Photo Pin
+      </button>
     </div>
     <input type="file" id="moodFile" accept="image/*">
     <div id="moodGrid" class="mood-grid"></div>
@@ -1976,12 +1971,15 @@
 
   <!-- LEVEL 2: SELFIES MODULE -->
   <div class="view" id="selfiesView" hidden>
-    <button class="back" id="selfiesBack">Hub</button>
+    <button class="back" id="selfiesBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="hub-header">
-      <h1 class="hub-title">📸 Selfies</h1>
+      <h1 class="hub-title">Selfies</h1>
     </div>
     <div class="actions">
-      <button class="action-btn" id="addSelfieBtn">＋ Take / Add Selfie</button>
+      <button class="action-btn" id="addSelfieBtn" style="display:inline-flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
+        Take / Add Selfie
+      </button>
     </div>
     <input type="file" id="selfieFile" accept="image/*">
     <div id="selfieGrid" class="selfie-grid"></div>
@@ -1989,17 +1987,17 @@
 
   <!-- LEVEL 2: HEALTH MODULE -->
   <div class="view" id="healthView" hidden>
-    <button class="back" id="healthBack">Hub</button>
+    <button class="back" id="healthBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="hub-header">
-      <h1 class="hub-title">🌸 Health &amp; Wellness</h1>
+      <h1 class="hub-title">Health &amp; Wellness</h1>
       <p class="hub-subtitle">Sleep, hydration, menstrual cycle &amp; daily vitals</p>
     </div>
 
     <!-- HEALTH 3-PILLAR SUB-NAVIGATION -->
     <div class="b-sub-nav" id="healthSubNav" style="margin-bottom:16px">
-      <button class="active" data-htab="cal">📅 Calendar &amp; History</button>
-      <button data-htab="form">📝 New Health Log</button>
-      <button data-htab="stats">📊 Vitals &amp; Summary</button>
+      <button class="active" data-htab="cal">Calendar &amp; History</button>
+      <button data-htab="form">New Health Log</button>
+      <button data-htab="stats">Vitals &amp; Summary</button>
     </div>
 
     <!-- SUB-TAB 1: CALENDAR & HISTORY (CALENDAR AT THE VERY TOP) -->
@@ -2009,21 +2007,24 @@
         <div class="top" style="margin-bottom:12px">
           <div class="month" id="healthMTitle" style="font-size:18px">—</div>
           <div class="nav">
-            <button id="healthPrev" aria-label="Previous month">←</button>
-            <button id="healthNext" aria-label="Next month">→</button>
+            <button id="healthPrev" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+            <button id="healthNext" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
           </div>
         </div>
         <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
         <div class="hub-cal-grid" id="healthCalGrid"></div>
         <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
-          🌸 Period · 🌙 Sleep · 💧 Hydrated · 💕 Intimacy<br>Tap any day to view or edit its health records.
+          Period · Sleep · Hydration · Intimacy<br>Tap any day to view or edit its health records.
         </div>
       </div>
 
       <!-- 2. HEALTH HISTORY LIST -->
       <div class="b-month-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <h3>Health &amp; Wellness History (Newest First)</h3>
-        <button class="action-btn" id="btnGoNewHealthLog" style="padding:4px 12px;font-size:12px">＋ New Log</button>
+        <button class="action-btn" id="btnGoNewHealthLog" style="padding:4px 12px;font-size:12px;display:inline-flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          New Log
+        </button>
       </div>
       <div id="healthLogsList"></div>
     </div>
@@ -2031,7 +2032,7 @@
     <!-- SUB-TAB 2: HEALTH LOGGING FORM -->
     <div class="h-panel" id="hp-form" hidden>
       <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">📝 Log Daily Health &amp; Wellness</span>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Health &amp; Wellness</span>
         
         <div class="form-group">
           <label>Date</label>
@@ -2040,7 +2041,7 @@
 
         <!-- 1. SLEEP SECTION -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌙 Sleep &amp; Wake Times</span>
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Sleep &amp; Wake Times</span>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
             <div>
               <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime (入睡)</label>
@@ -2057,35 +2058,35 @@
           </div>
           <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality (睡眠品質)</label>
           <div class="quality-chip-group" id="hQualityChips">
-            <button class="quality-chip active" data-quality="Restful 🌙">Restful 🌙</button>
-            <button class="quality-chip" data-quality="Deep 💤">Deep 💤</button>
-            <button class="quality-chip" data-quality="Light 🥱">Light 🥱</button>
-            <button class="quality-chip" data-quality="Disturbed ⚡">Disturbed ⚡</button>
+            <button class="quality-chip active" data-quality="Restful">Restful</button>
+            <button class="quality-chip" data-quality="Deep">Deep</button>
+            <button class="quality-chip" data-quality="Light">Light</button>
+            <button class="quality-chip" data-quality="Disturbed">Disturbed</button>
           </div>
         </div>
 
         <!-- 2. HYDRATION WATER TRACKER -->
         <div class="water-box" style="margin-bottom:14px">
           <div class="water-header">
-            <span style="font-size:13.5px;font-weight:700">💧 Daily Hydration (水分補給)</span>
+            <span style="font-size:13.5px;font-weight:700">Daily Hydration (水分補給)</span>
             <span style="font-size:13px;font-weight:700;color:var(--ios-blue)" id="hWaterValTxt">0 / 2000 ml</span>
           </div>
           <div class="bar"><i id="hWaterBar" style="width:0%;background:var(--ios-blue)"></i></div>
           <div class="water-actions">
-            <button class="water-btn" id="btnWater250">＋250ml 💧</button>
-            <button class="water-btn" id="btnWater500">＋500ml 🚰</button>
-            <button class="water-btn" id="btnWaterReset" style="color:var(--ios-red)">↺ Reset</button>
+            <button class="water-btn" id="btnWater250">＋250 ml</button>
+            <button class="water-btn" id="btnWater500">＋500 ml</button>
+            <button class="water-btn" id="btnWaterReset" style="color:var(--ios-red)">Reset</button>
           </div>
         </div>
 
         <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">🌸 Menstrual Period &amp; Intimacy (生理期與性生活)</span>
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Menstrual Period &amp; Intimacy (生理期與性生活)</span>
           <div class="cycle-chip-group" id="hPeriodChips">
             <button class="cycle-chip active" data-period="none">None</button>
-            <button class="cycle-chip" data-period="started">🌸 Started</button>
-            <button class="cycle-chip" data-period="ongoing">🩸 Ongoing</button>
-            <button class="cycle-chip" data-period="ended">🏁 Ended</button>
+            <button class="cycle-chip" data-period="started">Started</button>
+            <button class="cycle-chip" data-period="ongoing">Ongoing</button>
+            <button class="cycle-chip" data-period="ended">Ended</button>
           </div>
           <div id="hFlowGroup" style="margin-top:10px" hidden>
             <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (經期流量)</label>
@@ -2099,19 +2100,19 @@
           
           <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms (症狀標籤)</label>
           <div class="symptom-chip-group" id="hSymptomChips">
-            <button class="symptom-chip" data-sym="Cramps 😣">Cramps 😣</button>
-            <button class="symptom-chip" data-sym="Headache 🤕">Headache 🤕</button>
-            <button class="symptom-chip" data-sym="Fatigue 🥱">Fatigue 🥱</button>
-            <button class="symptom-chip" data-sym="Mood 🎭">Mood 🎭</button>
-            <button class="symptom-chip" data-sym="Bloating 🎈">Bloating 🎈</button>
-            <button class="symptom-chip" data-sym="Acne 💧">Acne 💧</button>
-            <button class="symptom-chip" data-sym="Backache ⚡">Backache ⚡</button>
+            <button class="symptom-chip" data-sym="Cramps">Cramps</button>
+            <button class="symptom-chip" data-sym="Headache">Headache</button>
+            <button class="symptom-chip" data-sym="Fatigue">Fatigue</button>
+            <button class="symptom-chip" data-sym="Mood">Mood</button>
+            <button class="symptom-chip" data-sym="Bloating">Bloating</button>
+            <button class="symptom-chip" data-sym="Acne">Acne</button>
+            <button class="symptom-chip" data-sym="Backache">Backache</button>
           </div>
 
           <!-- SEXUAL ACTIVITY & INTIMACY -->
           <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.12)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">💕 Sexual Activity (性行為次數)</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">Sexual Activity (性行為次數)</span>
               <div style="display:flex;align-items:center;gap:8px">
                 <button class="move-btn" id="btnIntimacyMinus" style="width:26px;height:26px;font-size:13px">－</button>
                 <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 次</strong>
@@ -2120,22 +2121,22 @@
             </div>
             <div class="symptom-chip-group" id="hIntimacyChips" style="margin-top:6px">
               <button class="symptom-chip active" data-protect="none">None (無)</button>
-              <button class="symptom-chip" data-protect="Protected 🛡️">Protected 🛡️ (有防護)</button>
-              <button class="symptom-chip" data-protect="Unprotected ⚠️">Unprotected ⚠️ (無防護)</button>
-              <button class="symptom-chip" data-protect="High Drive 🔥">High Drive 🔥</button>
+              <button class="symptom-chip" data-protect="Protected">Protected (有防護)</button>
+              <button class="symptom-chip" data-protect="Unprotected">Unprotected (無防護)</button>
+              <button class="symptom-chip" data-protect="High Drive">High Drive</button>
             </div>
           </div>
         </div>
 
         <!-- 4. MOOD & VITALS -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">😊 Daily Mood &amp; Body Weight</span>
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Daily Mood &amp; Body Weight</span>
           <div class="mood-chip-group" id="hMoodChips" style="margin-bottom:10px">
-            <button class="mood-chip active" data-mood="😊 Great">😊 Great</button>
-            <button class="mood-chip" data-mood="😌 Calm">😌 Calm</button>
-            <button class="mood-chip" data-mood="😐 Okay">😐 Okay</button>
-            <button class="mood-chip" data-mood="🥱 Tired">🥱 Tired</button>
-            <button class="mood-chip" data-mood="😫 Stressed">😫 Stressed</button>
+            <button class="mood-chip active" data-mood="Great">Great</button>
+            <button class="mood-chip" data-mood="Calm">Calm</button>
+            <button class="mood-chip" data-mood="Okay">Okay</button>
+            <button class="mood-chip" data-mood="Tired">Tired</button>
+            <button class="mood-chip" data-mood="Stressed">Stressed</button>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
             <div style="flex:1">
@@ -2151,7 +2152,10 @@
           <input type="text" id="hNotes" placeholder="e.g. Morning yoga 20m, 8h restful sleep, felt energized">
         </div>
 
-        <button class="action-btn" id="btnSaveHealth" style="width:100%">💾 Save Health Log</button>
+        <button class="action-btn" id="btnSaveHealth" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"/></svg>
+          Save Health Log
+        </button>
       </div>
     </div>
 
@@ -2159,12 +2163,12 @@
     <div class="h-panel" id="hp-stats" hidden>
       <div class="health-quick-grid" style="margin-bottom:16px">
         <div class="mod-card health-card">
-          <div class="health-card-title">🌙 Last Sleep</div>
+          <div class="health-card-title">Last Sleep</div>
           <div class="health-card-val" id="hStatSleep">-- h</div>
           <div class="health-card-sub" id="hStatSleepTimes">--:-- to --:--</div>
         </div>
         <div class="mod-card health-card">
-          <div class="health-card-title">💧 Daily Water</div>
+          <div class="health-card-title">Daily Water</div>
           <div class="health-card-val" id="hStatWater">0 ml</div>
           <div class="health-card-sub" id="hStatWaterGoal">Goal: 2000 ml</div>
         </div>
@@ -2174,16 +2178,16 @@
 
   <!-- SETTINGS & DATA SYNC VIEW -->
   <div class="view" id="settingsView" hidden>
-    <button class="back" id="settingsBack">Hub</button>
+    <button class="back" id="settingsBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
     <div class="hub-header">
-      <h1 class="hub-title">⚙️ Settings &amp; Cloud Sync</h1>
+      <h1 class="hub-title">Settings &amp; Cloud Sync</h1>
       <p class="hub-subtitle">Backup, restore &amp; manage your personal data</p>
     </div>
 
     <!-- 1. GITHUB GIST CLOUD SYNC (100% FREE & ZERO CREDIT CARD) -->
     <div class="mod-card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:14.5px;font-weight:700">⭐ GitHub Gist 私有雲端同步 (100% 免費、免綁信用卡)</span>
+        <span style="font-size:14.5px;font-weight:700">GitHub Gist 私有雲端同步 (100% 免費、免綁信用卡)</span>
         <span class="tag" id="gistStatusTag" style="font-size:11px">Not Setup</span>
       </div>
       <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
@@ -2202,35 +2206,38 @@
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="action-btn" id="btnGistPush" style="padding:11px 12px;justify-content:center;font-size:13px">
-          ☁️ 同步上傳至 Gist
+        <button class="action-btn" id="btnGistPush" style="padding:11px 12px;justify-content:center;font-size:13px;display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
+          同步上傳至 Gist
         </button>
-        <button class="action-btn" id="btnGistPull" style="padding:11px 12px;justify-content:center;font-size:13px;background:rgba(255,255,255,0.75)">
-          📥 從 Gist 下載還原
+        <button class="action-btn" id="btnGistPull" style="padding:11px 12px;justify-content:center;font-size:13px;background:rgba(255,255,255,0.75);display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 9.75v6.75m0 0-3-3m3 3 3-3m-8.25 6a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
+          從 Gist 下載還原
         </button>
       </div>
     </div>
 
     <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
-    <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
     <div class="mod-card" style="margin-bottom:16px">
-      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">📦 本機檔案快速備份與還原 (最簡單、零設定)</span>
+      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">本機檔案快速備份與還原 (最簡單、零設定)</span>
       <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
         無需任何帳號或設定，一鍵將手機所有紀錄下載為單一 `.json` 備份檔，並可隨時還原。
       </p>
       <div style="display:flex;gap:8px;flex-direction:column">
-        <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px">
-          📤 匯出完整備份檔 (Export Backup JSON)
+        <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          匯出完整備份檔 (JSON)
         </button>
-        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7)">
-          📥 匯入還原備份檔 (Import &amp; Restore JSON)
+        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+          匯入還原備份檔 (JSON)
         </button>
       </div>
     </div>
 
     <!-- 3. AI SETTINGS CARD -->
     <div class="mod-card" style="margin-bottom:16px">
-      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">🤖 AI Vision Service</span>
+      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">AI Vision Service</span>
       <div class="form-group">
         <label>Google Gemini API Key (For Calorie &amp; Recipe Estimation)</label>
         <input type="password" id="geminiApiKey" placeholder="AIzaSy...">
@@ -2242,8 +2249,9 @@
     <!-- 4. APP VERSION & FORCE RELOAD -->
     <div class="mod-card" style="text-align:center;padding:16px">
       <div style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:8px">App Version: <b>v3.2 (Latest)</b></div>
-      <button class="action-btn" onclick="forceAppUpdate()" style="width:100%;padding:10px 14px;justify-content:center;font-size:12.5px;background:rgba(255,255,255,0.75)">
-        🔄 強制更新至最新版本 (Clear Cache &amp; Reload)
+      <button class="action-btn" onclick="forceAppUpdate()" style="width:100%;padding:10px 14px;justify-content:center;font-size:12.5px;background:rgba(255,255,255,0.75);display:inline-flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        強制更新至最新版本 (Clear Cache &amp; Reload)
       </button>
     </div>
   </div>
@@ -2255,20 +2263,22 @@
   <div class="modal-card">
     <div class="modal-head">
       <h3 id="multiPhotoTitle">Multiple Photos Selected</h3>
-      <button class="icon danger" id="closeMultiPhotoModal" aria-label="Close">✕</button>
+      <button class="icon danger" id="closeMultiPhotoModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <p style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:16px;line-height:1.45">How would you like to log these photos?</p>
       <div style="display:flex;flex-direction:column;gap:10px">
         <button class="action-btn" id="btnUploadSameMeal" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
           <div>
-            <div style="font-weight:700;font-size:14px">🍲 Same Meal</div>
+            <div style="font-weight:700;font-size:14px">Same Meal</div>
             <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Combine into 1 card with swipeable carousel</div>
           </div>
         </button>
         <button class="action-btn" id="btnUploadDiffMeals" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
           <div>
-            <div style="font-weight:700;font-size:14px">🍽️ Different Meals</div>
+            <div style="font-weight:700;font-size:14px">Different Meals</div>
             <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Create separate cards for each photo</div>
           </div>
         </button>
@@ -2282,20 +2292,22 @@
 <div class="modal-overlay" id="dayAddModal" hidden>
   <div class="modal-card" style="max-width:340px">
     <div class="modal-head">
-      <h3>＋ Add Entry</h3>
-      <button class="icon danger" id="closeDayAddModal" aria-label="Close">✕</button>
+      <h3>Add Entry</h3>
+      <button class="icon danger" id="closeDayAddModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal-body" style="padding-top:4px">
       <div style="display:flex;flex-direction:column;gap:10px">
         <button class="action-btn" id="btnDayAddPhoto" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
           <div>
-            <div style="font-weight:700;font-size:14.5px">📸 Add Photo Meal</div>
+            <div style="font-weight:700;font-size:14.5px">Add Photo Meal</div>
             <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Upload single or multi-photo dishes</div>
           </div>
         </button>
         <button class="action-btn" id="btnDayAddNote" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
           <div>
-            <div style="font-weight:700;font-size:14.5px">📝 Add Text Note</div>
+            <div style="font-weight:700;font-size:14.5px">Add Text Note</div>
             <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Log quick recipe, restaurant, or feelings</div>
           </div>
         </button>
@@ -2308,14 +2320,19 @@
 <div class="modal-overlay" id="csvModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
-      <h3>📊 Smart Spreadsheet CSV Mapper</h3>
-      <button class="icon danger" id="closeCsvModal" aria-label="Close modal">✕</button>
+      <h3>Smart Spreadsheet CSV Mapper</h3>
+      <button class="icon danger" id="closeCsvModal" aria-label="Close modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div id="csvStep1">
         <p style="font-size:13px;color:var(--mid);margin-bottom:10px">Upload any CSV file or paste your Google Sheets / Excel data below:</p>
         <input type="file" id="csvFileInput" accept=".csv,text/csv">
-        <button class="action-btn" id="btnChooseCsvFile" style="width:100%;margin-bottom:10px">📁 Choose CSV File</button>
+        <button class="action-btn" id="btnChooseCsvFile" style="width:100%;margin-bottom:10px;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+          Choose CSV File
+        </button>
         <textarea id="csvRawText" rows="5" class="note" style="border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;background:rgba(255,255,255,0.8);color:var(--ink)" placeholder="Date,Amount,Category,Description..."></textarea>
         <button class="action-btn" id="btnParseCsvHeaders" style="width:100%;margin-top:10px">Analyze CSV Headers ➔</button>
       </div>
@@ -2327,7 +2344,7 @@
         <div class="form-group"><label>Description Column</label><select id="mapDesc"></select></div>
         <div class="form-group"><label>Type Column (Expense/Income)</label><select id="mapType"></select></div>
         <div class="form-group"><label>Account Column</label><select id="mapAccount"></select></div>
-        <button class="action-btn" id="btnConvertImport" style="width:100%;margin-top:10px">✨ Convert &amp; Import Transactions</button>
+        <button class="action-btn" id="btnConvertImport" style="width:100%;margin-top:10px">Convert &amp; Import Transactions</button>
       </div>
     </div>
   </div>
@@ -2398,7 +2415,7 @@ $('cardBudget').onclick = () => showView('budgetView');
 $('cardHealth').onclick = () => showView('healthView');
 $('cardMood').onclick = () => showView('moodView');
 $('cardSelfies').onclick = () => showView('selfiesView');
-if($('cardSettings')) $('cardSettings').onclick = () => openSettings('hub');
+
 
 $('calBack').onclick = () => showView('hub');
 $('budgetBack').onclick = () => showView('hub');
@@ -2662,12 +2679,12 @@ async function loadHubMasterCalendar(){
 
       // Build badges
       let badges = '';
-      if(hasFood) badges += `<span class="hub-badge" title="Meals">🍲</span>`;
-      if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget">💰</span>`;
-      if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}">🌸</span>`;
-      if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}">💕</span>`;
-      else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}">🌙</span>`;
-      if(hasWater) badges += `<span class="hub-badge" title="Hydrated">💧</span>`;
+      if(hasFood) badges += `<span class="hub-badge" title="Meals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></span>`;
+      if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>`;
+      if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+      if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+      else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></span>`;
+      if(hasWater) badges += `<span class="hub-badge" title="Hydrated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 21a7.5 7.5 0 0 0 7.5-7.5c0-4.5-7.5-10.5-7.5-10.5S4.5 9 4.5 13.5A7.5 7.5 0 0 0 12 21Z"/></svg></span>`;
 
       html += `
       <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
@@ -2707,7 +2724,7 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let foodSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">🍲 Food Diary</div>
+      <div style="font-weight:600;font-size:13.5px">Food Diary</div>
       <div style="font-size:12px;color:var(--ios-label-secondary)">${dayFoodPosts.length ? `${dayFoodPosts.length} meal(s) logged` : 'No meals recorded'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="openFoodForDay('${dateStr}')">Open ➔</button>
@@ -2717,7 +2734,7 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let budgetSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">💰 Budget &amp; Transactions</div>
+      <div style="font-weight:600;font-size:13.5px">Budget &amp; Transactions</div>
       <div style="font-size:12px;color:var(--ios-label-secondary)">${dayBudget.length ? `${dayBudget.length} item(s) · Net: ${budgetNet>=0?'+':''}$${budgetNet.toFixed(2)}` : 'No expenses recorded'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('budgetView')">Open ➔</button>
@@ -2726,7 +2743,7 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   let healthSection = `
   <div class="hub-drawer-section">
     <div>
-      <div style="font-weight:600;font-size:13.5px">🌸 Health &amp; Sleep</div>
+      <div style="font-weight:600;font-size:13.5px">Health &amp; Sleep</div>
       <div style="font-size:12px;color:var(--ios-label-secondary)">${healthItem ? `Sleep: ${healthItem.sleepDuration || '--'} · Period: ${healthItem.period || 'None'}` : 'No health log'}</div>
     </div>
     <button class="action-btn" style="padding:4px 10px;font-size:12px" onclick="showView('healthView')">Open ➔</button>
@@ -2735,7 +2752,9 @@ async function openHubDayDetail(dateStr, foodMonthIdx, budgetEntries, healthLogs
   detailEl.innerHTML = `
   <div class="hub-day-drawer-head">
     <span>${dateFormatted}</span>
-    <button class="icon" onclick="$('hubDayDetail').hidden = true" style="width:24px;height:24px;border:none;background:none;color:var(--ios-label);cursor:pointer">✕</button>
+    <button class="icon" onclick="$('hubDayDetail').hidden = true" style="width:24px;height:24px;border:none;background:none;color:var(--ios-label);cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+    </button>
   </div>
   ${foodSection}
   ${budgetSection}
@@ -3601,10 +3620,10 @@ async function loadTransfersHistory(){
 /* ---------- PILLAR 2: CATEGORY ENVELOPES ---------- */
 async function loadEnvelopes(){
   const categories = [
-    { name: 'Food 🍲', defaultGoal: 600 },
-    { name: 'Transport 🚗', defaultGoal: 150 },
-    { name: 'Shopping 🛍️', defaultGoal: 250 },
-    { name: 'Entertainment 🎮', defaultGoal: 100 }
+    { name: 'Food', defaultGoal: 600 },
+    { name: 'Transport', defaultGoal: 150 },
+    { name: 'Shopping', defaultGoal: 250 },
+    { name: 'Entertainment', defaultGoal: 100 }
   ];
   const entries = (await store.get('budget:entries')) || [];
   
@@ -3936,8 +3955,8 @@ $('closeMultiPhotoModal').onclick = $('btnCancelMultiPhoto').onclick = () => {
 /* ================= LEVEL 2: HEALTH MODULE ================= */
 let healthCalDate = new Date();
 let selectedPeriodStatus = 'none';
-let selectedSleepQuality = 'Restful 🌙';
-let selectedMood = '😊 Great';
+let selectedSleepQuality = 'Restful';
+let selectedMood = 'Great';
 let selectedSymptoms = new Set();
 let currentWaterMl = 0;
 let intimacyCount = 0;
@@ -4144,13 +4163,13 @@ async function loadHealthModule(){
 
     let periodBadge = '';
     if(item.period && item.period !== 'none'){
-      periodBadge = `<span class="tag on" style="font-size:11.5px">🌸 Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
+      periodBadge = `<span class="tag on" style="font-size:11.5px">Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
     }
 
-    let intimacyBadge = item.intimacy ? `<span class="tag" style="font-size:11px;background:rgba(255,45,85,0.12);color:#E11D48;border-color:rgba(255,45,85,0.3)">💕 性生活: ${item.intimacy} 次${item.protection && item.protection !== 'none' ? ` (${item.protection})` : ''}</span>` : '';
-    let symptomsBadges = (item.symptoms || []).map(s => `<span class="tag" style="font-size:11px;background:rgba(175,82,222,0.12);color:#9333EA;border-color:rgba(175,82,222,0.3)">${s}</span>`).join(' ');
-    let waterBadge = item.water ? `<span class="tag" style="font-size:11px;background:rgba(0,122,255,0.1);color:var(--ios-blue);border-color:rgba(0,122,255,0.3)">💧 ${item.water} ml</span>` : '';
-    let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">⚖️ ${item.weight} kg</span>` : '';
+    let intimacyBadge = item.intimacy ? `<span class="tag" style="font-size:11px">性生活: ${item.intimacy} 次${item.protection && item.protection !== 'none' ? ` (${item.protection})` : ''}</span>` : '';
+    let symptomsBadges = (item.symptoms || []).map(s => `<span class="tag" style="font-size:11px">${s}</span>`).join(' ');
+    let waterBadge = item.water ? `<span class="tag" style="font-size:11px">${item.water} ml</span>` : '';
+    let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">${item.weight} kg</span>` : '';
     let moodBadge = item.mood ? `<span class="tag" style="font-size:11px">${item.mood}</span>` : '';
 
     return `
@@ -4160,7 +4179,7 @@ async function loadHealthModule(){
         <button class="icon danger" onclick="event.stopPropagation();delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-        <span class="tag" style="font-size:11.5px">🌙 ${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
+        <span class="tag" style="font-size:11.5px">${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
         ${periodBadge}
         ${intimacyBadge}
         ${waterBadge}
@@ -4168,7 +4187,7 @@ async function loadHealthModule(){
         ${weightBadge}
         ${symptomsBadges}
       </div>
-      ${item.notes ? `<div style="font-size:13px;color:var(--ios-label-secondary);margin-top:4px">📝 ${item.notes}</div>` : ''}
+      ${item.notes ? `<div style="font-size:13px;color:var(--ios-label-secondary);margin-top:4px">${item.notes}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -4208,10 +4227,10 @@ function drawHealthCalendar(healthLogs){
 
     let badges = '';
     if(item){
-      if(item.period && item.period !== 'none') badges += `<span class="hub-badge">🌸</span>`;
-      if(item.intimacy > 0) badges += `<span class="hub-badge">💕</span>`;
-      if(item.sleepDuration) badges += `<span class="hub-badge">🌙</span>`;
-      if(item.water >= 1500) badges += `<span class="hub-badge">💧</span>`;
+      if(item.period && item.period !== 'none') badges += `<span class="hub-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+      if(item.intimacy > 0) badges += `<span class="hub-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></span>`;
+      if(item.sleepDuration) badges += `<span class="hub-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></span>`;
+      if(item.water >= 1500) badges += `<span class="hub-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="M12 21a7.5 7.5 0 0 0 7.5-7.5c0-4.5-7.5-10.5-7.5-10.5S4.5 9 4.5 13.5A7.5 7.5 0 0 0 12 21Z"/></svg></span>`;
     }
 
     html += `
