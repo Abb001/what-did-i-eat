@@ -2539,94 +2539,103 @@ $('btnGistPull').onclick = async () => {
 };
 
 async function loadHubStats(){
-  const keys = await store.keys();
-  const foodDays = keys.filter(k => String(k).startsWith('day:')).length;
-  $('hubFoodStat').textContent = `${foodDays} days logged`;
-  
-  const bList = (await store.get('budget:entries')) || [];
-  const bTotal = bList.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
-  $('hubBudgetStat').textContent = `$${bTotal.toFixed(2)}`;
+  try {
+    const keys = await store.keys();
+    const foodDays = keys.filter(k => String(k).startsWith('day:')).length;
+    if($('hubFoodStat')) $('hubFoodStat').textContent = `${foodDays} days logged`;
+    
+    const bList = (await store.get('budget:entries')) || [];
+    const bTotal = bList.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+    if($('hubBudgetStat')) $('hubBudgetStat').textContent = `$${bTotal.toFixed(2)}`;
 
-  const healthLogs = (await store.get('health:logs')) || {};
-  const healthCount = Object.keys(healthLogs).length;
-  $('hubHealthStat').textContent = `${healthCount} records`;
+    const healthLogs = (await store.get('health:logs')) || {};
+    const healthCount = Object.keys(healthLogs).length;
+    if($('hubHealthStat')) $('hubHealthStat').textContent = `${healthCount} records`;
 
-  const mPins = (await store.get('mood:pins')) || [];
-  $('hubMoodStat').textContent = `${mPins.length} pins`;
+    const mPins = (await store.get('mood:pins')) || [];
+    if($('hubMoodStat')) $('hubMoodStat').textContent = `${mPins.length} pins`;
 
-  const sPics = (await store.get('selfies:photos')) || [];
-  $('hubSelfiesStat').textContent = `${sPics.length} photos`;
+    const sPics = (await store.get('selfies:photos')) || [];
+    if($('hubSelfiesStat')) $('hubSelfiesStat').textContent = `${sPics.length} photos`;
+  } catch(e){
+    console.error('loadHubStats error:', e);
+  }
 }
 
 /* ================= HUB MASTER UNIFIED CALENDAR ================= */
 let hubViewDate = new Date();
 
 async function loadHubMasterCalendar(){
-  $('hubMTitle').innerHTML = `${MONTHS[hubViewDate.getMonth()]} <span class="yr">${hubViewDate.getFullYear()}</span>`;
-  const y = hubViewDate.getFullYear();
-  const m = hubViewDate.getMonth();
-  const first = new Date(y, m, 1);
-  let start = first.getDay() - 1; if(start === -1) start = 6;
-  const daysInM = new Date(y, m + 1, 0).getDate();
-  const total = Math.ceil((start + daysInM) / 7) * 7;
+  try {
+    if($('hubMTitle')) $('hubMTitle').innerHTML = `${MONTHS[hubViewDate.getMonth()]} <span class="yr">${hubViewDate.getFullYear()}</span>`;
+    const y = hubViewDate.getFullYear();
+    const m = hubViewDate.getMonth();
+    const first = new Date(y, m, 1);
+    let start = first.getDay() - 1; if(start === -1) start = 6;
+    const daysInM = new Date(y, m + 1, 0).getDate();
+    const total = Math.ceil((start + daysInM) / 7) * 7;
 
-  // Fetch month data from Food, Budget, Health
-  const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
-  const budgetEntries = (await store.get('budget:entries')) || [];
-  const healthLogs = (await store.get('health:logs')) || {};
+    // Fetch month data from Food, Budget, Health
+    const foodMonthIdx = (await store.get(`month:${y}-${pad(m + 1)}`)) || {};
+    const budgetEntries = (await store.get('budget:entries')) || [];
+    const healthLogs = (await store.get('health:logs')) || {};
 
-  const curMonthKey = `${y}-${pad(m + 1)}`;
-  const today = new Date();
-  const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+    const curMonthKey = `${y}-${pad(m + 1)}`;
+    const today = new Date();
+    const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
 
-  let html = '';
-  for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
+    let html = '';
+    for(let i = 0; i < start; i++) html += `<div class="hub-cell pad"></div>`;
 
-  for(let d = 1; d <= daysInM; d++){
-    const dd = pad(d);
-    const dateStr = `${curMonthKey}-${dd}`;
-    const isToday = isThisMonth && today.getDate() === d;
+    for(let d = 1; d <= daysInM; d++){
+      const dd = pad(d);
+      const dateStr = `${curMonthKey}-${dd}`;
+      const isToday = isThisMonth && today.getDate() === d;
 
-    // Check Food
-    const foodItem = foodMonthIdx[dd];
-    const hasFood = !!foodItem;
+      // Check Food
+      const foodItem = foodMonthIdx[dd];
+      const hasFood = !!foodItem;
 
-    // Check Budget
-    const dayBudget = budgetEntries.filter(b => b.date === dateStr);
-    const hasBudget = dayBudget.length > 0;
-    const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
+      // Check Budget
+      const dayBudget = budgetEntries.filter(b => b.date === dateStr);
+      const hasBudget = dayBudget.length > 0;
+      const bNet = dayBudget.reduce((acc, x) => acc + (x.type === 'inc' ? x.amt : -x.amt), 0);
 
-    // Check Health
-    const healthItem = healthLogs[dateStr];
-    const hasSleep = !!(healthItem && healthItem.sleepDuration);
-    const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
-    const hasIntimacy = !!(healthItem && healthItem.intimacy > 0);
-    const hasWater = !!(healthItem && healthItem.water >= 1500);
+      // Check Health
+      const healthItem = healthLogs[dateStr];
+      const hasSleep = !!(healthItem && healthItem.sleepDuration);
+      const hasPeriod = !!(healthItem && healthItem.period && healthItem.period !== 'none');
+      const hasIntimacy = !!(healthItem && healthItem.intimacy > 0);
+      const hasWater = !!(healthItem && healthItem.water >= 1500);
 
-    // Build badges
-    let badges = '';
-    if(hasFood) badges += `<span class="hub-badge" title="Meals">🍲</span>`;
-    if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget">💰</span>`;
-    if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}">🌸</span>`;
-    if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}">💕</span>`;
-    else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}">🌙</span>`;
-    if(hasWater) badges += `<span class="hub-badge" title="Hydrated">💧</span>`;
+      // Build badges
+      let badges = '';
+      if(hasFood) badges += `<span class="hub-badge" title="Meals">🍲</span>`;
+      if(hasBudget) badges += `<span class="hub-badge" style="color:${bNet>=0?'#16A34A':'#DC2626'}" title="Budget">💰</span>`;
+      if(hasPeriod) badges += `<span class="hub-badge" title="Period: ${healthItem.period}">🌸</span>`;
+      if(hasIntimacy) badges += `<span class="hub-badge" title="Intimacy: ${healthItem.intimacy}">💕</span>`;
+      else if(hasSleep) badges += `<span class="hub-badge" title="Sleep: ${healthItem.sleepDuration}">🌙</span>`;
+      if(hasWater) badges += `<span class="hub-badge" title="Hydrated">💧</span>`;
 
-    html += `
-    <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
-      <b>${d}</b>
-      <div class="hub-badge-row">${badges}</div>
-    </div>`;
+      html += `
+      <div class="hub-cell ${isToday ? 'today' : ''}" data-hubdate="${dateStr}" data-day="${d}">
+        <b>${d}</b>
+        <div class="hub-badge-row">${badges}</div>
+      </div>`;
+    }
+
+    for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
+    if($('hubGrid')) $('hubGrid').innerHTML = html;
+
+    if($('hubGrid')){
+      $('hubGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
+        cell.onclick = () => openHubDayDetail(cell.dataset.hubdate, foodMonthIdx, budgetEntries, healthLogs);
+      });
+    }
+  } catch(err){
+    console.error('loadHubMasterCalendar error:', err);
   }
-
-  for(let i = start + daysInM; i < total; i++) html += `<div class="hub-cell pad"></div>`;
-  $('hubGrid').innerHTML = html;
-
-  $('hubGrid').querySelectorAll('.hub-cell:not(.pad)').forEach(cell => {
-    cell.onclick = () => openHubDayDetail(cell.dataset.hubdate, foodMonthIdx, budgetEntries, healthLogs);
-  });
 }
-
 $('hubPrev').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() - 1); loadHubMasterCalendar(); };
 $('hubNext').onclick = () => { hubViewDate.setMonth(hubViewDate.getMonth() + 1); loadHubMasterCalendar(); };
 
@@ -4341,9 +4350,15 @@ if ('serviceWorker' in navigator) {
 }
 
 async function initApp(){
-  await migrateLegacyStorage();
-  await loadMonth();
   showView('hub');
+  loadMonth().catch(()=>{});
+  Promise.race([
+    migrateLegacyStorage(),
+    new Promise(res => setTimeout(res, 800))
+  ]).then(() => {
+    loadHubStats();
+    loadHubMasterCalendar();
+  }).catch(()=>{});
 }
 initApp();
 </script>
