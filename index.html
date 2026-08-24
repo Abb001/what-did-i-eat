@@ -2303,7 +2303,7 @@
 
   <!-- LEVEL 2: FOOD MODULE (Calendar View) -->
   <div class="view" id="cal" hidden>
-    <button class="back" id="calBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="calBack">Hub</button>
     <div class="top">
       <div class="month" id="mTitle">—</div>
       <div class="nav">
@@ -2328,7 +2328,7 @@
 
   <!-- LEVEL 2: FOOD DAY SHEET -->
   <div class="view" id="sheet" hidden>
-    <button class="back" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Calendar</button>
+    <button class="back" id="back">Calendar</button>
     <div class="dhead">
       <div>
         <div class="dnum" id="dNum">—</div>
@@ -2350,7 +2350,7 @@
 
   <!-- LEVEL 2: EXPANDED 6-PILLAR BUDGET MODULE -->
   <div class="view" id="budgetView" hidden>
-    <button class="back" id="budgetBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="budgetBack">Hub</button>
     <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center">
       <h1 class="hub-title">Budget</h1>
       <button class="action-btn" id="openCsvBtn" style="padding:6px 14px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px">
@@ -2596,7 +2596,7 @@
 
   <!-- LEVEL 2: MOODBOARD MODULE -->
   <div class="view" id="moodView" hidden>
-    <button class="back" id="moodBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="moodBack">Hub</button>
     <div class="hub-header">
       <h1 class="hub-title">Moodboard</h1>
     </div>
@@ -2612,7 +2612,7 @@
 
   <!-- LEVEL 2: SELFIES MODULE -->
   <div class="view" id="selfiesView" hidden>
-    <button class="back" id="selfiesBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="selfiesBack">Hub</button>
     <div class="hub-header">
       <h1 class="hub-title">Selfies</h1>
     </div>
@@ -2628,7 +2628,7 @@
 
   <!-- LEVEL 2: HEALTH MODULE -->
   <div class="view" id="healthView" hidden>
-    <button class="back" id="healthBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="healthBack">Hub</button>
     <div class="hub-header">
       <h1 class="hub-title">Health &amp; Wellness</h1>
       <p class="hub-subtitle">Sleep, hydration, menstrual cycle &amp; daily vitals</p>
@@ -2925,20 +2925,33 @@
       </div>
     </div>
 
-    <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
+    <!-- 2. LOCAL FILE BACKUP & AUTO-SNAPSHOT CARD -->
     <div class="mod-card" style="margin-bottom:16px">
-      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">Local Backup &amp; Restore (Zero Config)</span>
-      <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
-        Download all your logs and photos as a single .json backup file, or restore anytime without accounts or setups.
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:14.5px;font-weight:700">Auto-Backup &amp; Single-File Export</span>
+        <span class="tag on" id="snapshotStatusTag" style="font-size:11px">Auto-Active</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:10px">
+        Always saves to a single fixed file (<b>what-did-i-eat-backup-latest.json</b>) so your downloads folder never gets cluttered. An automated local snapshot is also maintained automatically.
       </p>
+
+      <div style="background:rgba(255,255,255,0.5);border-radius:12px;padding:8px 12px;margin-bottom:12px;font-size:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--ios-label-secondary)">Latest Snapshot:</span>
+        <strong id="latestSnapshotTime" style="color:var(--ios-label)">Checking...</strong>
+      </div>
+
       <div style="display:flex;gap:8px;flex-direction:column">
         <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;display:inline-flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Export Backup (JSON)
+          Download Latest Backup (.JSON)
         </button>
-        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-          Import &amp; Restore (JSON)
+        <button class="action-btn" id="btnRestoreSnapshot" style="width:100%;padding:10px 16px;justify-content:center;font-size:13px;background:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          1-Tap Restore from Local Auto-Snapshot
+        </button>
+        <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:10px 16px;justify-content:center;font-size:13px;background:rgba(255,255,255,0.6);display:inline-flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+          Import &amp; Restore From File (.JSON)
         </button>
       </div>
     </div>
@@ -5464,27 +5477,103 @@ window.delSelfie = async (idx) => {
   loadSelfiesModule();
 };
 
-/* ---------- BACKUP EXPORT / RESTORE ---------- */
+/* ---------- SINGLE-FILE BACKUP & AUTO-SNAPSHOT ENGINE ---------- */
+async function createAutoSnapshot(silent = false){
+  try {
+    const keys = await store.keys();
+    const data = {};
+    for(const k of keys){
+      if(!k.startsWith('backup:') && !k.startsWith('config:gistToken')) data[k] = await store.get(k);
+    }
+    const count = Object.keys(data).length;
+    const now = new Date();
+    const snap = {
+      saved: now.toISOString(),
+      displayTime: now.toLocaleString(),
+      count,
+      data
+    };
+    await store.set('backup:autoSnapshot', snap);
+    localStorage.setItem('what-did-i-eat:snapshotMeta', JSON.stringify({
+      displayTime: now.toLocaleString(),
+      count
+    }));
+    refreshSnapshotUI();
+    if(!silent) console.log('Auto-snapshot updated:', now.toLocaleString(), count, 'items');
+  } catch(e){
+    console.warn('createAutoSnapshot error:', e);
+  }
+}
+
+async function refreshSnapshotUI(){
+  if(!$('latestSnapshotTime')) return;
+  let meta = null;
+  try {
+    const local = localStorage.getItem('what-did-i-eat:snapshotMeta');
+    if(local) meta = JSON.parse(local);
+  } catch(e){}
+
+  if(!meta){
+    const snap = await store.get('backup:autoSnapshot');
+    if(snap) meta = { displayTime: snap.displayTime || new Date(snap.saved).toLocaleString(), count: snap.count };
+  }
+
+  if(meta && meta.displayTime){
+    $('latestSnapshotTime').textContent = `${meta.displayTime} (${meta.count} items)`;
+    if($('snapshotStatusTag')) $('snapshotStatusTag').textContent = 'Saved ✓';
+  } else {
+    $('latestSnapshotTime').textContent = 'Ready to Snapshot';
+  }
+}
+
 const triggerExportBackup = async () => {
   const keys = await store.keys();
   const data = {};
-  for(const k of keys) data[k] = await store.get(k);
-  const blob = new Blob([JSON.stringify({v:2, app:'my-personal-app', saved:new Date().toISOString(), data})], {type:'application/json'});
+  for(const k of keys){
+    if(!k.startsWith('backup:') && !k.startsWith('config:gistToken')) data[k] = await store.get(k);
+  }
+  const payload = {
+    v: 2,
+    app: 'what-did-i-eat',
+    saved: new Date().toISOString(),
+    itemCount: Object.keys(data).length,
+    data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `my-personal-app-backup-${key(new Date())}.json`;
+  a.download = 'what-did-i-eat-backup-latest.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-  pill('Backup Downloaded ✓');
+  pill('Latest Backup Downloaded ✓');
+  await createAutoSnapshot(true);
 };
 
 const triggerImportBackup = () => $('restore').click();
+
+async function restoreAutoSnapshot(){
+  const snap = await store.get('backup:autoSnapshot');
+  if(!snap || !snap.data || !Object.keys(snap.data).length){
+    return alert('No local snapshot found yet. A snapshot is maintained automatically whenever data is added or saved.');
+  }
+  const entries = Object.entries(snap.data);
+  const timeStr = snap.displayTime || new Date(snap.saved).toLocaleString();
+  if(!confirm(`Restore ${entries.length} data records from the auto-snapshot saved on ${timeStr}?\n\nExisting records will be updated.`)) return;
+
+  for(const [k, val] of entries){
+    await store.set(k, val);
+  }
+  pill('Snapshot Restored ✓');
+  alert(`✅ Successfully restored ${entries.length} records from auto-snapshot (${timeStr})!`);
+  showView('hub');
+}
 
 if($('exportBtn')) $('exportBtn').onclick = triggerExportBackup;
 if($('settingsExportBtn')) $('settingsExportBtn').onclick = triggerExportBackup;
 
 if($('importBtn')) $('importBtn').onclick = triggerImportBackup;
 if($('settingsImportBtn')) $('settingsImportBtn').onclick = triggerImportBackup;
+if($('btnRestoreSnapshot')) $('btnRestoreSnapshot').onclick = restoreAutoSnapshot;
 
 $('restore').onchange = e => {
   const f = e.target.files[0]; e.target.value = '';
@@ -5495,11 +5584,12 @@ $('restore').onchange = e => {
       const parsed = JSON.parse(fr.result);
       const entries = Object.entries(parsed.data || {});
       if(!entries.length) return alert('No data entries found.');
-      if(!confirm(`Restore ${entries.length} data records? Existing data will be replaced.`)) return;
+      if(!confirm(`Restore ${entries.length} data records from this file? Existing data will be updated.`)) return;
       for(const [k, val] of entries) await store.set(k, val);
-      pill('Data Restored');
+      pill('Data Restored ✓');
+      await createAutoSnapshot(true);
       showView('hub');
-    } catch(err){ alert('File could not be read.'); }
+    } catch(err){ alert('File could not be read: ' + err.message); }
   };
   fr.readAsText(f);
 };
@@ -6619,7 +6709,7 @@ $('calcOffsetNum').oninput = updateOffsetCalc;
 
 /* ---------- AUTOMATIC LEGACY STORAGE MIGRATION ---------- */
 async function migrateLegacyStorage(){
-  const legacyDBNames = ['meals-diary', 'what-did-i-eat', 'meal-diary-db'];
+  const legacyDBNames = ['meals-diary', 'what-did-i-eat', 'meal-diary-db', 'keyval-store', 'app-db', 'my-personal-app'];
   for(const dbName of legacyDBNames){
     try {
       const legacyDB = await new Promise((res) => {
@@ -6628,27 +6718,30 @@ async function migrateLegacyStorage(){
         req.onerror = () => res(null);
       });
       if(legacyDB){
-        if(legacyDB.objectStoreNames.contains('kv')){
-          const legacyKeys = await new Promise((res) => {
-            const tx = legacyDB.transaction('kv', 'readonly');
-            const req = tx.objectStore('kv').getAllKeys();
-            req.onsuccess = () => res(req.result || []);
-            req.onerror = () => res([]);
-          });
-          for(const k of legacyKeys){
-            const currentVal = await store.get(k);
-            if(!currentVal){
-              const val = await new Promise((res) => {
-                const tx = legacyDB.transaction('kv', 'readonly');
-                const req = tx.objectStore('kv').get(k);
-                req.onsuccess = () => res(req.result);
-                req.onerror = () => res(null);
-              });
-              if(val !== undefined && val !== null){
-                await store.set(k, val);
+        const storeNames = Array.from(legacyDB.objectStoreNames);
+        for(const sName of storeNames){
+          try {
+            const legacyKeys = await new Promise((res) => {
+              const tx = legacyDB.transaction(sName, 'readonly');
+              const req = tx.objectStore(sName).getAllKeys();
+              req.onsuccess = () => res(req.result || []);
+              req.onerror = () => res([]);
+            });
+            for(const k of legacyKeys){
+              const currentVal = await store.get(k);
+              if(!currentVal){
+                const val = await new Promise((res) => {
+                  const tx = legacyDB.transaction(sName, 'readonly');
+                  const req = tx.objectStore(sName).get(k);
+                  req.onsuccess = () => res(req.result);
+                  req.onerror = () => res(null);
+                });
+                if(val !== undefined && val !== null){
+                  await store.set(k, val);
+                }
               }
             }
-          }
+          } catch(e){}
         }
         legacyDB.close();
       }
@@ -6656,6 +6749,8 @@ async function migrateLegacyStorage(){
       console.warn('Legacy DB check skipped for:', dbName, err);
     }
   }
+  await createAutoSnapshot(true);
+  refreshSnapshotUI();
 }
 
 window.forceAppUpdate = async () => {
