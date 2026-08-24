@@ -3504,7 +3504,7 @@ const openSettings = async (fromView) => {
 
 $('settingsBtn').onclick = () => openSettings('cal');
 $('hubSettingsBtn').onclick = () => openSettings('hub');
-if($('hubQuickBackupBtn')) $('hubQuickBackupBtn').onclick = triggerExportBackup;
+if($('hubQuickBackupBtn')) $('hubQuickBackupBtn').onclick = () => triggerExportBackup();
 $('settingsBack').onclick = () => showView(previousSettingsView || 'hub');
 $('saveSettingsBtn').onclick = async () => {
   const val = $('geminiApiKey').value.trim();
