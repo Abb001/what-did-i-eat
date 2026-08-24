@@ -12,6 +12,7 @@ A private, client-side progressive web app for tracking your daily life — food
   - 💰 **Budget (記帳)**: Track daily expenses, income transactions, and monthly balances.
   - 🎨 **Moodboard**: Collect visual inspiration pins and aesthetic notes.
   - 📸 **Selfies**: Document daily progress portraits and visual timeline.
+  - ⏳ **Countings**: Track anniversaries (Count-up), event countdowns (D-Day), repeat milestones, and create shareable posters.
 - **Global Bottom Navigation Bar**: Seamless one-tap navigation across modules.
 
 ### Level 2: Modules
@@ -30,6 +31,14 @@ A private, client-side progressive web app for tracking your daily life — food
 
 #### 📸 Selfies Module
 - Daily progress portrait log with date timestamps.
+
+#### ⏳ Countings Module
+- **Dual Mode (Countdown & Count-up)**: Count days until future events (Countdown / D-Day) or count days elapsed since special milestones (Count-up / Days Together).
+- **Repeat Cycles**: Support for One-off, Yearly (birthdays/anniversaries automatically roll to the next occurrence), Monthly, and Weekly cycles.
+- **Spotlight Hero Card**: Pinned hero card with live seconds ticker and refined Liquid Glass theme styling.
+- **Milestone Predictor**: Automatically calculate exact dates for 100, 300, 500, 1000 days and anniversary milestones.
+- **Date Toolbox**: Built-in interval calculator and date offset calculator.
+- **Shareable Posters**: Canvas-generated aesthetic posters (Liquid Glass, Polaroid, Minimalist, Ticket Pass) for instant download or sharing.
 
 ---
 

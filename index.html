@@ -1312,8 +1312,9 @@
 
   .form-group { margin-bottom: 14px; }
   .form-group label { display: block; font-size: 12.5px; font-weight: 500; color: var(--ios-label-secondary); margin-bottom: 5px; }
-  .form-group input, .form-group select {
+  .form-group input, .form-group select, .form-group textarea {
     width: 100%;
+    box-sizing: border-box;
     padding: 10px 12px;
     border: 0.5px solid rgba(120, 120, 128, 0.20);
     border-radius: 12px;
@@ -1325,7 +1326,7 @@
     color: var(--ios-label);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .form-group input:focus, .form-group select:focus {
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
     border-color: rgba(60, 60, 67, 0.6);
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
@@ -1632,6 +1633,504 @@
   }
   .post-save-btn:active { transform: scale(0.96); }
 
+  /* ================= COUNTINGS STYLES ================= */
+  .days-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Liquid Glass Minimalist Themes with Fallbacks */
+  :root, .days-card, .days-spotlight {
+    --theme-grad: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    --theme-accent: #4f46e5;
+    --theme-badge-bg: rgba(79, 70, 229, 0.12);
+    --theme-badge-color: #4f46e5;
+  }
+
+  .theme-slate, .theme-midnight {
+    --theme-grad: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+    --theme-accent: #334155;
+    --theme-badge-bg: rgba(51, 65, 85, 0.12);
+    --theme-badge-color: #334155;
+  }
+  .theme-indigo, .theme-aurora {
+    --theme-grad: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    --theme-accent: #4f46e5;
+    --theme-badge-bg: rgba(79, 70, 229, 0.12);
+    --theme-badge-color: #4f46e5;
+  }
+  .theme-sky, .theme-ocean {
+    --theme-grad: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    --theme-accent: #0284c7;
+    --theme-badge-bg: rgba(2, 132, 199, 0.12);
+    --theme-badge-color: #0284c7;
+  }
+  .theme-pine, .theme-emerald {
+    --theme-grad: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+    --theme-accent: #059669;
+    --theme-badge-bg: rgba(5, 150, 105, 0.12);
+    --theme-badge-color: #059669;
+  }
+  .theme-rose, .theme-sakura {
+    --theme-grad: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+    --theme-accent: #e11d48;
+    --theme-badge-bg: rgba(225, 29, 72, 0.12);
+    --theme-badge-color: #e11d48;
+  }
+  .theme-amber, .theme-sunset, .theme-gold {
+    --theme-grad: linear-gradient(135deg, #d97706 0%, #92400e 100%);
+    --theme-accent: #d97706;
+    --theme-badge-bg: rgba(217, 119, 6, 0.12);
+    --theme-badge-color: #d97706;
+  }
+  .theme-lilac, .theme-lavender {
+    --theme-grad: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+    --theme-accent: #7c3aed;
+    --theme-badge-bg: rgba(124, 58, 237, 0.12);
+    --theme-badge-color: #7c3aed;
+  }
+  .theme-monochrome {
+    --theme-grad: linear-gradient(135deg, #3f3f46 0%, #18181b 100%);
+    --theme-accent: #18181b;
+    --theme-badge-bg: rgba(24, 24, 27, 0.10);
+    --theme-badge-color: #18181b;
+  }
+
+  /* Spotlight Hero Card */
+  .days-spotlight {
+    position: relative;
+    border-radius: 24px;
+    padding: 24px 20px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.03), inset 0 1.5px 1.5px rgba(255, 255, 255, 1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  }
+  .days-spotlight:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px -8px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 1);
+  }
+  .days-spotlight-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.14;
+    background: var(--theme-grad);
+    filter: blur(40px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .days-spotlight-content {
+    position: relative;
+    z-index: 1;
+  }
+  .days-spotlight-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .days-spotlight-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--theme-badge-bg);
+    color: var(--theme-badge-color);
+    letter-spacing: 0.3px;
+  }
+  .days-pin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FF9500;
+    background: rgba(255, 149, 0, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .days-spotlight-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ios-label);
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .days-spotlight-subtitle {
+    font-size: 13px;
+    color: var(--ios-label-secondary);
+    font-weight: 500;
+  }
+  .days-hero-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin: 18px 0 14px;
+    padding: 16px 0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 0.5px solid rgba(255, 255, 255, 0.8);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+  .days-hero-num {
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1;
+    color: #4338ca;
+    background: var(--theme-grad, linear-gradient(135deg, #6366f1 0%, #4338ca 100%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .days-hero-unit {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ios-label-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .days-live-ticker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ios-label);
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    width: fit-content;
+    margin: 0 auto 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .days-live-ticker span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+  .days-live-ticker small {
+    font-size: 10px;
+    color: var(--ios-label-secondary);
+    font-weight: 500;
+  }
+  .days-progress-bar {
+    width: 100%;
+    height: 7px;
+    background: rgba(120, 120, 128, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .days-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--theme-grad);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Filter Category Pills */
+  .days-cats-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .days-cats-bar::-webkit-scrollbar { display: none; }
+  .days-cat-pill {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--ios-label-secondary);
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .days-cat-pill:hover {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--ios-label);
+  }
+  .days-cat-pill.active {
+    background: var(--ios-label);
+    color: #FFFFFF;
+    border-color: var(--ios-label);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Search & Sort Bar */
+  .days-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .days-search-input {
+    flex: 1;
+    padding: 9px 14px 9px 36px;
+    border-radius: 12px;
+    border: 0.5px solid rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 13.5px;
+    color: var(--ios-label);
+    outline: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+  .days-search-box {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .days-search-icon {
+    position: absolute;
+    left: 12px;
+    pointer-events: none;
+    color: var(--ios-label-tertiary);
+    width: 15px;
+    height: 15px;
+  }
+  .days-sort-select {
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 0.5px solid rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.75);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ios-label);
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Event Cards Grid */
+  .days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .days-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.04), inset 0 1px 1px #FFFFFF;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  .days-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 10px 26px -4px rgba(0, 0, 0, 0.08), inset 0 1.5px 1.5px #FFFFFF;
+  }
+  .days-card-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: var(--theme-grad);
+  }
+  .days-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 6px;
+    max-width: 65%;
+  }
+  .days-card-tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .days-card-cat {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--theme-badge-color);
+    background: var(--theme-badge-bg);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .days-card-repeat {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+    background: rgba(120, 120, 128, 0.09);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .days-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ios-label);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .days-card-sub {
+    font-size: 12px;
+    color: var(--ios-label-secondary);
+  }
+  .days-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+  }
+  .days-badge {
+    padding: 6px 14px;
+    border-radius: 14px;
+    background: #4338ca;
+    background: var(--theme-grad, linear-gradient(135deg, #6366f1 0%, #4338ca 100%));
+    color: #FFFFFF !important;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: -0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 72px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+  }
+  .days-badge.today {
+    background: linear-gradient(135deg, #34C759 0%, #30B0C7 100%);
+    animation: pulseToday 2s infinite;
+  }
+  @keyframes pulseToday {
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(52, 199, 89, 0.25); }
+    50% { transform: scale(1.04); box-shadow: 0 6px 18px rgba(52, 199, 89, 0.45); }
+  }
+  .days-badge-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 3px;
+  }
+
+  /* Milestones in Detail Modal */
+  .days-milestones-box {
+    margin-top: 16px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    padding: 14px;
+    border: 0.5px solid rgba(255, 255, 255, 0.8);
+  }
+  .days-milestone-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
+    font-size: 13px;
+  }
+  .days-milestone-row:last-child {
+    border-bottom: none;
+  }
+  .days-milestone-name {
+    font-weight: 600;
+    color: var(--ios-label);
+  }
+  .days-milestone-date {
+    font-size: 11.5px;
+    color: var(--ios-label-secondary);
+    margin-left: 6px;
+  }
+  .days-milestone-stat {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .days-milestone-stat.passed {
+    background: rgba(52, 199, 89, 0.15);
+    color: #16A34A;
+  }
+  .days-milestone-stat.upcoming {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007AFF;
+  }
+
+  /* Theme Pickers in Add Modal */
+  .days-theme-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 2px;
+  }
+  .days-theme-opt {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease, outline 0.15s ease;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  .days-theme-opt:hover { transform: scale(1.1); }
+  .days-theme-opt.active {
+    outline: 2.5px solid var(--ios-label);
+    outline-offset: 2px;
+    transform: scale(1.08);
+  }
+
+  /* Date Tool Tab Bar */
+  .days-tool-tabs {
+    display: flex;
+    background: rgba(120, 120, 128, 0.12);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .days-tool-tab {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .days-tool-tab.active {
+    background: #FFFFFF;
+    color: var(--ios-label);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -1774,6 +2273,25 @@
         </div>
         <div class="hub-row-right">
           <span class="hub-stat" id="hubSelfiesStat">Loading...</span>
+          <span class="hub-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </div>
+      </div>
+
+      <div class="hub-list-row" id="cardDays">
+        <div class="hub-row-left">
+          <span class="hub-row-icon" style="background:rgba(0, 122, 255, 0.12);color:#007AFF">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <path d="m9 16 2 2 4-4"/>
+            </svg>
+          </span>
+          <span class="hub-row-title">Countings</span>
+        </div>
+        <div class="hub-row-right">
+          <span class="hub-stat" id="hubDaysStat">Loading...</span>
           <span class="hub-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
         </div>
       </div>
@@ -2164,11 +2682,11 @@
           <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Sleep &amp; Wake Times</span>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
             <div>
-              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime (入睡)</label>
+              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime</label>
               <input type="time" id="hBedtime" value="23:30">
             </div>
             <div>
-              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Wake Time (起床)</label>
+              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Wake Time</label>
               <input type="time" id="hWaketime" value="07:30">
             </div>
           </div>
@@ -2176,7 +2694,7 @@
             <span style="font-size:12.5px;color:var(--ios-label-secondary)">Calculated Duration:</span>
             <strong id="hSleepDurationTxt" style="font-size:14px;color:var(--ios-label)">8h 00m</strong>
           </div>
-          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality (睡眠品質)</label>
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Sleep Quality</label>
           <div class="quality-chip-group" id="hQualityChips">
             <button class="quality-chip active" data-quality="Restful">Restful</button>
             <button class="quality-chip" data-quality="Deep">Deep</button>
@@ -2188,7 +2706,7 @@
         <!-- 2. HYDRATION WATER TRACKER -->
         <div class="water-box" style="margin-bottom:14px">
           <div class="water-header">
-            <span style="font-size:13.5px;font-weight:700">Daily Hydration (水分補給)</span>
+            <span style="font-size:13.5px;font-weight:700">Daily Hydration</span>
             <span style="font-size:13px;font-weight:700;color:var(--ios-blue)" id="hWaterValTxt">0 / 2000 ml</span>
           </div>
           <div class="bar"><i id="hWaterBar" style="width:0%;background:var(--ios-blue)"></i></div>
@@ -2201,7 +2719,7 @@
 
         <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Menstrual Period &amp; Intimacy (生理期與性生活)</span>
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Menstrual Period &amp; Intimacy</span>
           <div class="cycle-chip-group" id="hPeriodChips">
             <button class="cycle-chip active" data-period="none">None</button>
             <button class="cycle-chip" data-period="started">Started</button>
@@ -2209,16 +2727,16 @@
             <button class="cycle-chip" data-period="ended">Ended</button>
           </div>
           <div id="hFlowGroup" style="margin-top:10px" hidden>
-            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level (經期流量)</label>
+            <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:4px">Flow Level</label>
             <select id="hFlow" style="margin-bottom:8px">
-              <option value="Light">Light (量少)</option>
-              <option value="Medium" selected>Medium (適中)</option>
-              <option value="Heavy">Heavy (量多)</option>
-              <option value="Spotting">Spotting (點狀)</option>
+              <option value="Light">Light</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Heavy">Heavy</option>
+              <option value="Spotting">Spotting</option>
             </select>
           </div>
           
-          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms (症狀標籤)</label>
+          <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-top:8px;margin-bottom:4px">Symptoms</label>
           <div class="symptom-chip-group" id="hSymptomChips">
             <button class="symptom-chip" data-sym="Cramps">Cramps</button>
             <button class="symptom-chip" data-sym="Headache">Headache</button>
@@ -2232,17 +2750,17 @@
           <!-- SEXUAL ACTIVITY & INTIMACY -->
           <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.12)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">Sexual Activity (性行為次數)</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--ios-label)">Sexual Activity</span>
               <div style="display:flex;align-items:center;gap:8px">
                 <button class="move-btn" id="btnIntimacyMinus" style="width:26px;height:26px;font-size:13px">－</button>
-                <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 次</strong>
+                <strong id="hIntimacyCountTxt" style="font-size:14px;min-width:32px;text-align:center">0 times</strong>
                 <button class="move-btn" id="btnIntimacyPlus" style="width:26px;height:26px;font-size:13px">＋</button>
               </div>
             </div>
             <div class="symptom-chip-group" id="hIntimacyChips" style="margin-top:6px">
-              <button class="symptom-chip active" data-protect="none">None (無)</button>
-              <button class="symptom-chip" data-protect="Protected">Protected (有防護)</button>
-              <button class="symptom-chip" data-protect="Unprotected">Unprotected (無防護)</button>
+              <button class="symptom-chip active" data-protect="none">None</button>
+              <button class="symptom-chip" data-protect="Protected">Protected</button>
+              <button class="symptom-chip" data-protect="Unprotected">Unprotected</button>
               <button class="symptom-chip" data-protect="High Drive">High Drive</button>
             </div>
           </div>
@@ -2250,32 +2768,43 @@
 
         <!-- 4. MOOD & VITALS -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Daily Mood &amp; Body Weight</span>
-          <div class="mood-chip-group" id="hMoodChips" style="margin-bottom:10px">
-            <button class="mood-chip active" data-mood="Great">Great</button>
-            <button class="mood-chip" data-mood="Calm">Calm</button>
-            <button class="mood-chip" data-mood="Okay">Okay</button>
-            <button class="mood-chip" data-mood="Tired">Tired</button>
-            <button class="mood-chip" data-mood="Stressed">Stressed</button>
+          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Mood &amp; Energy</span>
+          <div class="form-group" style="margin-bottom:8px">
+            <label>Mood State</label>
+            <select id="hMood">
+              <option value="Calm">Calm</option>
+              <option value="Happy">Happy</option>
+              <option value="Productive">Productive</option>
+              <option value="Relaxed">Relaxed</option>
+              <option value="Anxious">Anxious</option>
+              <option value="Tired">Tired</option>
+              <option value="Stressed">Stressed</option>
+            </select>
           </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div style="flex:1">
-              <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Body Weight (kg)</label>
-              <input type="number" id="hWeight" placeholder="e.g. 52.5" step="0.1">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Weight (kg)</label>
+              <input type="number" id="hWeight" step="0.1" placeholder="e.g. 52.5">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Energy (1-5)</label>
+              <select id="hEnergy">
+                <option value="5">5 - Excellent</option>
+                <option value="4" selected>4 - Good</option>
+                <option value="3">3 - Average</option>
+                <option value="2">2 - Low</option>
+                <option value="1">1 - Exhausted</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <!-- NOTES -->
         <div class="form-group">
-          <label>Wellness Journal Notes</label>
-          <input type="text" id="hNotes" placeholder="e.g. Morning yoga 20m, 8h restful sleep, felt energized">
+          <label>Daily Journal / Notes</label>
+          <textarea id="hNotes" rows="2" placeholder="Record symptoms, workout, or thoughts..."></textarea>
         </div>
 
-        <button class="action-btn" id="btnSaveHealth" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"/></svg>
-          Save Health Log
-        </button>
+        <button class="action-btn" id="btnSaveHealth" style="width:100%;margin-top:6px">Save Record</button>
       </div>
     </div>
 
@@ -2296,9 +2825,65 @@
     </div>
   </div>
 
+  <!-- LEVEL 2: COUNTINGS MODULE -->
+  <div class="view" id="daysView" hidden>
+    <button class="back" id="daysBack">Hub</button>
+    
+    <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <h1 class="hub-title">Countings</h1>
+        <p class="hub-subtitle">Days Countdown &amp; Anniversaries</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="action-btn" id="btnOpenDaysCalculator" style="padding:7px 14px;font-size:13px;border-radius:999px;display:flex;align-items:center;gap:6px" title="Date Tools & Calculator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+          Date Tools
+        </button>
+        <button class="action-btn" id="btnOpenAddDayModal" style="padding:7px 14px;font-size:13px;border-radius:999px;background:var(--ios-label);color:#FFFFFF;border-color:var(--ios-label);display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Add Event
+        </button>
+      </div>
+    </div>
+
+    <div class="days-wrap">
+      <!-- 1. SPOTLIGHT HERO CARD -->
+      <div id="daysSpotlightContainer"></div>
+
+      <!-- 2. CATEGORY PILLS BAR (NO EMOJIS, INCLUDES NONE) -->
+      <div class="days-cats-bar" id="daysCatBar">
+        <button class="days-cat-pill active" data-cat="all">All</button>
+        <button class="days-cat-pill" data-cat="none">None</button>
+        <button class="days-cat-pill" data-cat="anniversary">Anniversary</button>
+        <button class="days-cat-pill" data-cat="birthday">Birthday</button>
+        <button class="days-cat-pill" data-cat="goal">Goal</button>
+        <button class="days-cat-pill" data-cat="life">Life</button>
+        <button class="days-cat-pill" data-cat="work">Work</button>
+        <button class="days-cat-pill" data-cat="holiday">Holiday</button>
+      </div>
+
+      <!-- 3. SEARCH & SORT TOOLBAR -->
+      <div class="days-toolbar">
+        <div class="days-search-box">
+          <svg class="days-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="days-search-input" id="daysSearchInput" placeholder="Search events or notes...">
+        </div>
+        <select class="days-sort-select" id="daysSortSelect">
+          <option value="nearest">Nearest</option>
+          <option value="daysDesc">Most Days</option>
+          <option value="daysAsc">Least Days</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+
+      <!-- 4. EVENTS CARDS LIST -->
+      <div class="days-grid" id="daysListGrid"></div>
+    </div>
+  </div>
+
   <!-- SETTINGS & DATA SYNC VIEW -->
   <div class="view" id="settingsView" hidden>
-    <button class="back" id="settingsBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Hub</button>
+    <button class="back" id="settingsBack">Hub</button>
     <div class="hub-header">
       <h1 class="hub-title">Settings &amp; Cloud Sync</h1>
       <p class="hub-subtitle">Backup, restore &amp; manage your personal data</p>
@@ -2307,50 +2892,50 @@
     <!-- 1. GITHUB GIST CLOUD SYNC (100% FREE & ZERO CREDIT CARD) -->
     <div class="mod-card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:14.5px;font-weight:700">GitHub Gist 私有雲端同步 (100% 免費、免綁信用卡)</span>
+        <span style="font-size:14.5px;font-weight:700">GitHub Gist Private Cloud Sync (100% Free)</span>
         <span class="tag" id="gistStatusTag" style="font-size:11px">Not Setup</span>
       </div>
       <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
-        使用您的 GitHub 帳號私有 Gist 空間儲存備份（完全免費、無需綁定信用卡），在手機與電腦間一鍵無縫雙向同步！
+        Store and back up your records securely to your private GitHub Gist for seamless cross-device synchronization.
       </p>
 
       <div class="form-group" style="margin-bottom:10px">
         <label>GitHub Personal Access Token (PAT)</label>
         <div style="display:flex;gap:8px">
           <input type="password" id="gistTokenInput" placeholder="ghp_xxxxxxxxxxxx" style="flex:1">
-          <button class="action-btn" id="btnGistSaveToken" style="padding:4px 12px;font-size:12px">儲存 Token</button>
+          <button class="action-btn" id="btnGistSaveToken" style="padding:4px 12px;font-size:12px">Save Token</button>
         </div>
         <small style="color:var(--ios-label-secondary);margin-top:4px;display:block;line-height:1.4">
-          👉 <b>30 秒取得 Token</b>：前往 <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--ios-blue);text-decoration:none">GitHub Settings ➔ Tokens (classic)</a> ➔ 點「Generate new token」➔ <b>只需勾選「gist」</b>即可免費生成！
+          👉 <b>Get Token in 30 seconds</b>: Go to <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--ios-blue);text-decoration:none">GitHub Settings ➔ Tokens (classic)</a> ➔ Click "Generate new token" ➔ <b>Check only the "gist" scope</b> to generate.
         </small>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="action-btn" id="btnGistPush" style="padding:11px 12px;justify-content:center;font-size:13px;display:inline-flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
-          同步上傳至 Gist
+          Upload to Gist
         </button>
         <button class="action-btn" id="btnGistPull" style="padding:11px 12px;justify-content:center;font-size:13px;background:rgba(255,255,255,0.75);display:inline-flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 9.75v6.75m0 0-3-3m3 3 3-3m-8.25 6a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
-          從 Gist 下載還原
+          Download from Gist
         </button>
       </div>
     </div>
 
     <!-- 2. LOCAL FILE BACKUP & RESTORE CARD -->
     <div class="mod-card" style="margin-bottom:16px">
-      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">本機檔案快速備份與還原 (最簡單、零設定)</span>
+      <span style="font-size:14.5px;font-weight:700;display:block;margin-bottom:6px">Local Backup &amp; Restore (Zero Config)</span>
       <p style="font-size:12.5px;color:var(--ios-label-secondary);line-height:1.45;margin-bottom:12px">
-        無需任何帳號或設定，一鍵將手機所有紀錄下載為單一 `.json` 備份檔，並可隨時還原。
+        Download all your logs and photos as a single .json backup file, or restore anytime without accounts or setups.
       </p>
       <div style="display:flex;gap:8px;flex-direction:column">
         <button class="action-btn" id="settingsExportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;display:inline-flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          匯出完整備份檔 (JSON)
+          Export Backup (JSON)
         </button>
         <button class="action-btn" id="settingsImportBtn" style="width:100%;padding:12px 16px;justify-content:center;font-size:13.5px;background:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-          匯入還原備份檔 (JSON)
+          Import &amp; Restore (JSON)
         </button>
       </div>
     </div>
@@ -2371,7 +2956,7 @@
       <div style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:8px">App Version: <b>v3.2 (Latest)</b></div>
       <button class="action-btn" onclick="forceAppUpdate()" style="width:100%;padding:10px 14px;justify-content:center;font-size:12.5px;background:rgba(255,255,255,0.75);display:inline-flex;align-items:center;gap:6px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-        強制更新至最新版本 (Clear Cache &amp; Reload)
+        Force Update App (Clear Cache &amp; Reload)
       </button>
     </div>
   </div>
@@ -2431,6 +3016,263 @@
             <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Log quick recipe, restaurant, or feelings</div>
           </div>
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTINGS: ADD / EDIT EVENT MODAL -->
+<div class="modal-overlay" id="daysModal" hidden>
+  <div class="modal-card" style="max-width:440px">
+    <div class="modal-head">
+      <h3 id="daysModalTitle">New Event</h3>
+      <button class="icon danger" id="closeDaysModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dayEditId">
+      
+      <div class="form-group">
+        <label>Event Name</label>
+        <input type="text" id="dayTitle" placeholder="e.g. Wedding Anniversary, New Year 2027..." style="font-weight:600">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>Target Date</label>
+          <input type="date" id="dayDate">
+        </div>
+        <div class="form-group">
+          <label>Time (Optional)</label>
+          <input type="time" id="dayTime" value="00:00">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>Mode</label>
+          <select id="dayType">
+            <option value="auto">Auto Detect</option>
+            <option value="countdown">Countdown (Days Left)</option>
+            <option value="countup">Count-up (Days Elapsed)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Repeat Cycle</label>
+          <select id="dayRepeat">
+            <option value="none">Does not repeat</option>
+            <option value="yearly">Every Year (Birthday/Anniversary)</option>
+            <option value="monthly">Every Month</option>
+            <option value="weekly">Every Week</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select id="dayCategory">
+          <option value="none">None (No Tag)</option>
+          <option value="anniversary">Anniversary</option>
+          <option value="birthday">Birthday</option>
+          <option value="goal">Goal &amp; Exam</option>
+          <option value="life">Life</option>
+          <option value="work">Work</option>
+          <option value="holiday">Holiday</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Color Accent</label>
+        <div class="days-theme-picker" id="dayThemePicker">
+          <div class="days-theme-opt active theme-indigo" data-t="indigo" style="background:linear-gradient(135deg,#6366f1,#4338ca)" title="Indigo"></div>
+          <div class="days-theme-opt theme-sky" data-t="sky" style="background:linear-gradient(135deg,#0284c7,#0369a1)" title="Sky"></div>
+          <div class="days-theme-opt theme-slate" data-t="slate" style="background:linear-gradient(135deg,#475569,#1e293b)" title="Slate"></div>
+          <div class="days-theme-opt theme-pine" data-t="pine" style="background:linear-gradient(135deg,#059669,#064e3b)" title="Pine"></div>
+          <div class="days-theme-opt theme-rose" data-t="rose" style="background:linear-gradient(135deg,#e11d48,#9f1239)" title="Rose"></div>
+          <div class="days-theme-opt theme-amber" data-t="amber" style="background:linear-gradient(135deg,#d97706,#92400e)" title="Amber"></div>
+          <div class="days-theme-opt theme-lilac" data-t="lilac" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)" title="Lilac"></div>
+          <div class="days-theme-opt theme-monochrome" data-t="monochrome" style="background:linear-gradient(135deg,#3f3f46,#18181b)" title="Monochrome"></div>
+        </div>
+      </div>
+
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+        <div>
+          <label style="margin-bottom:2px;font-size:13.5px">Pin to Spotlight</label>
+          <span style="font-size:11.5px;color:var(--ios-label-secondary)">Highlight at the top of Countings</span>
+        </div>
+        <input type="checkbox" id="dayPinned" style="width:20px;height:20px;accent-color:var(--ios-label);cursor:pointer">
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="dayNotes" rows="2" placeholder="Add special memories, feelings, or details..." style="resize:vertical"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="action-btn" id="btnSaveDayEvent" style="flex:1;background:var(--ios-label);color:#FFFFFF;border-color:var(--ios-label);padding:12px">Save Event</button>
+        <button class="action-btn icon danger" id="btnDeleteDayEvent" style="width:44px;display:none" title="Delete Event">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTINGS: EVENT DETAIL & MILESTONES MODAL -->
+<div class="modal-overlay" id="daysDetailModal" hidden>
+  <div class="modal-card" style="max-width:440px">
+    <div class="modal-head">
+      <span class="days-spotlight-tag" id="detailCatTag">Anniversary</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="icon" id="detailPinBtn" title="Pin / Unpin" style="width:30px;height:30px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M12 2v8m0 0 3-3m-3 3-3-3m3 3v12"/></svg>
+        </button>
+        <button class="icon" id="detailEditBtn" title="Edit" style="width:30px;height:30px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="icon danger" id="closeDaysDetailModal" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding-top:6px">
+      <div style="text-align:center;margin-bottom:12px">
+        <h2 id="detailTitle" style="font-size:22px;font-weight:800;color:var(--ios-label);margin-bottom:4px">--</h2>
+        <div id="detailSubtitle" style="font-size:12.5px;color:var(--ios-label-secondary)">--</div>
+      </div>
+
+      <div class="days-hero-display" style="margin:10px 0 12px">
+        <div class="days-hero-num" id="detailHeroNum">0</div>
+        <div class="days-hero-unit" id="detailHeroUnit">DAYS</div>
+      </div>
+
+      <div class="days-live-ticker" id="detailLiveTicker">
+        <span><b id="dtHrs">00</b><small>h</small></span> :
+        <span><b id="dtMins">00</b><small>m</small></span> :
+        <span><b id="dtSecs">00</b><small>s</small></span>
+      </div>
+
+      <div id="detailNotesBox" style="background:rgba(255,255,255,0.6);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--ios-label);line-height:1.45;margin-bottom:12px;border:0.5px solid rgba(255,255,255,0.8);word-break:break-word" hidden></div>
+
+      <!-- MILESTONES PREDICTOR -->
+      <div class="days-milestones-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:700;font-size:13px;color:var(--ios-label)">Milestone Predictions</span>
+          <span style="font-size:11px;color:var(--ios-label-secondary)" id="detailMilestoneSummary">0 reached</span>
+        </div>
+        <div id="detailMilestonesList"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="action-btn" id="btnOpenSharePoster" style="flex:1;background:var(--ios-label);color:#FFFFFF;border-color:var(--ios-label);display:inline-flex;align-items:center;justify-content:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Generate Share Poster
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTINGS: SHAREABLE POSTER MODAL -->
+<div class="modal-overlay" id="daysPosterModal" hidden>
+  <div class="modal-card" style="max-width:420px;text-align:center">
+    <div class="modal-head">
+      <h3>Share Poster</h3>
+      <button class="icon danger" id="closeDaysPosterModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding-top:4px">
+      <!-- Style selector -->
+      <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">
+        <button class="days-cat-pill active" data-pstyle="liquid">Liquid Glass</button>
+        <button class="days-cat-pill" data-pstyle="polaroid">Polaroid</button>
+        <button class="days-cat-pill" data-pstyle="minimal">Minimalist</button>
+        <button class="days-cat-pill" data-pstyle="ticket">Ticket Pass</button>
+      </div>
+
+      <!-- Poster Canvas Container -->
+      <div style="display:flex;justify-content:center;margin-bottom:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.12)">
+        <canvas id="daysPosterCanvas" width="540" height="720" style="width:270px;height:360px;display:block;border-radius:18px"></canvas>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="action-btn" id="btnDownloadPoster" style="flex:1;background:var(--ios-label);color:#FFFFFF;border-color:var(--ios-label);display:inline-flex;align-items:center;justify-content:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Image
+        </button>
+        <button class="action-btn" id="btnSharePosterNative" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 16px" title="System Share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTINGS: DATE TOOLS & CALCULATOR MODAL -->
+<div class="modal-overlay" id="daysCalculatorModal" hidden>
+  <div class="modal-card" style="max-width:440px">
+    <div class="modal-head">
+      <h3>Date Toolbox</h3>
+      <button class="icon danger" id="closeDaysCalculatorModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding-top:4px">
+      <!-- Tool tabs -->
+      <div class="days-tool-tabs">
+        <button class="days-tool-tab active" data-ttab="interval">Date Interval</button>
+        <button class="days-tool-tab" data-ttab="offset">Date Offset</button>
+      </div>
+
+      <!-- TAB 1: DATE INTERVAL -->
+      <div id="dtPanelInterval">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="calcStartDate">
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" id="calcEndDate">
+        </div>
+        <div style="background:rgba(255,255,255,0.65);border-radius:14px;padding:14px;border:0.5px solid rgba(255,255,255,0.8);margin-top:12px">
+          <div style="font-size:12px;color:var(--ios-label-secondary);margin-bottom:4px">Difference</div>
+          <div style="font-size:32px;font-weight:800;color:var(--ios-label)" id="calcIntervalDays">-- <span style="font-size:16px;font-weight:600">days</span></div>
+          <div style="margin-top:8px;font-size:12.5px;color:var(--ios-label-secondary);display:flex;flex-direction:column;gap:3px" id="calcIntervalBreakdown">
+            <span>• Weeks: --</span>
+            <span>• Months: --</span>
+            <span>• Business Days (Mon–Fri): --</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DATE OFFSET -->
+      <div id="dtPanelOffset" hidden>
+        <div class="form-group">
+          <label>Base Date</label>
+          <input type="date" id="calcBaseDate">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:10px">
+          <div class="form-group">
+            <label>Direction</label>
+            <select id="calcOffsetDir">
+              <option value="plus">Add (+)</option>
+              <option value="minus">Subtract (-)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Days</label>
+            <input type="number" id="calcOffsetNum" value="100" min="1" max="99999">
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.65);border-radius:14px;padding:14px;border:0.5px solid rgba(255,255,255,0.8);margin-top:12px">
+          <div style="font-size:12px;color:var(--ios-label-secondary);margin-bottom:4px">Calculated Target Date</div>
+          <div style="font-size:22px;font-weight:800;color:var(--ios-label)" id="calcOffsetResultDate">--</div>
+          <div style="margin-top:6px;font-size:12.5px;color:var(--ios-label-secondary)" id="calcOffsetResultSub">--</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2517,7 +3359,7 @@ const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
 /* ---------- ROUTING & VIEW NAVIGATION ---------- */
 let activeView = 'hub';
 function showView(viewId){
-  const views = ['hub', 'cal', 'sheet', 'budgetView', 'healthView', 'moodView', 'selfiesView', 'settingsView'];
+  const views = ['hub', 'cal', 'sheet', 'budgetView', 'healthView', 'moodView', 'selfiesView', 'daysView', 'settingsView'];
   views.forEach(v => {
     const el = $(v);
     if(el) el.hidden = (v !== viewId);
@@ -2528,6 +3370,7 @@ function showView(viewId){
   if(viewId === 'healthView') loadHealthModule();
   if(viewId === 'moodView') loadMoodboardModule();
   if(viewId === 'selfiesView') loadSelfiesModule();
+  if(viewId === 'daysView') loadDaysModule();
 }
 
 $('cardFood').onclick = () => showView('cal');
@@ -2535,13 +3378,14 @@ $('cardBudget').onclick = () => showView('budgetView');
 $('cardHealth').onclick = () => showView('healthView');
 $('cardMood').onclick = () => showView('moodView');
 $('cardSelfies').onclick = () => showView('selfiesView');
-
+$('cardDays').onclick = () => showView('daysView');
 
 $('calBack').onclick = () => showView('hub');
 $('budgetBack').onclick = () => showView('hub');
 $('healthBack').onclick = () => showView('hub');
 $('moodBack').onclick = () => showView('hub');
 $('selfiesBack').onclick = () => showView('hub');
+$('daysBack').onclick = () => showView('hub');
 
 let previousSettingsView = 'hub';
 
@@ -2590,7 +3434,7 @@ $('btnGistSaveToken').onclick = async () => {
 $('btnGistPush').onclick = async () => {
   const token = ($('gistTokenInput').value || '').trim() || (await store.get('config:gistToken'));
   if(!token){
-    alert('請先填入 GitHub Personal Access Token (PAT)。\n\n📌 30 秒免費取得 Token (無需信用卡)：\n1. 前往 GitHub Settings ➔ Developer Settings ➔ Personal access tokens (Tokens classic)\n2. 點擊「Generate new token」\n3. 只要勾選「gist」權限並生成即可！');
+    alert('Please enter your GitHub Personal Access Token (PAT).\n\n📌 How to get Token (Free, 30s):\n1. Go to GitHub Settings ➔ Developer Settings ➔ Personal access tokens (Tokens classic)\n2. Click "Generate new token"\n3. Check only the "gist" scope and generate!');
     return;
   }
   await store.set('config:gistToken', token);
@@ -2655,17 +3499,17 @@ $('btnGistPush').onclick = async () => {
       $('gistStatusTag').classList.add('on');
     }
     pill('Synced to GitHub Gist ✓');
-    alert('✅ 所有資料與照片已成功安全備份至您的私有 GitHub Gist 雲端！');
+    alert('✅ All records and photos have been backed up to your private GitHub Gist!');
   } catch(err){
     console.error('Gist Push Error:', err);
-    alert('GitHub Gist 同步失敗: ' + err.message);
+    alert('GitHub Gist Sync Failed: ' + err.message);
   }
 };
 
 $('btnGistPull').onclick = async () => {
   const token = ($('gistTokenInput').value || '').trim() || (await store.get('config:gistToken'));
   if(!token){
-    alert('請先填入 GitHub Personal Access Token (PAT)。');
+    alert('Please enter your GitHub Personal Access Token (PAT).');
     return;
   }
   pill('Fetching from GitHub Gist...', true);
@@ -2688,7 +3532,7 @@ $('btnGistPull').onclick = async () => {
     }
 
     if(!gistId){
-      alert('在您的 GitHub 帳號中尚未找到備份 Gist 檔案。請先在有資料的手機/裝置上點擊「☁️ 同步上傳至 Gist」。');
+      alert('No backup Gist found in your GitHub account. Please click "Upload to Gist" first.');
       return;
     }
 
@@ -2701,29 +3545,29 @@ $('btnGistPull').onclick = async () => {
     const gistData = await res.json();
     const fileObj = gistData.files && gistData.files['what-did-i-eat-backup.json'];
     if(!fileObj || !fileObj.content){
-      alert('Gist 檔案內容為空。');
+      alert('Gist file content is empty.');
       return;
     }
 
     const parsed = JSON.parse(fileObj.content);
     const entries = Object.entries(parsed.data || {});
     if(!entries.length){
-      alert('Gist 中無有效紀錄。');
+      alert('No valid records found in Gist.');
       return;
     }
 
-    if(!confirm(`確定要從 GitHub Gist 還原 ${entries.length} 筆資料紀錄？本機現有紀錄將被更新。`)) return;
+    if(!confirm(`Restore ${entries.length} data records from GitHub Gist? Existing local data will be updated.`)) return;
 
     for(const [k, val] of entries){
       await store.set(k, val);
     }
 
     pill('Restored from GitHub Gist ✓');
-    alert(`✅ 成功從 GitHub Gist 還原 ${entries.length} 筆資料！`);
+    alert(`✅ Successfully restored ${entries.length} records from GitHub Gist!`);
     showView('hub');
   } catch(err){
     console.error('Gist Pull Error:', err);
-    alert('從 GitHub Gist 還原失敗: ' + err.message);
+    alert('Failed to restore from GitHub Gist: ' + err.message);
   }
 };
 
@@ -2746,6 +3590,12 @@ async function loadHubStats(){
 
     const sPics = (await store.get('selfies:photos')) || [];
     if($('hubSelfiesStat')) $('hubSelfiesStat').textContent = `${sPics.length} photos`;
+
+    const dList = (await store.get('days:events')) || [];
+    if($('hubDaysStat')){
+      const count = dList.length;
+      $('hubDaysStat').textContent = count === 1 ? '1 event' : `${count} events`;
+    }
   } catch(e){
     console.error('loadHubStats error:', e);
   }
@@ -4311,12 +5161,12 @@ function initHealthForm(){
   $('btnIntimacyMinus').onclick = () => {
     if(intimacyCount > 0){
       intimacyCount--;
-      $('hIntimacyCountTxt').textContent = `${intimacyCount} 次`;
+      $('hIntimacyCountTxt').textContent = `${intimacyCount} times`;
     }
   };
   $('btnIntimacyPlus').onclick = () => {
     intimacyCount++;
-    $('hIntimacyCountTxt').textContent = `${intimacyCount} 次`;
+    $('hIntimacyCountTxt').textContent = `${intimacyCount} times`;
   };
   $('hIntimacyChips').querySelectorAll('.symptom-chip').forEach(chip => {
     chip.onclick = () => {
@@ -4453,7 +5303,7 @@ async function loadHealthModule(){
       periodBadge = `<span class="tag on" style="font-size:11.5px">Period: ${item.period}${item.flow ? ` (${item.flow})` : ''}</span>`;
     }
 
-    let intimacyBadge = item.intimacy ? `<span class="tag" style="font-size:11px">性生活: ${item.intimacy} 次${item.protection && item.protection !== 'none' ? ` (${item.protection})` : ''}</span>` : '';
+    let intimacyBadge = item.intimacy ? `<span class="tag" style="font-size:11px">Intimacy: ${item.intimacy} times${item.protection && item.protection !== 'none' ? ` (${item.protection})` : ''}</span>` : '';
     let symptomsBadges = (item.symptoms || []).map(s => `<span class="tag" style="font-size:11px">${s}</span>`).join(' ');
     let waterBadge = item.water ? `<span class="tag" style="font-size:11px">${item.water} ml</span>` : '';
     let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">${item.weight} kg</span>` : '';
@@ -4685,6 +5535,1084 @@ function makeThumb(src){
 $('prev').onclick = () => { view.setMonth(view.getMonth()-1); loadMonth(); };
 $('next').onclick = () => { view.setMonth(view.getMonth()+1); loadMonth(); };
 $('back').onclick = () => showView('cal');
+
+/* ==========================================================================
+   LEVEL 2: COUNTINGS (DAYS COUNTDOWN & ANNIVERSARIES) ENGINE
+   ========================================================================== */
+let daysEventsCache = [];
+let daysCurrentCat = 'all';
+let daysSearchQuery = '';
+let daysSortOrder = 'nearest';
+let daysSelectedTheme = 'indigo';
+let daysTickerInterval = null;
+let currentDetailEvent = null;
+let currentPosterStyle = 'liquid';
+
+const DAYS_CATS = {
+  all: { label: 'All' },
+  none: { label: 'None' },
+  anniversary: { label: 'Anniversary' },
+  birthday: { label: 'Birthday' },
+  goal: { label: 'Goal' },
+  life: { label: 'Life' },
+  work: { label: 'Work' },
+  holiday: { label: 'Holiday' },
+  other: { label: 'Other' }
+};
+
+// Default starter sample events (Minimalist & Clean)
+const DEFAULT_DAYS_EVENTS = [
+  {
+    id: 'ev_sample_1',
+    title: 'Relationship Anniversary',
+    date: '2024-05-20',
+    time: '00:00',
+    type: 'countup',
+    repeat: 'none',
+    category: 'anniversary',
+    theme: 'rose',
+    pinned: true,
+    notes: 'Cherishing every single moment together.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ev_sample_2',
+    title: 'New Year 2027 Countdown',
+    date: '2027-01-01',
+    time: '00:00',
+    type: 'countdown',
+    repeat: 'yearly',
+    category: 'holiday',
+    theme: 'indigo',
+    pinned: false,
+    notes: 'Welcoming new beginnings and opportunities.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ev_sample_3',
+    title: 'Goal Target Date',
+    date: '2026-12-31',
+    time: '23:59',
+    type: 'countdown',
+    repeat: 'none',
+    category: 'goal',
+    theme: 'sky',
+    pinned: false,
+    notes: 'Consistency and discipline lead to great outcomes.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ev_sample_4',
+    title: 'Birthday Celebration',
+    date: '2026-10-18',
+    time: '00:00',
+    type: 'countdown',
+    repeat: 'yearly',
+    category: 'birthday',
+    theme: 'lilac',
+    pinned: false,
+    notes: 'Celebrating another wonderful year of growth.',
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Calculation & Target Date logic
+function getEventCalcInfo(ev, now = new Date()){
+  if(!ev) return { dayDiff: 0, absDays: 0, isToday: true, isCountDown: false, hrs: '00', mins: '00', secs: '00' };
+  
+  const [y, m, d] = (ev.date || '2026-01-01').split('-').map(Number);
+  const [hh, mm] = (ev.time || '00:00').split(':').map(Number);
+  
+  let targetDate = new Date(y, m - 1, d, hh || 0, mm || 0, 0);
+  const origDate = new Date(y, m - 1, d, hh || 0, mm || 0, 0);
+  
+  const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Handle repeat
+  if(ev.repeat === 'yearly'){
+    if(ev.type === 'countup'){
+      targetDate = origDate;
+    } else {
+      let thisYearTarget = new Date(now.getFullYear(), m - 1, d, hh || 0, mm || 0, 0);
+      let targetZero = new Date(now.getFullYear(), m - 1, d);
+      if(targetZero < todayZero){
+        thisYearTarget = new Date(now.getFullYear() + 1, m - 1, d, hh || 0, mm || 0, 0);
+      }
+      targetDate = thisYearTarget;
+    }
+  } else if(ev.repeat === 'monthly'){
+    if(ev.type === 'countup'){
+      targetDate = origDate;
+    } else {
+      let thisMonthTarget = new Date(now.getFullYear(), now.getMonth(), d, hh || 0, mm || 0, 0);
+      let targetZero = new Date(now.getFullYear(), now.getMonth(), d);
+      if(targetZero < todayZero){
+        thisMonthTarget = new Date(now.getFullYear(), now.getMonth() + 1, d, hh || 0, mm || 0, 0);
+      }
+      targetDate = thisMonthTarget;
+    }
+  } else if(ev.repeat === 'weekly'){
+    if(ev.type === 'countup'){
+      targetDate = origDate;
+    } else {
+      const targetDow = origDate.getDay();
+      const currentDow = now.getDay();
+      let diffDays = (targetDow - currentDow + 7) % 7;
+      if(diffDays === 0 && (now.getHours() > hh || (now.getHours() === hh && now.getMinutes() > mm))){
+        diffDays = 7;
+      }
+      targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffDays, hh || 0, mm || 0, 0);
+    }
+  }
+
+  const targetZero = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  const origZero = new Date(origDate.getFullYear(), origDate.getMonth(), origDate.getDate());
+  
+  const dayDiff = Math.round((targetZero - todayZero) / (1000 * 60 * 60 * 24));
+  const totalPassedFromOrig = Math.round((todayZero - origZero) / (1000 * 60 * 60 * 24));
+  
+  let isCountDown = false;
+  let isToday = (dayDiff === 0);
+  let displayDays = 0;
+
+  if(ev.type === 'countup'){
+    isCountDown = false;
+    displayDays = totalPassedFromOrig >= 0 ? totalPassedFromOrig : 0;
+  } else if(ev.type === 'countdown'){
+    isCountDown = true;
+    displayDays = dayDiff >= 0 ? dayDiff : Math.abs(dayDiff);
+  } else { // auto
+    if(dayDiff > 0){
+      isCountDown = true;
+      displayDays = dayDiff;
+    } else if(dayDiff < 0){
+      isCountDown = false;
+      displayDays = Math.abs(dayDiff);
+    } else {
+      isToday = true;
+      displayDays = 0;
+    }
+  }
+
+  // Exact live ticker
+  const diffMs = targetDate.getTime() - now.getTime();
+  const absSec = Math.max(0, Math.floor(Math.abs(diffMs) / 1000));
+  const hrs = String(Math.floor((absSec % 86400) / 3600)).padStart(2, '0');
+  const mins = String(Math.floor((absSec % 3600) / 60)).padStart(2, '0');
+  const secs = String(absSec % 60).padStart(2, '0');
+
+  return {
+    targetDate,
+    origDate,
+    dayDiff,
+    totalPassedFromOrig,
+    displayDays,
+    absDays: Math.abs(displayDays),
+    isToday,
+    isCountDown,
+    hrs,
+    mins,
+    secs
+  };
+}
+
+// Milestone calculations (Ordinal formatting in English)
+function getOrdinalSuffix(n){
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function getEventMilestones(ev){
+  if(!ev || !ev.date) return [];
+  const [y, m, d] = ev.date.split('-').map(Number);
+  const start = new Date(y, m - 1, d);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const dayChecks = [100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000, 10000];
+  const yearChecks = [1, 2, 3, 5, 10, 20, 30, 50];
+
+  const list = [];
+
+  dayChecks.forEach(cnt => {
+    const target = new Date(start.getTime() + cnt * 86400000);
+    const targetZero = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+    const diff = Math.round((targetZero - today) / 86400000);
+    list.push({
+      name: `${cnt.toLocaleString()} Days`,
+      dateStr: `${target.getFullYear()}/${pad(target.getMonth()+1)}/${pad(target.getDate())}`,
+      diff,
+      passed: diff <= 0,
+      type: 'day',
+      cnt
+    });
+  });
+
+  yearChecks.forEach(yr => {
+    const target = new Date(y + yr, m - 1, d);
+    const targetZero = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+    const diff = Math.round((targetZero - today) / 86400000);
+    list.push({
+      name: `${getOrdinalSuffix(yr)} Anniversary`,
+      dateStr: `${target.getFullYear()}/${pad(target.getMonth()+1)}/${pad(target.getDate())}`,
+      diff,
+      passed: diff <= 0,
+      type: 'year',
+      cnt: yr
+    });
+  });
+
+  list.sort((a, b) => new Date(a.dateStr) - new Date(b.dateStr));
+  return list;
+}
+
+// Load and render module
+async function loadDaysModule(){
+  let events = await store.get('days:events');
+  if(!events || !Array.isArray(events) || events.length === 0){
+    events = DEFAULT_DAYS_EVENTS;
+    await store.set('days:events', events);
+  } else {
+    // Sanitize any legacy themes/categories
+    const themeMap = {
+      sunset: 'amber',
+      gold: 'amber',
+      ocean: 'sky',
+      lavender: 'lilac',
+      emerald: 'pine',
+      sakura: 'rose',
+      midnight: 'slate',
+      aurora: 'indigo'
+    };
+    const sampleTitleMap = {
+      '我們在一起 💖': 'Relationship Anniversary',
+      '我們在一起': 'Relationship Anniversary',
+      '2027 跨年元旦倒數 🎉': 'New Year 2027 Countdown',
+      '2027 跨年元旦倒數': 'New Year 2027 Countdown',
+      '年度夢想目標達成日 🎯': 'Goal Target Date',
+      '年度夢想目標達成日': 'Goal Target Date',
+      '下一次生日慶祝 🎂': 'Birthday Celebration',
+      '下一次生日慶祝': 'Birthday Celebration',
+      '🇯🇵 日本東京旅行': 'Tokyo Vacation Trip',
+      '日本東京旅行': 'Tokyo Vacation Trip'
+    };
+    const sampleNotesMap = {
+      '記錄相遇相知的每一個美好日子 ✨': 'Cherishing every single moment together.',
+      '迎接嶄新的一年，願所有美好如期而至！': 'Welcoming new beginnings and opportunities.',
+      '持之以恆，堅持到底，必有豐碩收穫！': 'Consistency and discipline lead to great outcomes.',
+      '祝自己又長大了一歲，平安喜樂 🎁': 'Celebrating another wonderful year of growth.',
+      '期待已久的東京賞櫻之旅 🌸': 'Excited for the upcoming Tokyo holiday.'
+    };
+    let modified = false;
+    events.forEach(e => {
+      if(sampleTitleMap[e.title]){
+        e.title = sampleTitleMap[e.title];
+        modified = true;
+      }
+      if(sampleNotesMap[e.notes]){
+        e.notes = sampleNotesMap[e.notes];
+        modified = true;
+      }
+      if(themeMap[e.theme]){
+        e.theme = themeMap[e.theme];
+        modified = true;
+      }
+      if(e.category === 'love'){
+        e.category = 'anniversary';
+        modified = true;
+      }
+      if(!e.theme || e.theme === 'sunset') {
+        e.theme = 'indigo';
+        modified = true;
+      }
+      // Remove any trailing/embedded emojis
+      const cleanedTitle = e.title.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim();
+      if(cleanedTitle !== e.title){
+        e.title = cleanedTitle;
+        modified = true;
+      }
+    });
+    if(modified) await store.set('days:events', events);
+  }
+  daysEventsCache = events;
+
+  renderDaysUI();
+  startDaysTicker();
+}
+
+function startDaysTicker(){
+  if(daysTickerInterval) clearInterval(daysTickerInterval);
+  daysTickerInterval = setInterval(() => {
+    if(activeView !== 'daysView') return;
+    const now = new Date();
+
+    // Update Spotlight Ticker if present
+    const spotEv = daysEventsCache.find(e => e.pinned) || daysEventsCache[0];
+    if(spotEv){
+      const c = getEventCalcInfo(spotEv, now);
+      if($('spotHrs')) $('spotHrs').textContent = c.hrs;
+      if($('spotMins')) $('spotMins').textContent = c.mins;
+      if($('spotSecs')) $('spotSecs').textContent = c.secs;
+    }
+
+    // Update Detail Modal Ticker if open
+    if(currentDetailEvent && !$('daysDetailModal').hidden){
+      const c = getEventCalcInfo(currentDetailEvent, now);
+      if($('dtHrs')) $('dtHrs').textContent = c.hrs;
+      if($('dtMins')) $('dtMins').textContent = c.mins;
+      if($('dtSecs')) $('dtSecs').textContent = c.secs;
+    }
+  }, 1000);
+}
+
+function renderDaysUI(){
+  renderDaysSpotlight();
+  renderDaysList();
+}
+
+function renderDaysSpotlight(){
+  const container = $('daysSpotlightContainer');
+  if(!container) return;
+
+  if(!daysEventsCache.length){
+    container.innerHTML = `
+      <div class="days-spotlight theme-indigo" style="text-align:center;padding:36px 20px">
+        <div class="days-spotlight-title">No events yet</div>
+        <p class="days-spotlight-subtitle" style="margin-top:6px">Tap "+ Add Event" at the top right to start counting your days.</p>
+      </div>`;
+    return;
+  }
+
+  const ev = daysEventsCache.find(e => e.pinned) || daysEventsCache[0];
+  const calc = getEventCalcInfo(ev);
+  const themeClass = `theme-${ev.theme || 'indigo'}`;
+  const catInfo = DAYS_CATS[ev.category] || null;
+  const showCatTag = catInfo && catInfo.label && ev.category !== 'none';
+
+  let unitText = 'DAYS';
+  let badgeLabel = 'Days passed';
+  if(calc.isToday){
+    unitText = 'TODAY';
+    badgeLabel = 'Today!';
+  } else if(calc.isCountDown){
+    unitText = 'DAYS LEFT';
+    badgeLabel = `in ${calc.dayDiff} days`;
+  } else {
+    unitText = 'DAYS PASSED';
+    badgeLabel = `${calc.absDays} days elapsed`;
+  }
+
+  const repeatLabels = { yearly: 'Every Year', monthly: 'Every Month', weekly: 'Every Week', none: '' };
+  const repeatText = repeatLabels[ev.repeat] || '';
+
+  container.innerHTML = `
+    <div class="days-spotlight ${themeClass}" id="spotlightCard">
+      <div class="days-spotlight-bg"></div>
+      <div class="days-spotlight-content">
+        <div class="days-spotlight-top">
+          <div>
+            ${showCatTag ? `<span class="days-spotlight-tag">${catInfo.label}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${ev.pinned ? '<span class="days-pin-badge">Spotlight</span>' : ''}
+            ${repeatText ? `<span class="days-card-repeat">${repeatText}</span>` : ''}
+          </div>
+        </div>
+
+        <h2 class="days-spotlight-title">${ev.title}</h2>
+        <div class="days-spotlight-subtitle">Target: ${ev.date} · ${WD[new Date(ev.date + 'T00:00').getDay()] || ''}</div>
+
+        <div class="days-hero-display">
+          <div class="days-hero-num">${calc.isToday ? '0' : calc.absDays}</div>
+          <div class="days-hero-unit">${unitText}</div>
+        </div>
+
+        <div class="days-live-ticker">
+          <span><b id="spotHrs">${calc.hrs}</b><small>h</small></span> :
+          <span><b id="spotMins">${calc.mins}</b><small>m</small></span> :
+          <span><b id="spotSecs">${calc.secs}</b><small>s</small></span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:12px;color:var(--ios-label-secondary)">
+          <span>${ev.notes ? ev.notes : 'Tap to inspect milestones and share poster'}</span>
+          <span style="font-weight:600;color:var(--theme-accent)">Details ➔</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('spotlightCard').onclick = () => openDayDetailModal(ev);
+}
+
+function renderDaysList(){
+  const grid = $('daysListGrid');
+  if(!grid) return;
+
+  let list = [...daysEventsCache];
+
+  // Filter Category
+  if(daysCurrentCat === 'none'){
+    list = list.filter(e => !e.category || e.category === 'none');
+  } else if(daysCurrentCat !== 'all'){
+    list = list.filter(e => e.category === daysCurrentCat);
+  }
+
+  // Filter Search
+  if(daysSearchQuery.trim()){
+    const q = daysSearchQuery.trim().toLowerCase();
+    list = list.filter(e => (e.title && e.title.toLowerCase().includes(q)) || (e.notes && e.notes.toLowerCase().includes(q)));
+  }
+
+  // Sort
+  if(daysSortOrder === 'nearest'){
+    list.sort((a, b) => {
+      const ca = getEventCalcInfo(a);
+      const cb = getEventCalcInfo(b);
+      return ca.absDays - cb.absDays;
+    });
+  } else if(daysSortOrder === 'daysDesc'){
+    list.sort((a, b) => {
+      const ca = getEventCalcInfo(a);
+      const cb = getEventCalcInfo(b);
+      return cb.absDays - ca.absDays;
+    });
+  } else if(daysSortOrder === 'daysAsc'){
+    list.sort((a, b) => {
+      const ca = getEventCalcInfo(a);
+      const cb = getEventCalcInfo(b);
+      return ca.absDays - cb.absDays;
+    });
+  } else if(daysSortOrder === 'newest'){
+    list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }
+
+  if(!list.length){
+    grid.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--ios-label-tertiary);font-size:13.5px">
+        No events found in this view.<br>Try switching categories or tap "+ Add Event".
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(ev => {
+    const calc = getEventCalcInfo(ev);
+    const themeClass = `theme-${ev.theme || 'indigo'}`;
+    const catInfo = DAYS_CATS[ev.category] || null;
+    const showCatTag = catInfo && catInfo.label && ev.category !== 'none';
+    
+    let badgeText = `${calc.absDays}d`;
+    let badgeSub = 'DAYS';
+    let badgeClass = 'days-badge';
+
+    if(calc.isToday){
+      badgeText = 'TODAY';
+      badgeSub = 'Today!';
+      badgeClass = 'days-badge today';
+    } else if(calc.isCountDown){
+      badgeText = `D-${calc.dayDiff}`;
+      badgeSub = 'Countdown';
+    } else {
+      badgeText = `D+${calc.absDays}`;
+      badgeSub = 'Elapsed';
+    }
+
+    const repeatLabels = { yearly: 'Yearly', monthly: 'Monthly', weekly: 'Weekly', none: '' };
+    const repeatBadge = repeatLabels[ev.repeat] ? `<span class="days-card-repeat">${repeatLabels[ev.repeat]}</span>` : '';
+
+    return `
+      <div class="days-card ${themeClass}" onclick="openDayDetailModalById('${ev.id}')">
+        <div class="days-card-bar"></div>
+        <div class="days-card-left">
+          <div class="days-card-tags">
+            ${showCatTag ? `<span class="days-card-cat">${catInfo.label}</span>` : ''}
+            ${ev.pinned ? '<span class="days-card-repeat" style="color:#FF9500;background:rgba(255,149,0,0.12)">Spotlight</span>' : ''}
+            ${repeatBadge}
+          </div>
+          <div class="days-card-title">${ev.title}</div>
+          <div class="days-card-sub">${ev.date} · ${calc.isCountDown ? 'Target Date' : 'Since'}</div>
+        </div>
+        <div class="days-card-right">
+          <div class="${badgeClass}">${badgeText}</div>
+          <div class="days-badge-label">${badgeSub}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Category filter click
+document.querySelectorAll('#daysCatBar .days-cat-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#daysCatBar .days-cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    daysCurrentCat = btn.dataset.cat;
+    renderDaysList();
+  };
+});
+
+// Search & Sort bindings
+if($('daysSearchInput')){
+  $('daysSearchInput').oninput = e => {
+    daysSearchQuery = e.target.value;
+    renderDaysList();
+  };
+}
+if($('daysSortSelect')){
+  $('daysSortSelect').onchange = e => {
+    daysSortOrder = e.target.value;
+    renderDaysList();
+  };
+}
+
+// Modal open/close helpers
+function openAddDayModal(editEv = null){
+  $('dayEditId').value = editEv ? editEv.id : '';
+  $('daysModalTitle').textContent = editEv ? 'Edit Event' : 'New Event';
+  $('dayTitle').value = editEv ? editEv.title : '';
+  $('dayDate').value = editEv ? editEv.date : new Date().toISOString().slice(0, 10);
+  $('dayTime').value = editEv ? (editEv.time || '00:00') : '00:00';
+  $('dayType').value = editEv ? editEv.type : 'auto';
+  $('dayRepeat').value = editEv ? editEv.repeat : 'none';
+  $('dayCategory').value = editEv ? (editEv.category || 'none') : 'none';
+  $('dayPinned').checked = editEv ? !!editEv.pinned : false;
+  $('dayNotes').value = editEv ? (editEv.notes || '') : '';
+
+  daysSelectedTheme = editEv ? (editEv.theme || 'indigo') : 'indigo';
+  document.querySelectorAll('#dayThemePicker .days-theme-opt').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.t === daysSelectedTheme);
+  });
+
+  if($('btnDeleteDayEvent')){
+    $('btnDeleteDayEvent').style.display = editEv ? 'inline-flex' : 'none';
+    $('btnDeleteDayEvent').onclick = () => deleteDayEvent(editEv.id);
+  }
+
+  $('daysModal').hidden = false;
+}
+
+$('btnOpenAddDayModal').onclick = () => openAddDayModal();
+$('closeDaysModal').onclick = () => $('daysModal').hidden = true;
+
+// Theme picker options
+document.querySelectorAll('#dayThemePicker .days-theme-opt').forEach(opt => {
+  opt.onclick = () => {
+    document.querySelectorAll('#dayThemePicker .days-theme-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    daysSelectedTheme = opt.dataset.t;
+  };
+});
+
+// Save Event
+$('btnSaveDayEvent').onclick = async () => {
+  const title = $('dayTitle').value.trim();
+  const date = $('dayDate').value;
+  if(!title){ return alert('Please enter an event name.'); }
+  if(!date){ return alert('Please choose a date.'); }
+
+  const id = $('dayEditId').value || ('ev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4));
+  const isPinned = $('dayPinned').checked;
+
+  let list = (await store.get('days:events')) || [];
+
+  if(isPinned){
+    list.forEach(e => { if(e.id !== id) e.pinned = false; });
+  }
+
+  const existingIdx = list.findIndex(e => e.id === id);
+  const evData = {
+    id,
+    title,
+    date,
+    time: $('dayTime').value || '00:00',
+    type: $('dayType').value,
+    repeat: $('dayRepeat').value,
+    category: $('dayCategory').value,
+    theme: daysSelectedTheme,
+    pinned: isPinned,
+    notes: $('dayNotes').value.trim(),
+    createdAt: existingIdx >= 0 ? list[existingIdx].createdAt : new Date().toISOString()
+  };
+
+  if(existingIdx >= 0){
+    list[existingIdx] = evData;
+  } else {
+    list.unshift(evData);
+  }
+
+  await store.set('days:events', list);
+  daysEventsCache = list;
+  pill('Event Saved ✓');
+  $('daysModal').hidden = true;
+
+  renderDaysUI();
+  loadHubStats();
+};
+
+async function deleteDayEvent(id){
+  if(!confirm('Are you sure you want to delete this event?')) return;
+  let list = (await store.get('days:events')) || [];
+  list = list.filter(e => e.id !== id);
+  await store.set('days:events', list);
+  daysEventsCache = list;
+  pill('Event Deleted');
+  $('daysModal').hidden = true;
+  $('daysDetailModal').hidden = true;
+  renderDaysUI();
+  loadHubStats();
+}
+
+// Event Detail Modal
+window.openDayDetailModalById = (id) => {
+  const ev = daysEventsCache.find(e => e.id === id);
+  if(ev) openDayDetailModal(ev);
+};
+
+function openDayDetailModal(ev){
+  currentDetailEvent = ev;
+  const calc = getEventCalcInfo(ev);
+  const themeClass = `theme-${ev.theme || 'indigo'}`;
+  const catInfo = DAYS_CATS[ev.category] || null;
+  const showCatTag = catInfo && catInfo.label && ev.category !== 'none';
+
+  if(showCatTag){
+    $('detailCatTag').style.display = 'inline-flex';
+    $('detailCatTag').className = `days-spotlight-tag ${themeClass}`;
+    $('detailCatTag').textContent = catInfo.label;
+  } else {
+    $('detailCatTag').style.display = 'none';
+  }
+
+  $('detailTitle').textContent = ev.title;
+  $('detailSubtitle').textContent = `${ev.date} · ${WD[new Date(ev.date + 'T00:00').getDay()] || ''} · ${calc.isCountDown ? 'Countdown' : 'Since'}`;
+
+  $('detailHeroNum').className = `days-hero-num ${themeClass}`;
+  $('detailHeroNum').textContent = calc.isToday ? '0' : calc.absDays;
+  $('detailHeroUnit').textContent = calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS LEFT' : 'DAYS PASSED');
+
+  $('dtHrs').textContent = calc.hrs;
+  $('dtMins').textContent = calc.mins;
+  $('dtSecs').textContent = calc.secs;
+
+  if(ev.notes){
+    $('detailNotesBox').hidden = false;
+    $('detailNotesBox').textContent = `Notes: ${ev.notes}`;
+  } else {
+    $('detailNotesBox').hidden = true;
+  }
+
+  // Render Milestones
+  const milestones = getEventMilestones(ev);
+  const passedCount = milestones.filter(m => m.passed).length;
+  $('detailMilestoneSummary').textContent = `${passedCount} / ${milestones.length} reached`;
+
+  const mListEl = $('detailMilestonesList');
+  mListEl.innerHTML = milestones.slice(0, 8).map(m => `
+    <div class="days-milestone-row">
+      <div>
+        <span class="days-milestone-name">${m.name}</span>
+        <span class="days-milestone-date">${m.dateStr}</span>
+      </div>
+      <div>
+        ${m.passed ? '<span class="days-milestone-stat passed">Reached ✓</span>' : `<span class="days-milestone-stat upcoming">in ${m.diff} days</span>`}
+      </div>
+    </div>
+  `).join('');
+
+  // Pin button state
+  $('detailPinBtn').onclick = async () => {
+    ev.pinned = !ev.pinned;
+    if(ev.pinned){
+      daysEventsCache.forEach(e => { if(e.id !== ev.id) e.pinned = false; });
+    }
+    await store.set('days:events', daysEventsCache);
+    pill(ev.pinned ? 'Pinned to Spotlight' : 'Unpinned');
+    renderDaysUI();
+    loadHubStats();
+  };
+
+  $('detailEditBtn').onclick = () => {
+    $('daysDetailModal').hidden = true;
+    openAddDayModal(ev);
+  };
+
+  $('daysDetailModal').hidden = false;
+}
+
+$('closeDaysDetailModal').onclick = () => $('daysDetailModal').hidden = true;
+
+// Share Poster Modal & Canvas Generation
+$('btnOpenSharePoster').onclick = () => {
+  if(!currentDetailEvent) return;
+  openSharePosterModal(currentDetailEvent);
+};
+
+function openSharePosterModal(ev){
+  currentPosterStyle = 'liquid';
+  document.querySelectorAll('#daysPosterModal .days-cat-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.pstyle === currentPosterStyle);
+  });
+  renderPosterCanvas(ev, currentPosterStyle);
+  $('daysPosterModal').hidden = false;
+}
+
+$('closeDaysPosterModal').onclick = () => $('daysPosterModal').hidden = true;
+
+document.querySelectorAll('#daysPosterModal .days-cat-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#daysPosterModal .days-cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPosterStyle = btn.dataset.pstyle;
+    if(currentDetailEvent) renderPosterCanvas(currentDetailEvent, currentPosterStyle);
+  };
+});
+
+function renderPosterCanvas(ev, style = 'liquid'){
+  const canvas = $('daysPosterCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const calc = getEventCalcInfo(ev);
+  const catInfo = DAYS_CATS[ev.category] || null;
+  const tagLabel = (catInfo && catInfo.label && ev.category !== 'none') ? catInfo.label.toUpperCase() : 'COUNTINGS';
+
+  ctx.clearRect(0, 0, w, h);
+
+  if(style === 'liquid'){
+    // Clean Liquid Glass Gradient
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#18181b');
+    grad.addColorStop(0.5, '#27272a');
+    grad.addColorStop(1, '#09090b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle ambient specular glow
+    ctx.save();
+    ctx.filter = 'blur(50px)';
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
+    ctx.beginPath(); ctx.arc(w * 0.25, h * 0.3, 140, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(14, 165, 233, 0.2)';
+    ctx.beginPath(); ctx.arc(w * 0.75, h * 0.7, 150, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // Frosted Card
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(30, 40, w - 60, h - 80, 24);
+    ctx.fill();
+    ctx.stroke();
+
+    // Category Tag
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.beginPath(); ctx.roundRect(w/2 - 60, 75, 120, 30, 15); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '600 12.5px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(tagLabel, w/2, 95);
+
+    // Title
+    ctx.font = 'bold 26px -apple-system, sans-serif';
+    ctx.fillText(ev.title, w/2, 160);
+
+    // Date
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(`${ev.date} · ${calc.isCountDown ? 'Target' : 'Since'}`, w/2, 195);
+
+    // Huge Number
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 86px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? '0' : String(calc.absDays), w/2, 330);
+
+    // Days Subtitle
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS LEFT' : 'DAYS PASSED'), w/2, 370);
+
+    // Notes
+    if(ev.notes){
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '14px -apple-system, sans-serif';
+      ctx.fillText(`“${ev.notes}”`, w/2, 490);
+    }
+
+    // Footer
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.fillText('Countings · Personal Hub', w/2, h - 65);
+
+  } else if(style === 'polaroid'){
+    // Polaroid Frame
+    ctx.fillStyle = '#F2F2F7';
+    ctx.fillRect(0, 0, w, h);
+
+    // White paper
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0,0,0,0.12)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 6;
+    ctx.fillRect(25, 30, w - 50, h - 60);
+    ctx.shadowColor = 'transparent';
+
+    // Inner photo
+    const photoGrad = ctx.createLinearGradient(45, 50, w - 45, 420);
+    photoGrad.addColorStop(0, '#334155');
+    photoGrad.addColorStop(1, '#1e293b');
+    ctx.fillStyle = photoGrad;
+    ctx.fillRect(45, 50, w - 90, 380);
+
+    // Inner photo text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.font = '600 13px -apple-system, sans-serif';
+    ctx.fillText(tagLabel, w/2, 100);
+
+    ctx.font = '900 80px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? '0' : String(calc.absDays), w/2, 240);
+
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS LEFT' : 'DAYS PASSED'), w/2, 280);
+
+    ctx.font = 'bold 22px -apple-system, sans-serif';
+    ctx.fillText(ev.title, w/2, 360);
+
+    // Bottom handwritten style notes
+    ctx.fillStyle = '#1C1C1E';
+    ctx.font = '600 16px -apple-system, sans-serif';
+    ctx.fillText(ev.notes || ev.title, w/2, 490);
+
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = '12.5px -apple-system, sans-serif';
+    ctx.fillText(`Target Date: ${ev.date}`, w/2, 530);
+    ctx.fillText('Polaroid Archive · Countings', w/2, h - 55);
+
+  } else if(style === 'minimal'){
+    // Minimalist Luxury
+    ctx.fillStyle = '#0F1115';
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = '#2A2E39';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(25, 25, w - 50, h - 50);
+
+    ctx.fillStyle = '#9CA3AF';
+    ctx.textAlign = 'center';
+    ctx.font = '600 13px -apple-system, sans-serif';
+    ctx.fillText(tagLabel, w/2, 90);
+
+    ctx.fillStyle = '#F9FAFB';
+    ctx.font = 'bold 26px -apple-system, sans-serif';
+    ctx.fillText(ev.title, w/2, 160);
+
+    ctx.fillStyle = '#6B7280';
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(ev.date, w/2, 195);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 92px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? '0' : String(calc.absDays), w/2, 330);
+
+    ctx.fillStyle = '#9CA3AF';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS UNTIL EVENT' : 'DAYS ELAPSED'), w/2, 370);
+
+    ctx.fillStyle = '#4B5563';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.fillText('COUNTINGS · ARCHIVE', w/2, h - 60);
+
+  } else if(style === 'ticket'){
+    // Boarding Pass / Ticket Style
+    ctx.fillStyle = '#F2F2F7';
+    ctx.fillRect(0, 0, w, h);
+
+    // Ticket body
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.roundRect(30, 40, w - 60, h - 80, 20);
+    ctx.fill();
+
+    // Top Header bar
+    ctx.fillStyle = '#1C1C1E';
+    ctx.beginPath();
+    ctx.roundRect(30, 40, w - 60, 80, [20, 20, 0, 0]);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px -apple-system, sans-serif';
+    ctx.fillText('EVENT PASS / MEMORY TICKET', w/2, 75);
+    ctx.font = '12.5px -apple-system, sans-serif';
+    ctx.fillText(tagLabel, w/2, 100);
+
+    // Content
+    ctx.fillStyle = '#1C1C1E';
+    ctx.font = 'bold 24px -apple-system, sans-serif';
+    ctx.fillText(ev.title, w/2, 180);
+
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(`DATE: ${ev.date}`, w/2, 215);
+
+    ctx.fillStyle = '#1C1C1E';
+    ctx.font = '900 80px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? '0' : String(calc.absDays), w/2, 340);
+
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS REMAINING' : 'DAYS ELAPSED'), w/2, 380);
+
+    // Dotted separator line
+    ctx.strokeStyle = '#D1D1D6';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(40, 460);
+    ctx.lineTo(w - 40, 460);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Barcode mock
+    ctx.fillStyle = '#1C1C1E';
+    for(let i = 60; i < w - 60; i += 6){
+      const barW = (i % 12 === 0) ? 3 : 1.5;
+      ctx.fillRect(i, 490, barW, 45);
+    }
+
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = '12px monospace';
+    ctx.fillText(`NO. ${ev.id.toUpperCase()}`, w/2, 560);
+  }
+}
+
+// Download Poster
+$('btnDownloadPoster').onclick = () => {
+  const canvas = $('daysPosterCanvas');
+  if(!canvas) return;
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `countings-${key(new Date())}.png`;
+  a.click();
+  pill('Poster Downloaded ✓');
+};
+
+// Native Share
+$('btnSharePosterNative').onclick = async () => {
+  const canvas = $('daysPosterCanvas');
+  if(!canvas) return;
+  if(navigator.share && canvas.toBlob){
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], 'countings.png', { type: 'image/png' });
+      try {
+        await navigator.share({
+          title: currentDetailEvent ? currentDetailEvent.title : 'Countings',
+          text: 'Shared from Countings ✨',
+          files: [file]
+        });
+      } catch(e){}
+    });
+  } else {
+    alert('Native sharing is not supported by your browser. Please tap "Download Image" to save.');
+  }
+};
+
+// Date Tools & Calculator Modal
+$('btnOpenDaysCalculator').onclick = () => {
+  const today = new Date().toISOString().slice(0, 10);
+  $('calcStartDate').value = today;
+  
+  const future = new Date();
+  future.setMonth(future.getMonth() + 1);
+  $('calcEndDate').value = future.toISOString().slice(0, 10);
+  
+  $('calcBaseDate').value = today;
+  $('calcOffsetNum').value = '100';
+
+  updateIntervalCalc();
+  updateOffsetCalc();
+  $('daysCalculatorModal').hidden = false;
+};
+
+$('closeDaysCalculatorModal').onclick = () => $('daysCalculatorModal').hidden = true;
+
+// Tool Tab Switching
+document.querySelectorAll('#daysCalculatorModal .days-tool-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('#daysCalculatorModal .days-tool-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const isInterval = tab.dataset.ttab === 'interval';
+    $('dtPanelInterval').hidden = !isInterval;
+    $('dtPanelOffset').hidden = isInterval;
+  };
+});
+
+function updateIntervalCalc(){
+  const sStr = $('calcStartDate').value;
+  const eStr = $('calcEndDate').value;
+  if(!sStr || !eStr) return;
+
+  const s = new Date(sStr + 'T00:00');
+  const e = new Date(eStr + 'T00:00');
+  const diffDays = Math.round((e - s) / 86400000);
+  const absDays = Math.abs(diffDays);
+
+  $('calcIntervalDays').innerHTML = `${absDays} <span style="font-size:16px;font-weight:600">days</span>`;
+
+  const weeks = Math.floor(absDays / 7);
+  const remDays = absDays % 7;
+
+  // Calculate working days (Mon-Fri)
+  let workDays = 0;
+  let cur = new Date(Math.min(s, e));
+  const end = new Date(Math.max(s, e));
+  while(cur < end){
+    cur.setDate(cur.getDate() + 1);
+    const day = cur.getDay();
+    if(day !== 0 && day !== 6) workDays++;
+  }
+
+  $('calcIntervalBreakdown').innerHTML = `
+    <span>• Equivalent to: <b>${weeks}</b> weeks <b>${remDays}</b> days</span>
+    <span>• Approx: <b>${(absDays / 30.4).toFixed(1)}</b> months (<b>${(absDays / 365.25).toFixed(2)}</b> years)</span>
+    <span>• Business Days (Mon–Fri): <b>${workDays}</b> days</span>
+  `;
+}
+
+function updateOffsetCalc(){
+  const bStr = $('calcBaseDate').value;
+  const dir = $('calcOffsetDir').value;
+  const num = parseInt($('calcOffsetNum').value, 10) || 0;
+  if(!bStr) return;
+
+  const base = new Date(bStr + 'T00:00');
+  const delta = (dir === 'plus' ? num : -num);
+  const target = new Date(base.getTime() + delta * 86400000);
+
+  const resStr = `${target.getFullYear()}-${pad(target.getMonth()+1)}-${pad(target.getDate())}`;
+  const dow = WD[target.getDay()];
+
+  $('calcOffsetResultDate').textContent = `${resStr} (${dow})`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fromToday = Math.round((target - today) / 86400000);
+  let subText = '';
+  if(fromToday === 0) subText = 'Today!';
+  else if(fromToday > 0) subText = `in ${fromToday} days`;
+  else subText = `${Math.abs(fromToday)} days ago`;
+
+  $('calcOffsetResultSub').textContent = subText;
+}
+
+$('calcStartDate').onchange = updateIntervalCalc;
+$('calcEndDate').onchange = updateIntervalCalc;
+$('calcBaseDate').onchange = updateOffsetCalc;
+$('calcOffsetDir').onchange = updateOffsetCalc;
+$('calcOffsetNum').oninput = updateOffsetCalc;
+
+/* ========================================================================== */
 
 /* ---------- AUTOMATIC LEGACY STORAGE MIGRATION ---------- */
 async function migrateLegacyStorage(){
