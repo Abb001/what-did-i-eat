@@ -4,8 +4,8 @@
   "description": "All-in-one personal life, food diary, budget, wellness and health dashboard.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#F2F2F7",
-  "theme_color": "#F2F2F7",
+  "background_color": "#F5F1EE",
+  "theme_color": "#F5F1EE",
   "icons": [
     {
       "src": "favicon.png?v=7",
