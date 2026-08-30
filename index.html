@@ -42,22 +42,108 @@
     --accent-light: #FFB199;
     --accent-rgb: 240, 117, 74;
 
-    /* Authentic Apple Liquid Glass System */
-    --glass-bg: rgba(255, 255, 255, 0.65);
-    --glass-bg-hover: rgba(255, 255, 255, 0.82);
-    --glass-bg-active: rgba(255, 255, 255, 0.94);
-    --glass-border: rgba(255, 255, 255, 0.80);
-    --glass-border-light: rgba(255, 255, 255, 0.95);
+    /* ===================== LIQUID GLASS MATERIAL =====================
+       Two grades, mirroring the system material:
+         Regular — adaptive, more opaque. Large surfaces: cards, sheets, rows.
+         Clear   — thinner, more transparent. Controls floating over content.
+       Every glass surface is built from four layers, in paint order:
+         1. specular hotspot + tint  (in `background`, so it stays under text)
+         2. backdrop refraction      (blur + saturate + brightness)
+         3. body thickness           (stacked inset shadows)
+         4. specular rim             (a 1px gradient ring, via ::before)
+       ================================================================= */
+
+    /* 1 — tint, carrying the lit hotspot at the top-left of each surface */
+    --lg-regular:
+      radial-gradient(125% 90% at 14% -18%, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0) 58%),
+      rgba(255, 255, 255, 0.50);
+    --lg-regular-hi:
+      radial-gradient(125% 90% at 14% -18%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0) 58%),
+      rgba(255, 255, 255, 0.68);
+    --lg-clear:
+      radial-gradient(130% 95% at 16% -20%, rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0) 62%),
+      rgba(255, 255, 255, 0.32);
+    --lg-clear-hi:
+      radial-gradient(130% 95% at 16% -20%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 62%),
+      rgba(255, 255, 255, 0.52);
+
+    /* 2 — refraction. Brightness is what separates lit glass from flat frosting. */
+    --lg-filter: blur(28px) saturate(200%) brightness(1.08);
+    --lg-filter-thin: blur(18px) saturate(180%) brightness(1.06);
+
+    /* 3 — thickness: a lit top edge, a bounced bottom edge, a faint inner wall */
+    --lg-depth:
+      inset 0 1px 1px rgba(255, 255, 255, 0.92),
+      inset 0 -1px 1px rgba(255, 255, 255, 0.34),
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.42);
+
+    /* Cast shadows are warm, never neutral grey — they sit on a warm ground */
+    --lg-cast: 0 10px 30px -8px rgba(72, 45, 34, 0.15), 0 2px 8px -2px rgba(72, 45, 34, 0.07);
+    --lg-cast-lift: 0 18px 44px -10px rgba(72, 45, 34, 0.21), 0 4px 12px -2px rgba(72, 45, 34, 0.09);
+    --lg-cast-press: 0 3px 10px -4px rgba(72, 45, 34, 0.16);
+
+    /* Gel spring — every press and lift in the app uses this one curve */
+    --lg-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+
+    /* Legacy aliases, so surfaces not yet migrated inherit the new material */
+    --glass-bg: var(--lg-regular);
+    --glass-bg-hover: var(--lg-regular-hi);
+    --glass-bg-active: rgba(255, 255, 255, 0.90);
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --glass-border-light: rgba(255, 255, 255, 0.80);
     --glass-blur: 28px;
-    --glass-saturate: 190%;
-    
-    /* Apple Precision Specular Rim Lighting & Soft Ambient Shadows */
-    --glass-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -0.5px 0.5px 0 rgba(0, 0, 0, 0.04);
-    --glass-shadow-hover: 0 12px 32px -4px rgba(var(--accent-rgb), 0.12), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1);
-    --glass-shadow-active: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
-    
+    --glass-saturate: 200%;
+    --glass-shadow: var(--lg-cast), var(--lg-depth);
+    --glass-shadow-hover: var(--lg-cast-lift), var(--lg-depth);
+    --glass-shadow-active: var(--lg-cast-press), var(--lg-depth);
+
     /* Apple Dynamic Typography */
     --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* ---------- SPECULAR RIM ----------
+     Layer 4. A 1px gradient ring drawn with an xor mask so it hugs any
+     border-radius. Bright where light would catch (top-left, bottom-right),
+     nearly gone along the sides — this asymmetry is what reads as glass
+     rather than as a plain stroke. Rings never overlap content, so unlike a
+     full-surface highlight they cannot wash out text. */
+  /* .modal-card is deliberately absent: it scrolls internally, and an
+     inset-0 ring would scroll away from its own edge. It gets a static
+     stroke instead. */
+  .lg-rim,
+  .hub-card, .mod-card, .b-recap-card, .acc-card, .shot,
+  .selfie-item, .mood-item, .b-recap-box, .hub-list-row, .hub-row-icon,
+  .hub-stat, .action-btn, .add, .nav button, .icon, .b-sub-nav button,
+  .sub-card, .b-day-group, .hub-week-strip, .hub-day-drawer, .water-box,
+  .view-toggle button.active, .tag.on {
+    position: relative;
+  }
+  .lg-rim::before,
+  .hub-card::before, .mod-card::before, .b-recap-card::before, .acc-card::before,
+  .shot::before, .selfie-item::before, .mood-item::before,
+  .b-recap-box::before, .hub-list-row::before, .hub-row-icon::before,
+  .hub-stat::before, .action-btn::before, .add::before, .nav button::before,
+  .icon::before, .b-sub-nav button::before, .sub-card::before,
+  .b-day-group::before, .hub-week-strip::before, .hub-day-drawer::before,
+  .water-box::before, .view-toggle button.active::before, .tag.on::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      148deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0.40) 24%,
+      rgba(255, 255, 255, 0.06) 47%,
+      rgba(255, 255, 255, 0.30) 70%,
+      rgba(255, 255, 255, 0.88) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
   }
 
   * {
@@ -144,37 +230,29 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* ---------- NATIVE APPLE LIQUID GLASS MATERIAL CARDS ---------- */
+  /* ---------- REGULAR GLASS: LARGE SURFACES ---------- */
   .hub-card, .mod-card, .b-recap-card, .acc-card, .shot, .modal-card, .selfie-item, .mood-item, .b-recap-box {
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    border: 0.5px solid var(--glass-border) !important;
-    box-shadow: var(--glass-shadow) !important;
-    border-radius: 24px !important;
-    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+    background: var(--lg-regular) !important;
+    backdrop-filter: var(--lg-filter) !important;
+    -webkit-backdrop-filter: var(--lg-filter) !important;
+    border: none !important;
+    box-shadow: var(--lg-cast), var(--lg-depth) !important;
+    border-radius: 26px !important;
+    transition: transform 0.4s var(--lg-spring), background 0.22s ease, box-shadow 0.3s ease !important;
     position: relative;
     overflow: hidden;
   }
 
-  /* Specular Highlight Sheen */
-  .hub-card::after, .acc-card::after, .mod-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 30%, rgba(255,255,255,0.85) 70%, rgba(255,255,255,0) 100%);
-    pointer-events: none;
-  }
-
+  /* Glass flexes toward the pointer, then settles — the gel response */
   .hub-card:hover, .acc-card:hover, .mod-card:hover {
-    background: var(--glass-bg-hover) !important;
-    border-color: var(--glass-border-light) !important;
-    box-shadow: var(--glass-shadow-hover) !important;
+    background: var(--lg-regular-hi) !important;
+    box-shadow: var(--lg-cast-lift), var(--lg-depth) !important;
     transform: translateY(-2.5px) scale(1.012) !important;
   }
   .hub-card:active, .acc-card:active {
     transform: scale(0.975) !important;
-    box-shadow: var(--glass-shadow-active) !important;
+    box-shadow: var(--lg-cast-press), var(--lg-depth) !important;
+    transition-duration: 0.12s !important;
   }
 
   /* ---------- HUB HEADER & WIDGET GRID ---------- */
@@ -210,25 +288,27 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-radius: 20px !important;
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    border: 0.5px solid var(--glass-border) !important;
-    box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 1px #FFFFFF !important;
+    border-radius: 22px !important;
+    background: var(--lg-regular) !important;
+    backdrop-filter: var(--lg-filter) !important;
+    -webkit-backdrop-filter: var(--lg-filter) !important;
+    border: none !important;
+    box-shadow: var(--lg-cast), var(--lg-depth) !important;
     cursor: pointer;
     text-align: left;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease !important;
+    transition: transform 0.4s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease !important;
   }
 
   .hub-list-row:hover {
-    background: rgba(255, 255, 255, 0.86) !important;
+    background: var(--lg-regular-hi) !important;
     transform: translateY(-2px) scale(1.008);
-    box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1.5px 1.5px #FFFFFF !important;
+    box-shadow: var(--lg-cast-lift), var(--lg-depth) !important;
   }
 
   .hub-list-row:active {
     transform: scale(0.985);
+    box-shadow: var(--lg-cast-press), var(--lg-depth) !important;
+    transition-duration: 0.12s !important;
   }
 
   .hub-row-left {
@@ -238,19 +318,23 @@
   }
 
   .hub-row-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    background: #FFFFFF !important;
+    background: var(--lg-clear-hi) !important;
+    backdrop-filter: var(--lg-filter-thin) !important;
+    -webkit-backdrop-filter: var(--lg-filter-thin) !important;
     color: var(--ios-label) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF !important;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: none !important;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.14), var(--lg-depth) !important;
+    transition: transform 0.4s var(--lg-spring);
   }
+  /* The icon tile lifts a touch when its row does — parallax within the row */
+  .hub-list-row:hover .hub-row-icon { transform: scale(1.06); }
   .hub-row-icon svg {
     width: 20px;
     height: 20px;
@@ -273,14 +357,14 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--ios-label-secondary);
-    background: rgba(255, 255, 255, 0.70);
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--lg-clear);
+    border: none;
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
     padding: 4px 12px;
     border-radius: 999px;
     letter-spacing: -0.01em;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03), inset 0 1px 1px #FFFFFF;
+    box-shadow: 0 1px 4px -1px rgba(72, 45, 34, 0.10), var(--lg-depth);
   }
 
   .hub-chevron {
@@ -351,25 +435,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.60);
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 1px #FFFFFF;
+    padding: 10px 13px;
+    border-radius: 14px;
+    background: var(--lg-clear);
+    border: none;
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 1px 5px -1px rgba(72, 45, 34, 0.08), var(--lg-depth);
     cursor: pointer;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.4s var(--lg-spring), background 0.18s ease, box-shadow 0.25s ease;
   }
   .hub-week-strip:hover {
-    background: rgba(255, 255, 255, 0.90);
+    background: var(--lg-clear-hi);
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF;
+    box-shadow: 0 5px 14px -4px rgba(72, 45, 34, 0.18), var(--lg-depth);
   }
+  .hub-week-strip:active { transform: scale(0.985); transition-duration: 0.12s; }
   .hub-week-strip.today {
-    background: #FFFFFF !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 3px 10px rgba(var(--accent-rgb), 0.12), inset 0 1px 1px #FFFFFF !important;
+    background: var(--lg-regular-hi) !important;
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.45), 0 4px 14px -4px rgba(var(--accent-rgb), 0.28), var(--lg-depth) !important;
   }
   .hub-strip-left {
     display: flex;
@@ -416,13 +500,13 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2.5px 8px;
+    padding: 3px 9px;
     border-radius: 999px;
     font-size: 11.5px;
     font-weight: 500;
-    background: #FFFFFF;
-    border: 0.5px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    background: var(--lg-clear-hi);
+    border: none;
+    box-shadow: 0 1px 4px -1px rgba(72, 45, 34, 0.12), var(--lg-depth);
     color: var(--ios-label);
     white-space: nowrap;
   }
@@ -447,20 +531,20 @@
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    background: rgba(255, 255, 255, 0.70) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
+    background: var(--lg-clear) !important;
+    backdrop-filter: var(--lg-filter-thin) !important;
+    -webkit-backdrop-filter: var(--lg-filter-thin) !important;
+    border: none !important;
     color: var(--ios-label) !important;
     font-family: var(--ios-font);
     font-size: 14.5px;
     font-weight: 500;
     cursor: pointer;
-    padding: 6px 14px 6px 10px;
+    padding: 7px 15px 7px 11px;
     margin-bottom: 20px;
     border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease !important;
+    box-shadow: 0 3px 10px -3px rgba(72, 45, 34, 0.16), var(--lg-depth);
+    transition: transform 0.4s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease !important;
   }
   .back::before {
     content: '‹';
@@ -470,10 +554,11 @@
     margin-top: -2px;
   }
   .back:hover {
-    background: rgba(255, 255, 255, 0.90) !important;
+    background: var(--lg-clear-hi) !important;
     transform: translateX(-2px);
+    box-shadow: var(--lg-cast-lift), var(--lg-depth);
   }
-  .back:active { transform: scale(0.95); }
+  .back:active { transform: scale(0.95); transition-duration: 0.12s !important; }
 
   .top {
     display: flex;
@@ -501,10 +586,10 @@
   .nav button {
     width: 36px;
     height: 36px;
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border: none;
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
     color: var(--ios-label);
     border-radius: 50%;
     cursor: pointer;
@@ -512,14 +597,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.14), var(--lg-depth);
+    transition: transform 0.4s var(--lg-spring), background 0.2s, box-shadow 0.3s ease;
   }
   .nav button:hover {
     transform: scale(1.08);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--lg-clear-hi);
+    box-shadow: var(--lg-cast-lift), var(--lg-depth);
   }
-  .nav button:active { transform: scale(0.92); }
+  .nav button:active { transform: scale(0.92); transition-duration: 0.12s; }
+  .nav button:disabled { opacity: 0.35; pointer-events: none; }
 
   .tally {
     display: flex;
@@ -568,31 +655,34 @@
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
   }
+  /* Calendar tiles are glass too, but thin — there are ~31 of them on screen
+     and heavy blur on each would cost scroll performance on phones.
+     A logged day's inline background-image replaces the tint gradient. */
   .cell {
     aspect-ratio: 1;
-    border-radius: 14px;
+    border-radius: 15px;
     position: relative;
-    background: rgba(255, 255, 255, 0.60);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 0.5px solid rgba(255, 255, 255, 0.80);
+    background:
+      radial-gradient(130% 95% at 16% -20%, rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0) 62%),
+      rgba(255, 255, 255, 0.46);
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    border: none;
     cursor: pointer;
     overflow: hidden;
     padding: 0;
     background-size: cover;
     background-position: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 7px -2px rgba(72, 45, 34, 0.10), var(--lg-depth);
+    transition: transform 0.4s var(--lg-spring), box-shadow 0.25s ease, background 0.2s ease;
   }
-  .cell.pad { background: none; border: none; pointer-events: none; box-shadow: none; }
+  .cell.pad { background: none; border: none; pointer-events: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .cell:not(.pad):hover {
     transform: scale(1.08);
     z-index: 2;
-    background: rgba(255, 255, 255, 0.85);
-    border-color: #FFFFFF;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px #FFFFFF;
+    box-shadow: 0 10px 24px -6px rgba(72, 45, 34, 0.26), var(--lg-depth);
   }
-  .cell:not(.pad):active { transform: scale(0.92); }
+  .cell:not(.pad):active { transform: scale(0.92); transition-duration: 0.12s; }
   .cell.has::after {
     content: '';
     position: absolute;
@@ -602,12 +692,12 @@
   .cell.future { opacity: 0.38; }
   .cell b {
     position: absolute;
-    left: 6px;
-    bottom: 4px;
-    z-index: 2;
-    font-weight: 500;
+    left: 7px;
+    bottom: 5px;
+    z-index: 3;
+    font-weight: 600;
     font-size: 12px;
-    color: var(--ios-label-secondary);
+    color: rgba(60, 60, 67, 0.78);
   }
   .cell.has b { color: #FFFFFF; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
   .cell.has-text {
@@ -686,13 +776,14 @@
     gap: 10px;
   }
 
-  /* ---------- APPLE iOS SEGMENTED CONTROL ---------- */
+  /* ---------- SEGMENTED CONTROL ----------
+     The track is a recessed well; only the selected thumb is glass, so the
+     selection reads as a lens gliding over the track. */
   .view-toggle {
     display: flex;
     gap: 2px;
-    background: rgba(120, 120, 128, 0.12);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(120, 120, 128, 0.10);
+    box-shadow: inset 0 1px 2px rgba(72, 45, 34, 0.10), inset 0 -0.5px 0 rgba(255, 255, 255, 0.60);
     padding: 3px;
     border-radius: 999px;
   }
@@ -706,12 +797,15 @@
     color: var(--ios-label-secondary);
     border-radius: 999px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: color 0.2s ease, transform 0.4s var(--lg-spring);
   }
+  .view-toggle button:active { transform: scale(0.94); transition-duration: 0.12s; }
   .view-toggle button.active {
-    background: #FFFFFF;
+    background: var(--lg-clear-hi);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
     color: var(--ios-label);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.22), var(--lg-depth);
     font-weight: 600;
   }
 
@@ -727,10 +821,10 @@
   }
   .b-sub-nav::-webkit-scrollbar { display: none; }
   .b-sub-nav button {
-    border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
-    background: rgba(255, 255, 255, 0.65) !important;
-    backdrop-filter: blur(18px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+    border: none !important;
+    background: var(--lg-clear) !important;
+    backdrop-filter: var(--lg-filter-thin) !important;
+    -webkit-backdrop-filter: var(--lg-filter-thin) !important;
     padding: 8px 16px;
     border-radius: 999px;
     font-family: var(--ios-font);
@@ -740,19 +834,19 @@
     cursor: pointer;
     white-space: nowrap;
     scroll-snap-align: start;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.12), var(--lg-depth) !important;
+    transition: transform 0.4s var(--lg-spring), background 0.2s ease, color 0.2s ease, box-shadow 0.3s ease !important;
   }
   .b-sub-nav button:hover {
-    background: rgba(255, 255, 255, 0.88) !important;
+    background: var(--lg-clear-hi) !important;
     color: var(--ios-label) !important;
     transform: translateY(-1.5px);
   }
+  .b-sub-nav button:active { transform: scale(0.94); transition-duration: 0.12s !important; }
   .b-sub-nav button.active {
-    background: #FFFFFF !important;
+    background: var(--lg-regular-hi) !important;
     color: var(--ios-label) !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10), inset 0 1px 1px #FFFFFF !important;
+    box-shadow: 0 5px 14px -3px rgba(72, 45, 34, 0.20), var(--lg-depth) !important;
     font-weight: 700;
   }
 
@@ -873,9 +967,9 @@
     margin-bottom: 14px;
     border-radius: 20px;
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 0.5px solid var(--glass-border);
+    backdrop-filter: var(--lg-filter);
+    -webkit-backdrop-filter: var(--lg-filter);
+    border: none;
     box-shadow: var(--glass-shadow);
     overflow: hidden;
   }
@@ -945,9 +1039,9 @@
     justify-content: space-between;
     padding: 14px 16px;
     background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-    border: 0.5px solid var(--glass-border) !important;
+    backdrop-filter: var(--lg-filter) !important;
+    -webkit-backdrop-filter: var(--lg-filter) !important;
+    border: none !important;
     box-shadow: var(--glass-shadow) !important;
     border-radius: 18px !important;
     margin-bottom: 10px;
@@ -992,27 +1086,32 @@
   }
   .hub-cell {
     aspect-ratio: 1;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.45);
-    border: 0.5px solid rgba(255, 255, 255, 0.75);
+    border-radius: 15px;
+    background:
+      radial-gradient(130% 95% at 16% -20%, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0) 62%),
+      rgba(255, 255, 255, 0.38);
+    border: none;
+    box-shadow: var(--lg-depth);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     padding: 4px 2px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: transform 0.4s var(--lg-spring), background 0.18s ease, box-shadow 0.25s ease;
     position: relative;
     overflow: hidden;
   }
   .hub-cell.pad { opacity: 0; pointer-events: none; }
   .hub-cell:hover {
-    background: rgba(255, 255, 255, 0.85);
-    transform: scale(1.04);
+    background: var(--lg-regular-hi);
+    transform: scale(1.06);
+    box-shadow: 0 8px 20px -6px rgba(72, 45, 34, 0.24), var(--lg-depth);
   }
+  .hub-cell:active { transform: scale(0.94); transition-duration: 0.12s; }
   .hub-cell.today {
-    border: 1.5px solid var(--accent);
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--lg-regular-hi);
+    box-shadow: 0 0 0 1.5px var(--accent), var(--lg-depth);
   }
   .hub-cell b {
     font-size: 12px;
@@ -1036,13 +1135,13 @@
   .hub-day-drawer {
     margin-top: 14px;
     padding: 16px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 0.5px solid #FFFFFF;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    animation: fadeIn 0.2s ease;
+    border-radius: 22px;
+    background: var(--lg-regular-hi);
+    backdrop-filter: var(--lg-filter);
+    -webkit-backdrop-filter: var(--lg-filter);
+    border: none;
+    box-shadow: var(--lg-cast), var(--lg-depth);
+    animation: lgSheetIn 0.34s var(--lg-spring);
   }
   .hub-day-drawer-head {
     display: flex;
@@ -1053,10 +1152,11 @@
     font-size: 15px;
   }
   .hub-drawer-section {
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 0.5px solid rgba(255, 255, 255, 0.8);
+    padding: 11px 13px;
+    border-radius: 15px;
+    background: var(--lg-clear);
+    border: none;
+    box-shadow: var(--lg-depth);
     margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
@@ -1072,9 +1172,12 @@
   }
   .b-cell {
     aspect-ratio: 1;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.45);
-    border: 0.5px solid rgba(255, 255, 255, 0.75);
+    border-radius: 15px;
+    background:
+      radial-gradient(130% 95% at 16% -20%, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0) 62%),
+      rgba(255, 255, 255, 0.38);
+    border: none;
+    box-shadow: var(--lg-depth);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1082,11 +1185,16 @@
     gap: 2px;
     cursor: pointer;
     font-family: var(--ios-font);
-    transition: all 0.15s ease;
+    transition: transform 0.4s var(--lg-spring), background 0.18s ease, box-shadow 0.25s ease;
   }
   .b-cell.pad { opacity: 0; pointer-events: none; }
-  .b-cell:hover { background: rgba(255, 255, 255, 0.85); transform: scale(1.04); }
-  .b-cell.today { border: 1.5px solid var(--accent); font-weight: 700; }
+  .b-cell:hover {
+    background: var(--lg-regular-hi);
+    transform: scale(1.06);
+    box-shadow: 0 8px 20px -6px rgba(72, 45, 34, 0.24), var(--lg-depth);
+  }
+  .b-cell:active { transform: scale(0.94); transition-duration: 0.12s; }
+  .b-cell.today { box-shadow: 0 0 0 1.5px var(--accent), var(--lg-depth); font-weight: 700; }
   .b-cell b { font-size: 12px; line-height: 1; }
   .b-cell-sub { font-size: 9px; font-weight: 700; }
   .b-cell-sub.exp { color: var(--ios-red); }
@@ -1130,19 +1238,26 @@
     margin-top: 6px;
   }
   .cycle-chip, .symptom-chip, .mood-chip, .quality-chip {
-    padding: 6px 13px;
+    padding: 7px 14px;
     border-radius: 999px;
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.65);
+    border: none;
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 1px 5px -1px rgba(72, 45, 34, 0.10), var(--lg-depth);
     font-family: var(--ios-font);
     font-size: 12px;
     font-weight: 500;
     color: var(--ios-label);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.4s var(--lg-spring), box-shadow 0.25s ease;
   }
   .cycle-chip:hover, .symptom-chip:hover, .mood-chip:hover, .quality-chip:hover {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--lg-clear-hi);
+  }
+  .cycle-chip:active, .symptom-chip:active, .mood-chip:active, .quality-chip:active {
+    transform: scale(0.93);
+    transition-duration: 0.12s;
   }
   .cycle-chip.active {
     background: rgba(255, 45, 85, 0.18) !important;
@@ -1165,10 +1280,13 @@
 
   /* Water Hydration Component */
   .water-box {
-    background: rgba(255, 255, 255, 0.45);
-    padding: 12px;
-    border-radius: 16px;
-    border: 0.5px solid rgba(255, 255, 255, 0.8);
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    padding: 13px;
+    border-radius: 18px;
+    border: none;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.10), var(--lg-depth);
     margin-bottom: 14px;
   }
   .water-header {
@@ -1241,26 +1359,35 @@
     position: fixed;
     inset: 0;
     z-index: 90;
-    background: rgba(0, 0, 0, 0.32) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
+    background: rgba(44, 28, 20, 0.30) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
     display: grid;
     place-items: center;
     padding: 16px;
   }
   .modal-overlay[hidden] { display: none !important; }
+  /* Sheets use the thickest glass in the app — they must separate cleanly
+     from everything behind them while still sampling its colour. */
   .modal-card {
-    background: rgba(255, 255, 255, 0.88) !important;
-    backdrop-filter: blur(36px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(36px) saturate(200%) !important;
-    border: 0.5px solid #FFFFFF !important;
+    background:
+      radial-gradient(120% 60% at 20% -10%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 55%),
+      rgba(255, 255, 255, 0.80) !important;
+    backdrop-filter: blur(44px) saturate(210%) brightness(1.08) !important;
+    -webkit-backdrop-filter: blur(44px) saturate(210%) brightness(1.08) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.85) !important;
     max-width: 460px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     padding: 22px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16), inset 0 1.5px 1.5px #FFFFFF !important;
-    border-radius: 28px !important;
+    box-shadow: 0 32px 70px -12px rgba(72, 45, 34, 0.30), var(--lg-depth) !important;
+    border-radius: 30px !important;
+    animation: lgSheetIn 0.42s var(--lg-spring);
+  }
+  @keyframes lgSheetIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .modal-head h3 { font-size: 18px; font-weight: 700; color: var(--ios-label); }
@@ -1280,19 +1407,21 @@
     top: calc(14px + env(safe-area-inset-top));
     transform: translate(-50%, -12px);
     z-index: 99;
-    background: rgba(0, 0, 0, 0.78);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background:
+      radial-gradient(130% 100% at 18% -20%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%),
+      rgba(28, 20, 16, 0.62);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
     color: #FFFFFF;
     font-size: 12.5px;
     font-weight: 500;
-    padding: 7px 16px;
+    padding: 8px 17px;
     border-radius: 999px;
     pointer-events: none;
     opacity: 0;
-    border: 0.5px solid rgba(255, 255, 255, 0.20);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    transition: opacity 0.22s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 0.5px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 10px 28px -6px rgba(28, 20, 16, 0.42), inset 0 1px 1px rgba(255, 255, 255, 0.28);
+    transition: opacity 0.22s ease, transform 0.42s var(--lg-spring);
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -1301,95 +1430,105 @@
   #savedPill i { width: 6px; height: 6px; border-radius: 50%; background: var(--ios-green); display: block; }
   #savedPill.working i { background: var(--ios-orange); }
 
-  /* ---------- FLOATING ACTION BUTTON (iOS VisionOS Orb) ---------- */
+  /* ---------- FLOATING ACTION BUTTON ----------
+     The app's clearest piece of Liquid Glass: it floats above content
+     rather than sitting in chrome, so it gets the deepest cast shadow
+     and the most transparent tint. */
   .add {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
     bottom: calc(24px + env(safe-area-inset-bottom));
     z-index: 50;
-    background: rgba(255, 255, 255, 0.80) !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
+    background: var(--lg-regular-hi) !important;
+    backdrop-filter: blur(32px) saturate(210%) brightness(1.10) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(210%) brightness(1.10) !important;
+    border: none !important;
     color: var(--ios-label) !important;
     border-radius: 999px !important;
-    padding: 12px 30px !important;
+    padding: 13px 30px !important;
     font-family: var(--ios-font);
     font-size: 14.5px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px #FFFFFF !important;
-    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease !important;
+    box-shadow: 0 16px 40px -8px rgba(72, 45, 34, 0.30), 0 3px 10px -2px rgba(72, 45, 34, 0.14), var(--lg-depth) !important;
+    transition: transform 0.45s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease !important;
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
   .add:hover {
-    transform: translateX(-50%) translateY(-2.5px) scale(1.02) !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), inset 0 1.5px 1.5px #FFFFFF !important;
+    transform: translateX(-50%) translateY(-3px) scale(1.03) !important;
+    box-shadow: 0 24px 54px -10px rgba(72, 45, 34, 0.36), 0 4px 12px -2px rgba(72, 45, 34, 0.16), var(--lg-depth) !important;
   }
-  .add:active { transform: translateX(-50%) scale(0.96) !important; }
+  .add:active {
+    transform: translateX(-50%) scale(0.95) !important;
+    transition-duration: 0.12s !important;
+  }
   .add[hidden] { display: none !important; }
 
-  /* ---------- TRANSPARENT LIQUID GLASS ACTION BUTTONS (NO SOLID BLUE) ---------- */
+  /* ---------- CLEAR GLASS CONTROLS ---------- */
   .action-btn {
-    background: rgba(255, 255, 255, 0.72) !important;
+    background: var(--lg-clear) !important;
     color: var(--ios-label) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.90) !important;
-    border-radius: 14px;
+    border: none !important;
+    border-radius: 999px;
     padding: 10px 18px;
     font-family: var(--ios-font);
     font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), inset 0 1px 1px #FFFFFF !important;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
+    backdrop-filter: var(--lg-filter-thin) !important;
+    -webkit-backdrop-filter: var(--lg-filter-thin) !important;
+    box-shadow: 0 3px 12px -3px rgba(72, 45, 34, 0.14), var(--lg-depth) !important;
+    transition: transform 0.4s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
   }
   .action-btn:hover {
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: var(--lg-clear-hi) !important;
     transform: translateY(-1.5px);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08), inset 0 1px 1px #FFFFFF !important;
+    box-shadow: var(--lg-cast-lift), var(--lg-depth) !important;
   }
-  .action-btn:active { transform: scale(0.96); opacity: 0.9; }
+  .action-btn:active {
+    transform: scale(0.95);
+    box-shadow: var(--lg-cast-press), var(--lg-depth) !important;
+    transition-duration: 0.12s;
+  }
 
   .form-group { margin-bottom: 14px; }
   .form-group label { display: block; font-size: 12.5px; font-weight: 500; color: var(--ios-label-secondary); margin-bottom: 5px; }
+  /* Fields are wells, not glass — recessed, so they read as somewhere to put
+     something rather than as another floating control. */
   .form-group input, .form-group select, .form-group textarea {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 12px;
-    border: 0.5px solid rgba(120, 120, 128, 0.20);
-    border-radius: 12px;
+    padding: 11px 13px;
+    border: none;
+    border-radius: 14px;
     font-family: var(--ios-font);
     font-size: 14px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.10), inset 0 0 0 0.5px rgba(72, 45, 34, 0.10);
     color: var(--ios-label);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, background 0.2s ease;
   }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
-    border-color: rgba(60, 60, 67, 0.6);
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.08), 0 0 0 3.5px rgba(var(--accent-rgb), 0.22), 0 0 0 1px rgba(var(--accent-rgb), 0.55);
   }
 
   /* ---------- APPLE iOS DAY POSTS & TAG CAPSULES ---------- */
   .shots { display: flex; flex-direction: column; gap: 14px; }
   .shot {
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     overflow: hidden;
-    background: var(--glass-bg) !important;
-    border: 0.5px solid var(--glass-border) !important;
-    box-shadow: var(--glass-shadow) !important;
+    background: var(--lg-regular) !important;
+    border: none !important;
+    box-shadow: var(--lg-cast), var(--lg-depth) !important;
   }
   .shotbar {
     padding: 12px 14px;
@@ -1405,14 +1544,12 @@
     font-weight: 500;
     padding: 5px 12px;
     border-radius: 999px;
-    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    border: none;
     background: rgba(120, 120, 128, 0.08);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    color: rgba(60, 60, 67, 0.40) !important;
+    box-shadow: inset 0 1px 1.5px rgba(72, 45, 34, 0.07);
+    color: rgba(60, 60, 67, 0.42) !important;
     cursor: pointer;
-    box-shadow: none;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.4s var(--lg-spring), box-shadow 0.25s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
   }
@@ -1422,29 +1559,36 @@
       color: rgba(60, 60, 67, 0.65) !important;
     }
   }
+  .tag:active { transform: scale(0.93); transition-duration: 0.12s; }
+  /* Selected chip rises out of the recessed track into real glass */
   .tag.on {
-    background: #FFFFFF !important;
+    background: var(--lg-regular-hi) !important;
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
     color: #000000 !important;
-    border-color: rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14), inset 0 1px 1px #FFFFFF !important;
+    box-shadow: 0 3px 10px -2px rgba(72, 45, 34, 0.22), var(--lg-depth) !important;
     font-weight: 700 !important;
   }
   .icon {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.65);
+    border: none;
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.12), var(--lg-depth);
     color: var(--ios-label-secondary);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.4s var(--lg-spring);
   }
   .icon svg { width: 14px; height: 14px; }
-  .icon:hover { background: rgba(255, 255, 255, 0.95); color: var(--ios-label); }
-  .icon.danger:hover { background: rgba(255, 59, 48, 0.12); color: var(--ios-red); border-color: rgba(255, 59, 48, 0.3); }
+  .icon:hover { background: var(--lg-clear-hi); color: var(--ios-label); transform: scale(1.08); }
+  .icon:active { transform: scale(0.9); transition-duration: 0.12s; }
+  .icon.danger:hover { background: rgba(255, 59, 48, 0.14); color: var(--ios-red); }
 
   .note {
     width: 100%;
@@ -1653,35 +1797,34 @@
     border-top: 0.5px solid var(--ios-separator);
   }
   .post-save-btn {
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: var(--lg-clear-hi) !important;
     color: var(--ios-label) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
     border-radius: 999px;
     padding: 6px 16px;
     font-family: var(--ios-font);
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 1px #FFFFFF !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.14), var(--lg-depth) !important;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.4s var(--lg-spring), box-shadow 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 5px;
   }
   .post-save-btn:hover {
-    background: #FFFFFF !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 1px #FFFFFF !important;
+    background: var(--lg-regular-hi) !important;
+    box-shadow: var(--lg-cast-lift), var(--lg-depth) !important;
     transform: translateY(-1px);
   }
+  /* "Saved" is carried by the label colour alone — a filled green pill would
+     be the loudest thing on a page whose only colour should be the food. */
   .post-save-btn.saved {
-    background: rgba(52, 199, 89, 0.18) !important;
-    color: #16A34A !important;
-    border-color: rgba(52, 199, 89, 0.45) !important;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12), inset 0 1px 1px #FFFFFF !important;
+    color: #1B873F !important;
   }
-  .post-save-btn:active { transform: scale(0.96); }
+  .post-save-btn:active { transform: scale(0.95); transition-duration: 0.12s; }
 
   /* ================= COUNTINGS STYLES ================= */
   .days-wrap {
@@ -1906,23 +2049,24 @@
     font-size: 12.5px;
     font-weight: 600;
     white-space: nowrap;
-    border: 0.5px solid rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.65);
+    border: none;
+    background: var(--lg-clear);
     color: var(--ios-label-secondary);
     cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.12), var(--lg-depth);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.4s var(--lg-spring), box-shadow 0.3s ease;
   }
   .days-cat-pill:hover {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--lg-clear-hi);
     color: var(--ios-label);
   }
+  .days-cat-pill:active { transform: scale(0.94); transition-duration: 0.12s; }
   .days-cat-pill.active {
-    background: var(--ios-label);
-    color: #FFFFFF;
-    border-color: var(--ios-label);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    background: var(--lg-regular-hi);
+    color: var(--ios-label);
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.50), 0 4px 12px -3px rgba(var(--accent-rgb), 0.26), var(--lg-depth);
   }
 
   /* Search & Sort Bar */
@@ -2199,16 +2343,16 @@
 <div class="wrap">
   <!-- LEVEL 1: HUB LANDING DASHBOARD -->
   <div class="view" id="hub">
-    <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;align-items:center;gap:12px">
-        <img src="apple-touch-icon.png?v=7" alt="App Icon" style="width:50px;height:50px;border-radius:14px;box-shadow:0 6px 16px rgba(var(--accent-rgb),0.22),0 1px 3px rgba(0,0,0,0.06),inset 0 1px 1px rgba(255,255,255,0.6);object-fit:cover">
-        <div>
+    <div class="hub-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px;flex:1 1 210px;min-width:0">
+        <img src="apple-touch-icon.png?v=7" alt="App Icon" style="width:50px;height:50px;border-radius:14px;flex-shrink:0;box-shadow:0 6px 16px rgba(var(--accent-rgb),0.22),0 1px 3px rgba(0,0,0,0.06),inset 0 1px 1px rgba(255,255,255,0.6);object-fit:cover">
+        <div style="min-width:0">
           <h1 class="hub-title">Hub</h1>
-          <p class="hub-subtitle">Personal Life &amp; Wellness Dashboard</p>
+          <p class="hub-subtitle">Personal Life &amp; Wellness</p>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="action-btn" id="hubQuickBackupBtn" style="padding:7px 12px;font-size:13px;border-radius:999px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.85);color:var(--ios-label)" title="1-Tap Instant Backup">
+      <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;margin-left:auto">
+        <button class="action-btn" id="hubQuickBackupBtn" style="padding:7px 12px;font-size:13px;border-radius:999px;display:flex;align-items:center;gap:5px;color:var(--ios-label)" title="1-Tap Instant Backup">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
           <span>Backup</span>
         </button>
