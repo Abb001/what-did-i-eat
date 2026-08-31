@@ -1073,6 +1073,150 @@
     color: var(--ios-red);
   }
 
+  /* ---------- QUICK ADD ----------
+     Always writes to today, so the day never has to be chosen. Fields are
+     recessed wells like the rest of the app's inputs; only the send button
+     is raised, because it is the one thing that commits. */
+  .quick-card { padding: 16px 16px 14px; margin-bottom: 16px; }
+  .quick-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .quick-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ios-label-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .quick-when { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+  .quick-modes { margin-bottom: 12px; width: fit-content; }
+  .quick-pane[hidden] { display: none !important; }
+  .quick-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .quick-row + .quick-row { margin-top: 8px; }
+  .quick-input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 14px;
+    border: none;
+    border-radius: 999px;
+    font-family: var(--ios-font);
+    font-size: 14.5px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.10), inset 0 0 0 0.5px rgba(72, 45, 34, 0.10);
+    color: var(--ios-label);
+    outline: none;
+    transition: box-shadow 0.2s ease, background 0.2s ease;
+    -webkit-appearance: none;
+  }
+  .quick-input::placeholder { color: var(--ios-label-tertiary); }
+  .quick-input:focus {
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.08), 0 0 0 3.5px rgba(var(--accent-rgb), 0.22), 0 0 0 1px rgba(var(--accent-rgb), 0.55);
+  }
+  .quick-amt { flex: 1; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+  .quick-currency { font-size: 15px; font-weight: 700; color: var(--ios-label-secondary); }
+  .quick-select {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 11px 12px;
+    border: none;
+    border-radius: 999px;
+    font-family: var(--ios-font);
+    font-size: 13.5px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.10), inset 0 0 0 0.5px rgba(72, 45, 34, 0.10);
+    color: var(--ios-label);
+    outline: none;
+    cursor: pointer;
+  }
+  .quick-icon-btn, .quick-send {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease, opacity 0.2s ease;
+  }
+  .quick-icon-btn {
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    color: var(--ios-label);
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.14), var(--lg-depth);
+  }
+  .quick-icon-btn svg { width: 19px; height: 19px; }
+  .quick-icon-btn:hover { background: var(--lg-clear-hi); }
+  .quick-icon-btn.has-photos {
+    background: rgba(var(--accent-rgb), 0.16);
+    color: var(--accent-deep);
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.45), var(--lg-depth);
+  }
+  /* The send button is the only accent-filled control in the app — it is the
+     one action that writes a record, and it should look like it. */
+  .quick-send {
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 4px 14px -3px rgba(var(--accent-rgb), 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  }
+  .quick-send:hover { background: var(--accent-deep); transform: translateY(-1.5px); }
+  .quick-icon-btn:active, .quick-send:active { transform: scale(0.92); transition-duration: 0.12s; }
+  .quick-send:disabled {
+    opacity: 0.38;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .quick-thumbs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 9px;
+  }
+  .quick-thumbs[hidden] { display: none !important; }
+  .quick-thumb {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    border-radius: 11px;
+    overflow: hidden;
+    box-shadow: var(--lg-depth), 0 2px 6px -2px rgba(72, 45, 34, 0.18);
+  }
+  .quick-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .quick-thumb button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(28, 20, 16, 0.72);
+    color: #FFFFFF;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
   /* ---------- HUB MASTER CALENDAR & SYNCED BADGES ---------- */
   .hub-cal-grid {
     display: grid;
@@ -1672,20 +1816,23 @@
     letter-spacing: 0.02em;
     border: 0.5px solid rgba(255, 255, 255, 0.2);
   }
-  /* Reorder controls for photos *within* one post. Dark glass like the
-     counter, because they sit over a photo rather than over the page. */
-  .photo-move {
+  /* The dots already say where this photo sits in the run, so the reorder
+     arrows live either side of them: the control that changes the position
+     sits with the thing that shows it, in easy thumb reach at the bottom. */
+  .carousel-footer {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 5;
     display: flex;
+    align-items: center;
     gap: 2px;
     padding: 2px;
-    background: rgba(28, 20, 16, 0.52);
+    background: rgba(28, 20, 16, 0.50);
     backdrop-filter: blur(14px) saturate(180%);
     -webkit-backdrop-filter: blur(14px) saturate(180%);
-    border: 0.5px solid rgba(255, 255, 255, 0.20);
+    border: 0.5px solid rgba(255, 255, 255, 0.18);
     border-radius: 999px;
   }
   .photo-move-btn {
@@ -1709,18 +1856,12 @@
      doesn't reflow and shift under a thumb mid-tap. */
   .photo-move-btn:disabled { opacity: 0.32; cursor: default; }
 
+  /* Now a plain row inside .carousel-footer, which carries the pill. */
   .carousel-dots {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
+    align-items: center;
     gap: 5px;
-    z-index: 5;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(10px);
-    padding: 4px 8px;
-    border-radius: 999px;
+    padding: 0 7px;
   }
   .carousel-dot {
     width: 6px;
@@ -2394,6 +2535,61 @@
         </button>
       </div>
     </div>
+
+    <!-- QUICK ADD — log straight to today without opening a module or picking a day -->
+    <div class="mod-card quick-card" id="quickAdd">
+      <div class="quick-head">
+        <span class="quick-label">Quick add</span>
+        <span class="quick-when" id="quickWhen">Today</span>
+      </div>
+
+      <div class="view-toggle quick-modes" id="quickModes">
+        <button class="active" data-qmode="meal">Meal</button>
+        <button data-qmode="expense">Expense</button>
+        <button data-qmode="note">Note</button>
+      </div>
+
+      <!-- MEAL -->
+      <div class="quick-pane" id="quickPane_meal">
+        <div class="quick-thumbs" id="quickThumbs" hidden></div>
+        <div class="quick-row">
+          <button class="quick-icon-btn" id="quickPhotoBtn" title="Add photos" aria-label="Add photos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/></svg>
+          </button>
+          <input type="text" id="quickMealNote" class="quick-input" placeholder="What did you eat?" enterkeyhint="send">
+          <button class="quick-send" id="quickSend_meal" title="Log it" aria-label="Log it">↑</button>
+        </div>
+      </div>
+
+      <!-- EXPENSE -->
+      <div class="quick-pane" id="quickPane_expense" hidden>
+        <div class="quick-row">
+          <span class="quick-currency">$</span>
+          <input type="number" id="quickAmt" class="quick-input quick-amt" placeholder="0.00" inputmode="decimal" step="0.01" min="0" enterkeyhint="send">
+          <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
+        </div>
+        <div class="quick-row">
+          <select id="quickCat" class="quick-select">
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Bills">Bills</option>
+            <option value="Entertainment">Fun</option>
+            <option value="General">Other</option>
+          </select>
+          <input type="text" id="quickDesc" class="quick-input" placeholder="What for? (optional)" enterkeyhint="send">
+        </div>
+      </div>
+
+      <!-- NOTE -->
+      <div class="quick-pane" id="quickPane_note" hidden>
+        <div class="quick-row">
+          <input type="text" id="quickNote" class="quick-input" placeholder="Write a note for today…" enterkeyhint="send">
+          <button class="quick-send" id="quickSend_note" title="Log it" aria-label="Log it">↑</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="quickFile" accept="image/*" multiple>
 
     <!-- HUB MASTER UNIFIED OVERVIEW (WEEKLY STRIPS BY DEFAULT / MONTHLY CALENDAR TOGGLE) -->
     <div class="mod-card" id="hubMasterCalendarCard">
@@ -3861,6 +4057,213 @@ $('btnGistPull').onclick = async () => {
   }
 };
 
+/* ================= QUICK ADD =================
+   The point of this is to remove the two steps that made logging slow:
+   opening a module, and picking a day. Everything here writes to today. */
+
+let quickMode = 'meal';
+let quickPhotos = [];
+
+// Meal is inferred from the clock. Quick Add exists to save taps, and the
+// chip is one tap to change in the day view if the guess is wrong.
+function mealFromHour(h){
+  if(h < 11) return 'Breakfast';
+  if(h < 15) return 'Lunch';
+  if(h < 17) return 'Snack';
+  if(h < 22) return 'Dinner';
+  return 'Late night';
+}
+
+function renderQuickThumbs(){
+  const box = $('quickThumbs');
+  const btn = $('quickPhotoBtn');
+  if(!box) return;
+  box.hidden = quickPhotos.length === 0;
+  box.innerHTML = quickPhotos.map((p, i) =>
+    `<div class="quick-thumb"><img src="${p.thumb || p.src}" alt=""><button data-qrm="${i}" aria-label="Remove photo">✕</button></div>`
+  ).join('');
+  box.querySelectorAll('[data-qrm]').forEach(b => b.onclick = () => {
+    quickPhotos.splice(+b.dataset.qrm, 1);
+    renderQuickThumbs();
+    syncQuickSend();
+  });
+  if(btn) btn.classList.toggle('has-photos', quickPhotos.length > 0);
+}
+
+// Nothing should be loggable as an empty record.
+function syncQuickSend(){
+  const send = $(`quickSend_${quickMode}`);
+  if(!send) return;
+  let ok = false;
+  if(quickMode === 'meal') ok = quickPhotos.length > 0 || !!($('quickMealNote') || {}).value?.trim();
+  else if(quickMode === 'expense') ok = parseFloat(($('quickAmt') || {}).value) > 0;
+  else ok = !!($('quickNote') || {}).value?.trim();
+  send.disabled = !ok;
+}
+
+function setQuickMode(mode){
+  quickMode = mode;
+  ['meal','expense','note'].forEach(m => {
+    const pane = $(`quickPane_${m}`);
+    if(pane) pane.hidden = (m !== mode);
+  });
+  const modes = $('quickModes');
+  if(modes) modes.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.qmode === mode));
+  syncQuickSend();
+}
+
+async function quickLogMeal(){
+  const noteEl = $('quickMealNote');
+  const note = (noteEl.value || '').trim();
+  if(!quickPhotos.length && !note) return;
+
+  const now = new Date();
+  const dk = key(now);
+  const posts = normalizeToPosts((await store.get(`day:${dk}`)) || []);
+  posts.unshift({
+    id: 'post_' + Date.now(),
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    timeType: 'detail',
+    meal: mealFromHour(now.getHours()),
+    note,
+    photos: quickPhotos,
+    aiAnalysis: null
+  });
+  await writeDay(dk, posts);
+
+  // If the day sheet happens to be open on today, keep it in step.
+  if(openDay === dk){ openPosts = posts; photoPos = {}; drawDay(); }
+
+  quickPhotos = [];
+  noteEl.value = '';
+  renderQuickThumbs();
+  syncQuickSend();
+  refreshHub();
+  pill('Logged to today');
+}
+
+async function quickLogExpense(){
+  const amt = parseFloat($('quickAmt').value);
+  if(isNaN(amt) || amt <= 0) return;
+  const cat = $('quickCat').value;
+  const desc = ($('quickDesc').value || '').trim();
+  const dateVal = key(new Date());
+
+  // Budget accounts are normally seeded when the Budget module first opens.
+  // Quick Add can run before that has ever happened, so seed them here too.
+  let accounts = await store.get('budget:accounts');
+  if(!accounts || !accounts.length){
+    accounts = [
+      { id: 'acc_1', name: 'Chase Bank', balance: 3500.00, spentMonth: 0 },
+      { id: 'acc_2', name: 'Apple Card', balance: 1200.00, spentMonth: 0 },
+      { id: 'acc_3', name: 'Cash', balance: 250.00, spentMonth: 0 }
+    ];
+  }
+  const acc = accounts[0];
+  acc.balance -= amt;
+  await store.set('budget:accounts', accounts);
+
+  const entries = (await store.get('budget:entries')) || [];
+  entries.unshift({
+    id: 'tx_' + Date.now(),
+    type: 'exp',
+    amt,
+    accountId: acc.id,
+    cat,
+    desc: desc || cat,
+    date: dateVal,
+    dateKey: dateVal.slice(0, 7)
+  });
+  await store.set('budget:entries', entries);
+
+  $('quickAmt').value = '';
+  $('quickDesc').value = '';
+  syncQuickSend();
+  refreshHub();
+  pill(`$${amt.toFixed(2)} logged to ${acc.name}`);
+}
+
+async function quickLogNote(){
+  const el = $('quickNote');
+  const note = (el.value || '').trim();
+  if(!note) return;
+  const now = new Date();
+  const dk = key(now);
+  const posts = normalizeToPosts((await store.get(`day:${dk}`)) || []);
+  posts.unshift({
+    id: 'post_' + Date.now(),
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    timeType: 'detail',
+    meal: null,
+    note,
+    photos: [],
+    aiAnalysis: null
+  });
+  await writeDay(dk, posts);
+  if(openDay === dk){ openPosts = posts; photoPos = {}; drawDay(); }
+  el.value = '';
+  syncQuickSend();
+  refreshHub();
+  pill('Note saved to today');
+}
+
+function refreshHub(){
+  if(typeof loadHubStats === 'function') loadHubStats();
+  if(typeof loadHubMasterCalendar === 'function') loadHubMasterCalendar();
+}
+
+function initQuickAdd(){
+  if(!$('quickAdd')) return;
+
+  $('quickModes').onclick = e => {
+    const b = e.target.closest('button');
+    if(b) setQuickMode(b.dataset.qmode);
+  };
+
+  $('quickPhotoBtn').onclick = () => $('quickFile').click();
+  $('quickFile').onchange = async e => {
+    const files = [...e.target.files];
+    e.target.value = '';
+    if(!files.length) return;
+    pill(`Processing ${files.length} photo(s)…`, true);
+    for(const f of files){
+      try {
+        const img = await loadImg(await fileToDataURL(f));
+        const src = downscale(img, 1400, .78);
+        quickPhotos.push({ src, orig: src, thumb: await makeThumb(src), edit: null });
+      } catch(err){ console.error(err); }
+    }
+    renderQuickThumbs();
+    syncQuickSend();
+    pill(quickPhotos.length === 1 ? 'Photo ready' : `${quickPhotos.length} photos ready`);
+  };
+
+  $('quickSend_meal').onclick = quickLogMeal;
+  $('quickSend_expense').onclick = quickLogExpense;
+  $('quickSend_note').onclick = quickLogNote;
+
+  // Enter sends, so a whole entry can be made without leaving the keyboard.
+  const onEnter = (el, fn) => { if(el) el.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); fn(); } }; };
+  onEnter($('quickMealNote'), quickLogMeal);
+  onEnter($('quickAmt'), quickLogExpense);
+  onEnter($('quickDesc'), quickLogExpense);
+  onEnter($('quickNote'), quickLogNote);
+
+  ['quickMealNote','quickAmt','quickDesc','quickNote'].forEach(id => {
+    const el = $(id);
+    if(el) el.oninput = syncQuickSend;
+  });
+
+  const when = $('quickWhen');
+  if(when){
+    const now = new Date();
+    when.textContent = `Today · ${WD[now.getDay()]} ${now.getDate()}`;
+  }
+
+  setQuickMode('meal');
+  renderQuickThumbs();
+}
+
 async function loadHubStats(){
   try {
     const keys = await store.keys();
@@ -4320,10 +4723,6 @@ function drawDay(){
       mediaMarkup = `
       <div class="photo-carousel" id="carousel_${pIdx}">
         <span class="carousel-counter" id="counter_${pIdx}">1 / ${photos.length}</span>
-        <div class="photo-move" id="photomove_${pIdx}">
-          <button class="photo-move-btn" id="photomoveL_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, -1)" title="Move this photo earlier" aria-label="Move this photo earlier">←</button>
-          <button class="photo-move-btn" id="photomoveR_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, 1)" title="Move this photo later" aria-label="Move this photo later">→</button>
-        </div>
         <button class="carousel-nav-btn prev" onclick="event.stopPropagation(); slidePhoto(${pIdx}, -1)">‹</button>
         <button class="carousel-nav-btn next" onclick="event.stopPropagation(); slidePhoto(${pIdx}, 1)">›</button>
         <div class="photo-track" id="track_${pIdx}" onscroll="onTrackScroll(${pIdx}, ${photos.length})">
@@ -4333,8 +4732,12 @@ function drawDay(){
             </div>
           `).join('')}
         </div>
-        <div class="carousel-dots" id="dots_${pIdx}">
-          ${photos.map((_, phIdx) => `<span class="carousel-dot ${phIdx===0?'active':''}"></span>`).join('')}
+        <div class="carousel-footer">
+          <button class="photo-move-btn" id="photomoveL_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, -1)" title="Move this photo earlier" aria-label="Move this photo earlier">←</button>
+          <div class="carousel-dots" id="dots_${pIdx}">
+            ${photos.map((_, phIdx) => `<span class="carousel-dot ${phIdx===0?'active':''}"></span>`).join('')}
+          </div>
+          <button class="photo-move-btn" id="photomoveR_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, 1)" title="Move this photo later" aria-label="Move this photo later">→</button>
         </div>
       </div>`;
     }
@@ -4653,28 +5056,36 @@ $('viewToggle').onclick = e => {
   drawDay();
 };
 
-async function save(quiet){
-  if(!openDay) return;
-  const [y,m,dd] = openDay.split('-');
+/* Writes one day's posts and keeps its month-index entry in step. Shared by
+   the day sheet and by Quick Add, so the two cannot drift on how a day is
+   indexed (n / thumb / hasText drive the calendar mosaic). */
+async function writeDay(dayKey, posts){
+  if(!dayKey) return;
+  const [y,m,dd] = dayKey.split('-');
   const flatPhotos = [];
-  openPosts.forEach(p => (p.photos||[]).forEach(ph => flatPhotos.push(ph)));
-  await store.set(`day:${openDay}`, openPosts);
+  posts.forEach(p => (p.photos||[]).forEach(ph => flatPhotos.push(ph)));
+  await store.set(`day:${dayKey}`, posts);
   const mk = `month:${y}-${m}`;
   const idx = (await store.get(mk)) || {};
-  if(openPosts.length > 0){
-    idx[dd] = { 
-      n: openPosts.length, 
+  if(posts.length > 0){
+    idx[dd] = {
+      n: posts.length,
       thumb: flatPhotos[0]?.thumb || null,
-      hasText: openPosts.some(p => (p.note && p.note.trim()) || (p.photos && !p.photos.length))
+      hasText: posts.some(p => (p.note && p.note.trim()) || (p.photos && !p.photos.length))
     };
   } else {
     delete idx[dd];
   }
   await store.set(mk, idx);
-  if(`${y}-${m}` === `${view.getFullYear()}-${pad(view.getMonth()+1)}`){ 
-    monthIdx = idx; 
-    drawMonth(); 
+  if(`${y}-${m}` === `${view.getFullYear()}-${pad(view.getMonth()+1)}`){
+    monthIdx = idx;
+    drawMonth();
   }
+}
+
+async function save(quiet){
+  if(!openDay) return;
+  await writeDay(openDay, openPosts);
   if(!quiet) pill('Saved ✓');
 }
 
@@ -7241,6 +7652,7 @@ if($('btnEditHubOrder')) $('btnEditHubOrder').onclick = toggleHubReorderMode;
 
 async function initApp(){
   showView('hub');
+  initQuickAdd();
   initHubAppOrder().catch(()=>{});
   loadMonth().catch(()=>{});
   Promise.race([
