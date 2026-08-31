@@ -1182,6 +1182,41 @@
     transform: none;
   }
 
+  /* AI pane: the tab is deliberately honest that nothing is connected yet,
+     rather than offering an action that silently does nothing. */
+  .ai-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ios-label-secondary);
+  }
+  .ai-badge {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(120, 120, 128, 0.14);
+    color: var(--ios-label-secondary);
+    box-shadow: inset 0 1px 1.5px rgba(72, 45, 34, 0.07);
+  }
+  .ai-result {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: var(--lg-clear);
+    box-shadow: var(--lg-depth);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ios-label);
+  }
+  .ai-result[hidden] { display: none !important; }
+
   .quick-thumbs {
     display: flex;
     gap: 6px;
@@ -2498,6 +2533,79 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   }
 
+  /* ---------- FOOD DIARY WEEK VIEW ----------
+     The month grid trades thumbnail size for span: seven columns means a
+     ~44px cell, which reads as colour more than as food. A week only has to
+     show seven days, so each one gets a thumbnail big enough to recognise. */
+  .food-week-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .food-week-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 8px 8px;
+    border-radius: 18px;
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    border: none;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.10), var(--lg-depth);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--ios-font);
+    position: relative;
+    transition: transform 0.4s var(--lg-spring), background 0.18s ease, box-shadow 0.25s ease;
+  }
+  .food-week-row:hover {
+    background: var(--lg-clear-hi);
+    transform: translateY(-1px);
+    box-shadow: var(--lg-cast-lift), var(--lg-depth);
+  }
+  .food-week-row:active { transform: scale(0.985); transition-duration: 0.12s; }
+  .food-week-row.today {
+    background: var(--lg-regular-hi);
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.45), 0 4px 14px -4px rgba(var(--accent-rgb), 0.28), var(--lg-depth);
+  }
+  .food-week-row.future { opacity: 0.45; }
+  .fw-thumb {
+    width: 62px;
+    height: 62px;
+    border-radius: 14px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255, 255, 255, 0.38);
+    box-shadow: var(--lg-depth);
+    position: relative;
+    overflow: hidden;
+  }
+  .fw-thumb.empty::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(135deg, rgba(72,45,34,0.05) 0 6px, transparent 6px 12px);
+  }
+  .fw-meta { flex: 1; min-width: 0; display: block; }
+  .fw-day {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-label);
+    letter-spacing: -0.01em;
+  }
+  .food-week-row.today .fw-day { color: var(--accent); }
+  .fw-sub {
+    display: block;
+    font-size: 12.5px;
+    color: var(--ios-label-secondary);
+    margin-top: 2px;
+  }
+  .fw-chev { color: var(--ios-label-tertiary); display: flex; flex-shrink: 0; }
+  .fw-chev svg { width: 16px; height: 16px; }
+
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -2547,6 +2655,7 @@
         <button class="active" data-qmode="meal">Meal</button>
         <button data-qmode="expense">Expense</button>
         <button data-qmode="note">Note</button>
+        <button data-qmode="ai">AI</button>
       </div>
 
       <!-- MEAL -->
@@ -2588,8 +2697,26 @@
           <button class="quick-send" id="quickSend_note" title="Log it" aria-label="Log it">↑</button>
         </div>
       </div>
+
+      <!-- AI — interface only; no model is wired up yet (see runAiEstimate) -->
+      <div class="quick-pane" id="quickPane_ai" hidden>
+        <div class="quick-thumbs" id="aiThumbs" hidden></div>
+        <div class="quick-row">
+          <button class="quick-icon-btn" id="aiPhotoBtn" title="Choose a food photo" aria-label="Choose a food photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
+          </button>
+          <input type="text" id="aiHint" class="quick-input" placeholder="Anything to add? (e.g. large portion)">
+          <button class="quick-send" id="aiRunBtn" title="Estimate" aria-label="Estimate">✨</button>
+        </div>
+        <div class="ai-status" id="aiStatus">
+          <span class="ai-badge">Not connected</span>
+          <span>Pick a photo and this will name the dish and estimate calories — once a model is wired up. Nothing is sent anywhere yet.</span>
+        </div>
+        <div class="ai-result" id="aiResult" hidden></div>
+      </div>
     </div>
     <input type="file" id="quickFile" accept="image/*" multiple>
+    <input type="file" id="aiFile" accept="image/*">
 
     <!-- HUB MASTER UNIFIED OVERVIEW (WEEKLY STRIPS BY DEFAULT / MONTHLY CALENDAR TOGGLE) -->
     <div class="mod-card" id="hubMasterCalendarCard">
@@ -2768,14 +2895,23 @@
     <div class="top">
       <div class="month" id="mTitle">—</div>
       <div class="nav">
-        <button id="prev" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
-        <button id="next" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
+        <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+        <button id="next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
       </div>
     </div>
     <div class="tally"><span id="tallyTxt">Loading</span><span class="bar"><i id="tallyBar" style="width:0"></i></span></div>
-    <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-    <div class="grid" id="grid"></div>
-    <div class="legend">Logged days show the first photo from that day.<br>Tap any day to view multi-photo posts or analyze calories with AI.</div>
+    <div class="view-toggle" id="foodCalToggle" style="width:fit-content;margin-bottom:14px">
+      <button data-fview="month" class="active">Month</button>
+      <button data-fview="week">Week</button>
+    </div>
+    <div id="foodMonthView">
+      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <div id="foodWeekView" hidden>
+      <div class="food-week-list" id="foodWeekList"></div>
+    </div>
+    <div class="legend" id="calLegend">Logged days show the first photo from that day.<br>Tap any day to view multi-photo posts or analyze calories with AI.</div>
     <div class="foot">
       <button id="exportBtn">Export backup</button>
       <button id="importBtn">Restore backup</button>
@@ -4103,13 +4239,72 @@ function syncQuickSend(){
 
 function setQuickMode(mode){
   quickMode = mode;
-  ['meal','expense','note'].forEach(m => {
+  ['meal','expense','note','ai'].forEach(m => {
     const pane = $(`quickPane_${m}`);
     if(pane) pane.hidden = (m !== mode);
   });
   const modes = $('quickModes');
   if(modes) modes.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.qmode === mode));
   syncQuickSend();
+}
+
+/* ---------- AI PANE ----------
+   Interface only. No model is connected, and the tab says so rather than
+   offering a button that quietly does nothing.
+
+   TO CONNECT A MODEL, the only function that needs to change is
+   runAiEstimate() below: replace its body with a request to the provider
+   and return { dish, kcal, note }. Everything else — photo staging,
+   loading state, result rendering, saving onto the day's entry — already
+   works and is exercised by the placeholder path.
+
+   Note for whoever does it: this app has no backend, so the request goes
+   from the browser straight to the provider using a key kept on the
+   device (there is already a Gemini key field in Settings, stored at
+   config:geminiKey). That key must never be committed to the repo. */
+let aiPhotos = [];
+
+function renderAiThumbs(){
+  const box = $('aiThumbs');
+  const btn = $('aiPhotoBtn');
+  if(!box) return;
+  box.hidden = aiPhotos.length === 0;
+  box.innerHTML = aiPhotos.map((p, i) =>
+    `<div class="quick-thumb"><img src="${p.thumb || p.src}" alt=""><button data-airm="${i}" aria-label="Remove photo">✕</button></div>`
+  ).join('');
+  box.querySelectorAll('[data-airm]').forEach(b => b.onclick = () => {
+    aiPhotos.splice(+b.dataset.airm, 1);
+    renderAiThumbs();
+    syncAiRun();
+  });
+  if(btn) btn.classList.toggle('has-photos', aiPhotos.length > 0);
+}
+
+function syncAiRun(){
+  const btn = $('aiRunBtn');
+  if(btn) btn.disabled = aiPhotos.length === 0;
+}
+
+// The single seam where a real model would be plugged in.
+// Returning null means "no model connected" and drives the UI below.
+async function runAiEstimate(/* photos, hint */){
+  return null;
+}
+
+async function onAiRun(){
+  if(!aiPhotos.length) return;
+  const result = await runAiEstimate(aiPhotos, ($('aiHint').value || '').trim());
+  const box = $('aiResult');
+  if(!box) return;
+  if(!result){
+    box.hidden = false;
+    box.innerHTML = 'No model is connected yet, so there is nothing to estimate with. '
+      + 'The photo is still here — switch to <b>Meal</b> to log it now, or leave this until a model is wired up.';
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML = `<b>${escapeHtml(result.dish)}</b> · ~${result.kcal} kcal`
+    + (result.note ? `<br>${escapeHtml(result.note)}` : '');
 }
 
 async function quickLogMeal(){
@@ -4220,27 +4415,46 @@ function initQuickAdd(){
     if(b) setQuickMode(b.dataset.qmode);
   };
 
-  $('quickPhotoBtn').onclick = () => $('quickFile').click();
-  $('quickFile').onchange = async e => {
-    const files = [...e.target.files];
-    e.target.value = '';
-    if(!files.length) return;
+  // Each pane owns its own file input, so a picked photo can only ever land
+  // in the pane that asked for it.
+  async function stagePhotos(files, target){
     pill(`Processing ${files.length} photo(s)…`, true);
     for(const f of files){
       try {
         const img = await loadImg(await fileToDataURL(f));
         const src = downscale(img, 1400, .78);
-        quickPhotos.push({ src, orig: src, thumb: await makeThumb(src), edit: null });
+        target.push({ src, orig: src, thumb: await makeThumb(src), edit: null });
       } catch(err){ console.error(err); }
     }
+    pill(target.length === 1 ? 'Photo ready' : `${target.length} photos ready`);
+  }
+
+  $('quickPhotoBtn').onclick = () => $('quickFile').click();
+  $('quickFile').onchange = async e => {
+    const files = [...e.target.files];
+    e.target.value = '';
+    if(!files.length) return;
+    await stagePhotos(files, quickPhotos);
     renderQuickThumbs();
     syncQuickSend();
-    pill(quickPhotos.length === 1 ? 'Photo ready' : `${quickPhotos.length} photos ready`);
+  };
+
+  $('aiFile').onchange = async e => {
+    const files = [...e.target.files];
+    e.target.value = '';
+    if(!files.length) return;
+    await stagePhotos(files, aiPhotos);
+    renderAiThumbs();
+    syncAiRun();
   };
 
   $('quickSend_meal').onclick = quickLogMeal;
   $('quickSend_expense').onclick = quickLogExpense;
   $('quickSend_note').onclick = quickLogNote;
+
+  $('aiPhotoBtn').onclick = () => $('aiFile').click();
+  $('aiRunBtn').onclick = onAiRun;
+  syncAiRun();
 
   // Enter sends, so a whole entry can be made without leaving the keyboard.
   const onEnter = (el, fn) => { if(el) el.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); fn(); } }; };
@@ -4297,6 +4511,22 @@ async function loadHubStats(){
 /* ================= HUB MASTER UNIFIED OVERVIEW (WEEKLY / MONTHLY) ================= */
 let hubViewDate = new Date();
 let hubMasterMode = 'week';
+
+/* The Week/Month choice is a preference, not a per-visit decision, so it is
+   stored and restored. Before this it reset to Week on every reload, which
+   made switching to Month look like it had not worked. */
+function applyHubMasterMode(){
+  if($('hubWeekView')) $('hubWeekView').hidden = (hubMasterMode !== 'week');
+  if($('hubMonthView')) $('hubMonthView').hidden = (hubMasterMode !== 'month');
+  const t = $('hubCalToggle');
+  if(t) t.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.hview === hubMasterMode));
+}
+
+async function restoreHubMasterMode(){
+  const saved = await store.get('config:hubCalView');
+  if(saved === 'week' || saved === 'month') hubMasterMode = saved;
+  applyHubMasterMode();
+}
 
 function getWeekDays(refDate){
   const d = new Date(refDate);
@@ -4503,8 +4733,8 @@ if($('hubCalToggle')){
       $('hubCalToggle').querySelectorAll('button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       hubMasterMode = btn.dataset.hview;
-      if($('hubWeekView')) $('hubWeekView').hidden = (hubMasterMode !== 'week');
-      if($('hubMonthView')) $('hubMonthView').hidden = (hubMasterMode !== 'month');
+      applyHubMasterMode();
+      store.set('config:hubCalView', hubMasterMode).catch(()=>{});
       loadHubMasterCalendar();
     };
   });
@@ -4601,11 +4831,101 @@ let view = new Date(), monthIdx = {}, openDay = null, openPosts = [], dayViewMod
 // than beside its helpers to keep it out of the temporal dead zone.
 let photoPos = {};
 
+/* ---------- FOOD DIARY: MONTH / WEEK ----------
+   Month is the mosaic; week trades span for a thumbnail large enough to
+   actually recognise a meal. The choice is stored, like the Hub's. */
+let foodCalView = 'month';
+let foodWeekAnchor = mondayOf(new Date());
+
+function mondayOf(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const off = (x.getDay() + 6) % 7;      // Monday-first, matching the grid
+  x.setDate(x.getDate() - off);
+  return x;
+}
+
+function applyFoodCalView(){
+  if($('foodMonthView')) $('foodMonthView').hidden = (foodCalView !== 'month');
+  if($('foodWeekView')) $('foodWeekView').hidden = (foodCalView !== 'week');
+  const t = $('foodCalToggle');
+  if(t) t.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.fview === foodCalView));
+  const legend = $('calLegend');
+  if(legend){
+    legend.innerHTML = foodCalView === 'week'
+      ? 'A week at a time, with a bigger thumbnail for each day.<br>Tap any day to view or edit its entries.'
+      : 'Logged days show the first photo from that day.<br>Tap any day to view multi-photo posts or analyze calories with AI.';
+  }
+}
+
 async function loadMonth(){
   const mk = `month:${view.getFullYear()}-${pad(view.getMonth()+1)}`;
   monthIdx = (await store.get(mk)) || {};
   await reconcile(mk, monthIdx);
-  drawMonth();
+  if(foodCalView === 'week') await drawFoodWeek();
+  else drawMonth();
+}
+
+async function drawFoodWeek(){
+  const start = new Date(foodWeekAnchor);
+  const days = [];
+  for(let i = 0; i < 7; i++){
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+
+  // A week can straddle two months, so pull every index it touches.
+  const idxCache = {};
+  for(const d of days){
+    const mk = `month:${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    if(!(mk in idxCache)) idxCache[mk] = (await store.get(mk)) || {};
+  }
+
+  const last = days[6];
+  const sameMonth = start.getMonth() === last.getMonth();
+  $('mTitle').innerHTML = sameMonth
+    ? `${MONTHS[start.getMonth()]} ${start.getDate()}–${last.getDate()} <span class="yr">${start.getFullYear()}</span>`
+    : `${MONTHS[start.getMonth()].slice(0,3)} ${start.getDate()} – ${MONTHS[last.getMonth()].slice(0,3)} ${last.getDate()} <span class="yr">${last.getFullYear()}</span>`;
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const todayK = key(new Date());
+
+  let logged = 0, elapsed = 0;
+  const rows = days.map(d => {
+    const dk = key(d);
+    const mk = `month:${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    const item = idxCache[mk][pad(d.getDate())];
+    const isFuture = d > now;
+    if(!isFuture) elapsed++;
+    if(item) logged++;
+
+    const n = item ? (item.n || 0) : 0;
+    const thumb = item && item.thumb ? item.thumb : null;
+    let sub;
+    if(!item) sub = isFuture ? '—' : 'Nothing logged';
+    else if(item.hasText && !thumb) sub = n === 1 ? '1 note' : `${n} entries`;
+    else sub = n === 1 ? '1 entry' : `${n} entries`;
+
+    return `
+      <button class="food-week-row ${dk === todayK ? 'today' : ''} ${isFuture ? 'future' : ''}" data-fwd="${dk}" ${isFuture ? 'disabled' : ''}>
+        <span class="fw-thumb ${thumb ? '' : 'empty'}" ${thumb ? `style="background-image:url(${thumb})"` : ''}></span>
+        <span class="fw-meta">
+          <span class="fw-day">${WD[d.getDay()].slice(0,3)} ${d.getDate()}</span>
+          <span class="fw-sub">${sub}</span>
+        </span>
+        <span class="fw-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>`;
+  }).join('');
+
+  $('foodWeekList').innerHTML = rows;
+  $('tallyTxt').textContent = `${logged} of ${elapsed || 7} days logged`;
+  $('tallyBar').style.width = `${Math.min(100, Math.round((logged / (elapsed || 7)) * 100))}%`;
+  $('next').disabled = start > now;
+
+  $('foodWeekList').querySelectorAll('[data-fwd]').forEach(b => {
+    b.onclick = () => openDaySheet(b.dataset.fwd);
+  });
 }
 
 async function reconcile(mk, idx){
@@ -6390,8 +6710,36 @@ function makeThumb(src){
   return loadImg(src).then(img => downscale(img, 170, .55));
 }
 
-$('prev').onclick = () => { view.setMonth(view.getMonth()-1); loadMonth(); };
-$('next').onclick = () => { view.setMonth(view.getMonth()+1); loadMonth(); };
+// Prev/next step by whatever unit is on screen.
+$('prev').onclick = () => {
+  if(foodCalView === 'week') foodWeekAnchor.setDate(foodWeekAnchor.getDate() - 7);
+  else view.setMonth(view.getMonth() - 1);
+  loadMonth();
+};
+$('next').onclick = () => {
+  if(foodCalView === 'week') foodWeekAnchor.setDate(foodWeekAnchor.getDate() + 7);
+  else view.setMonth(view.getMonth() + 1);
+  loadMonth();
+};
+
+if($('foodCalToggle')){
+  $('foodCalToggle').querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      foodCalView = btn.dataset.fview;
+      // Entering week view, land on the week containing what is on screen —
+      // today if that month is the current one, otherwise its first week.
+      if(foodCalView === 'week'){
+        const now = new Date();
+        const inView = (view.getFullYear() === now.getFullYear() && view.getMonth() === now.getMonth())
+          ? now : new Date(view.getFullYear(), view.getMonth(), 1);
+        foodWeekAnchor = mondayOf(inView);
+      }
+      applyFoodCalView();
+      store.set('config:foodCalView', foodCalView).catch(()=>{});
+      loadMonth();
+    };
+  });
+}
 $('back').onclick = () => showView('cal');
 
 /* ==========================================================================
@@ -7654,7 +8002,13 @@ async function initApp(){
   showView('hub');
   initQuickAdd();
   initHubAppOrder().catch(()=>{});
-  loadMonth().catch(()=>{});
+  // Restore the two calendar view preferences before the first paint of each.
+  restoreHubMasterMode().catch(()=>{});
+  store.get('config:foodCalView').then(v => {
+    if(v === 'week' || v === 'month') foodCalView = v;
+    applyFoodCalView();
+    loadMonth().catch(()=>{});
+  }).catch(() => { applyFoodCalView(); loadMonth().catch(()=>{}); });
   Promise.race([
     migrateLegacyStorage(),
     new Promise(res => setTimeout(res, 800))
