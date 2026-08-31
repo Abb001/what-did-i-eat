@@ -1182,6 +1182,38 @@
     transform: none;
   }
 
+  /* Shows what the typed line was understood as, before it is committed —
+     a silent misparse would put wrong numbers in the ledger. */
+  .expr-preview {
+    margin-top: 9px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ios-label-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .expr-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--lg-clear-hi);
+    color: var(--ios-label);
+    box-shadow: var(--lg-depth);
+  }
+  .expr-chip.amt { color: var(--accent-deep); }
+  .expr-chip.muted { color: var(--ios-label-tertiary); font-weight: 500; }
+  .expr-new {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--accent-deep);
+  }
+  .expr-hint { color: var(--ios-label-tertiary); }
+
   /* AI pane: the tab is deliberately honest that nothing is connected yet,
      rather than offering an action that silently does nothing. */
   .ai-status {
@@ -2673,8 +2705,7 @@
       <!-- EXPENSE -->
       <div class="quick-pane" id="quickPane_expense" hidden>
         <div class="quick-row">
-          <span class="quick-currency">$</span>
-          <input type="number" id="quickAmt" class="quick-input quick-amt" placeholder="0.00" inputmode="decimal" step="0.01" min="0" enterkeyhint="send">
+          <input type="text" id="quickExpr" class="quick-input" placeholder="milk tea 200 linepay post" enterkeyhint="send" autocapitalize="off" autocomplete="off" spellcheck="false">
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
         <div class="quick-row">
@@ -2686,8 +2717,8 @@
             <option value="Entertainment">Fun</option>
             <option value="General">Other</option>
           </select>
-          <input type="text" id="quickDesc" class="quick-input" placeholder="What for? (optional)" enterkeyhint="send">
         </div>
+        <div class="expr-preview" id="quickExprPreview"></div>
       </div>
 
       <!-- NOTE -->
@@ -2726,8 +2757,9 @@
           <div class="view-toggle" id="hubCalToggle" style="padding:2px">
             <button class="active" data-hview="week" style="padding:4px 10px;font-size:11.5px">Week</button>
             <button data-hview="month" style="padding:4px 10px;font-size:11.5px">Month</button>
+            <button data-hview="off" style="padding:4px 10px;font-size:11.5px">Off</button>
           </div>
-          <div class="nav" style="display:flex;gap:4px">
+          <div class="nav" id="hubCalNav" style="display:flex;gap:4px">
             <button id="hubPrev" aria-label="Previous" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
             <button id="hubNext" aria-label="Next" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
           </div>
@@ -2745,7 +2777,7 @@
         <div class="hub-cal-grid" id="hubGrid"></div>
       </div>
 
-      <div class="legend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
+      <div class="legend" id="hubCalLegend" style="margin-top:10px;text-align:center;color:var(--ios-label-secondary);font-size:11.5px">
         Meals · Budget · Health &amp; Sleep<br>Tap any day to inspect full life records.
       </div>
       <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
@@ -4232,7 +4264,10 @@ function syncQuickSend(){
   if(!send) return;
   let ok = false;
   if(quickMode === 'meal') ok = quickPhotos.length > 0 || !!($('quickMealNote') || {}).value?.trim();
-  else if(quickMode === 'expense') ok = parseFloat(($('quickAmt') || {}).value) > 0;
+  else if(quickMode === 'expense'){
+    const p = parseExpenseLine(($('quickExpr') || {}).value);
+    ok = !!(p && p.amt > 0);
+  }
   else ok = !!($('quickNote') || {}).value?.trim();
   send.disabled = !ok;
 }
@@ -4337,15 +4372,52 @@ async function quickLogMeal(){
   pill('Logged to today');
 }
 
-async function quickLogExpense(){
-  const amt = parseFloat($('quickAmt').value);
-  if(isNaN(amt) || amt <= 0) return;
-  const cat = $('quickCat').value;
-  const desc = ($('quickDesc').value || '').trim();
-  const dateVal = key(new Date());
+/* ---------- ONE-LINE EXPENSE ----------
+   Reads "milk tea 200 linepay post" as item / amount / payment / account.
+   The amount anchors the parse: everything before it is the item, the two
+   tokens after it are how it was paid and which account funded it. Both
+   trailing parts are optional, so "coffee 85" and "lunch 150 cash" work.
 
-  // Budget accounts are normally seeded when the Budget module first opens.
-  // Quick Add can run before that has ever happened, so seed them here too.
+   The result is always shown before it is committed. A ledger is exactly
+   the wrong place for a parser to guess quietly. */
+function parseExpenseLine(text){
+  const raw = (text || '').trim();
+  if(!raw) return { empty: true };
+  const tokens = raw.split(/\s+/);
+
+  let amtIdx = -1, amt = NaN;
+  for(let i = 0; i < tokens.length; i++){
+    // A number possibly wrapped in currency marks: 200, $200, 1,200, 200元
+    if(!/^[^\d]*[\d.,]+[^\d]*$/.test(tokens[i])) continue;
+    const v = parseFloat(tokens[i].replace(/[^0-9.]/g, ''));
+    if(!isNaN(v) && v > 0){ amtIdx = i; amt = v; break; }
+  }
+  if(amtIdx === -1) return { noAmount: true };
+
+  const rest = tokens.slice(amtIdx + 1);
+  return {
+    item: tokens.slice(0, amtIdx).join(' '),
+    amt,
+    payment: rest[0] || '',
+    account: rest.slice(1).join(' ')
+  };
+}
+
+/* Tidies casing for display, but only when nothing was capitalised — typing
+   "LinePay" or "iPhone case" should survive as written rather than being
+   flattened to "Linepay" / "Iphone Case". */
+const titleCase = s => /[A-Z]/.test(s) ? s : s.replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1));
+
+function matchAccount(accounts, name){
+  if(!name) return null;
+  const n = name.toLowerCase();
+  return accounts.find(a => a.name.toLowerCase() === n)
+      || accounts.find(a => a.name.toLowerCase().includes(n) || n.includes(a.name.toLowerCase()))
+      || null;
+}
+
+// Seeded lazily: Quick Add can be the first thing that ever touches accounts.
+async function getAccounts(){
   let accounts = await store.get('budget:accounts');
   if(!accounts || !accounts.length){
     accounts = [
@@ -4354,28 +4426,78 @@ async function quickLogExpense(){
       { id: 'acc_3', name: 'Cash', balance: 250.00, spentMonth: 0 }
     ];
   }
-  const acc = accounts[0];
-  acc.balance -= amt;
+  return accounts;
+}
+
+async function renderExprPreview(){
+  const box = $('quickExprPreview');
+  if(!box) return;
+  const p = parseExpenseLine($('quickExpr').value);
+
+  if(p.empty){
+    box.innerHTML = `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b></span>`;
+    return;
+  }
+  if(p.noAmount){
+    box.innerHTML = `<span class="expr-hint">Add an amount, e.g. <b>milk tea 200 linepay post</b></span>`;
+    return;
+  }
+
+  const accounts = await getAccounts();
+  const matched = matchAccount(accounts, p.account);
+  const accLabel = p.account
+    ? (matched ? matched.name : titleCase(p.account))
+    : accounts[0].name;
+
+  box.innerHTML =
+      `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
+    + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
+    + (p.payment ? `<span class="expr-chip">${escapeHtml(titleCase(p.payment))}</span>` : `<span class="expr-chip muted">no payment</span>`)
+    + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
+    + (p.account && !matched ? `<span class="expr-new">new account</span>` : '');
+}
+
+async function quickLogExpense(){
+  const p = parseExpenseLine($('quickExpr').value);
+  if(p.empty || p.noAmount || !(p.amt > 0)) return;
+
+  const cat = $('quickCat').value;
+  const dateVal = key(new Date());
+
+  const accounts = await getAccounts();
+  let acc = p.account ? matchAccount(accounts, p.account) : accounts[0];
+  let created = false;
+  if(!acc){
+    // A name that matches nothing becomes a new account rather than being
+    // silently charged to the default one. The preview said so first.
+    acc = { id: 'acc_' + Date.now(), name: titleCase(p.account), balance: 0, spentMonth: 0 };
+    accounts.push(acc);
+    created = true;
+  }
+  acc.balance -= p.amt;
   await store.set('budget:accounts', accounts);
 
   const entries = (await store.get('budget:entries')) || [];
   entries.unshift({
     id: 'tx_' + Date.now(),
     type: 'exp',
-    amt,
+    amt: p.amt,
     accountId: acc.id,
     cat,
-    desc: desc || cat,
+    desc: p.item ? titleCase(p.item) : cat,
+    payment: p.payment ? titleCase(p.payment) : null,
     date: dateVal,
     dateKey: dateVal.slice(0, 7)
   });
   await store.set('budget:entries', entries);
 
-  $('quickAmt').value = '';
-  $('quickDesc').value = '';
+  $('quickExpr').value = '';
+  renderExprPreview();
   syncQuickSend();
   refreshHub();
-  pill(`$${amt.toFixed(2)} logged to ${acc.name}`);
+  pill(created
+    ? `$${p.amt.toFixed(2)} · new account ${acc.name}`
+    : `$${p.amt.toFixed(2)} → ${acc.name}`);
 }
 
 async function quickLogNote(){
@@ -4459,14 +4581,18 @@ function initQuickAdd(){
   // Enter sends, so a whole entry can be made without leaving the keyboard.
   const onEnter = (el, fn) => { if(el) el.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); fn(); } }; };
   onEnter($('quickMealNote'), quickLogMeal);
-  onEnter($('quickAmt'), quickLogExpense);
-  onEnter($('quickDesc'), quickLogExpense);
+  onEnter($('quickExpr'), quickLogExpense);
   onEnter($('quickNote'), quickLogNote);
 
-  ['quickMealNote','quickAmt','quickDesc','quickNote'].forEach(id => {
+  ['quickMealNote','quickNote'].forEach(id => {
     const el = $(id);
     if(el) el.oninput = syncQuickSend;
   });
+
+  // The expense line drives both the send button and the parse preview.
+  if($('quickExpr')) $('quickExpr').oninput = () => { syncQuickSend(); renderExprPreview(); };
+  if($('quickCat')) $('quickCat').onchange = renderExprPreview;
+  renderExprPreview();
 
   const when = $('quickWhen');
   if(when){
@@ -4516,15 +4642,25 @@ let hubMasterMode = 'week';
    stored and restored. Before this it reset to Week on every reload, which
    made switching to Month look like it had not worked. */
 function applyHubMasterMode(){
-  if($('hubWeekView')) $('hubWeekView').hidden = (hubMasterMode !== 'week');
-  if($('hubMonthView')) $('hubMonthView').hidden = (hubMasterMode !== 'month');
+  const off = (hubMasterMode === 'off');
+  if($('hubWeekView')) $('hubWeekView').hidden = off || (hubMasterMode !== 'week');
+  if($('hubMonthView')) $('hubMonthView').hidden = off || (hubMasterMode !== 'month');
+  // Off collapses the calendar to just its header, so the card stays on the
+  // Hub as the way back — hiding it outright would leave nothing to tap.
+  if($('hubCalLegend')) $('hubCalLegend').hidden = off;
+  if($('hubCalNav')) $('hubCalNav').style.display = off ? 'none' : 'flex';
+  if($('hubDayDetail') && off) $('hubDayDetail').hidden = true;
+  const title = $('hubMTitle');
+  if(title && off) title.textContent = 'Overview off';
+  const card = $('hubMasterCalendarCard');
+  if(card) card.style.marginBottom = off ? '10px' : '';
   const t = $('hubCalToggle');
   if(t) t.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.hview === hubMasterMode));
 }
 
 async function restoreHubMasterMode(){
   const saved = await store.get('config:hubCalView');
-  if(saved === 'week' || saved === 'month') hubMasterMode = saved;
+  if(saved === 'week' || saved === 'month' || saved === 'off') hubMasterMode = saved;
   applyHubMasterMode();
 }
 
@@ -4543,6 +4679,9 @@ function getWeekDays(refDate){
 }
 
 async function loadHubMasterCalendar(){
+  // Nothing to draw when the overview is off, and reading every budget and
+  // health record to render a hidden card would be wasted work on each refresh.
+  if(hubMasterMode === 'off'){ applyHubMasterMode(); return; }
   try {
     const budgetEntries = (await store.get('budget:entries')) || [];
     const healthLogs = (await store.get('health:logs')) || {};
@@ -5533,7 +5672,7 @@ function renderMonthLogsList(monthEntries){
         <div class="b-item-row">
           <div class="b-item-info">
             <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
-            <span class="b-item-desc">${item.date}</span>
+            <span class="b-item-desc">${item.date}${item.payment ? ` · ${item.payment}` : ''}</span>
           </div>
           <div class="b-item-right">
             <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
@@ -5740,7 +5879,7 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
           <div class="b-item-row">
             <div class="b-item-info">
               <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
-              <span class="b-item-desc">${acc ? acc.name : 'Account'}</span>
+              <span class="b-item-desc">${acc ? acc.name : 'Account'}${item.payment ? ` · ${item.payment}` : ''}</span>
             </div>
             <div class="b-item-right">
               <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
