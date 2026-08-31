@@ -468,7 +468,11 @@
     color: var(--ios-label-secondary);
     min-width: 28px;
   }
-  .hub-week-strip.today .hub-strip-dow {
+  /* Today is marked by colour alone — no "TODAY" label. The weekday, the
+     date numeral and the ring all carry the accent, so it reads at a glance
+     without a word competing with the day's actual content. */
+  .hub-week-strip.today .hub-strip-dow,
+  .hub-week-strip.today .hub-strip-date {
     color: var(--accent);
   }
   .hub-strip-date {
@@ -476,15 +480,6 @@
     font-weight: 700;
     color: var(--ios-label);
     min-width: 22px;
-  }
-  .hub-strip-today-badge {
-    font-size: 9px;
-    font-weight: 700;
-    padding: 1.5px 5px;
-    border-radius: 999px;
-    background: rgba(var(--accent-rgb), 0.12);
-    color: var(--accent);
-    letter-spacing: 0.04em;
   }
   .hub-strip-content {
     display: flex;
@@ -1677,6 +1672,43 @@
     letter-spacing: 0.02em;
     border: 0.5px solid rgba(255, 255, 255, 0.2);
   }
+  /* Reorder controls for photos *within* one post. Dark glass like the
+     counter, because they sit over a photo rather than over the page. */
+  .photo-move {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    background: rgba(28, 20, 16, 0.52);
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.20);
+    border-radius: 999px;
+  }
+  .photo-move-btn {
+    width: 26px;
+    height: 24px;
+    border: none;
+    background: none;
+    color: #FFFFFF;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s ease, transform 0.4s var(--lg-spring), opacity 0.18s ease;
+  }
+  .photo-move-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.22); }
+  .photo-move-btn:active:not(:disabled) { transform: scale(0.88); transition-duration: 0.12s; }
+  /* Disabled at the ends of the run, rather than hidden, so the control
+     doesn't reflow and shift under a thumb mid-tap. */
+  .photo-move-btn:disabled { opacity: 0.32; cursor: default; }
+
   .carousel-dots {
     position: absolute;
     bottom: 10px;
@@ -3974,11 +4006,10 @@ async function loadHubMasterCalendar(){
         }
 
         weekHtml += `
-        <div class="hub-week-strip ${isToday ? 'today' : ''}" data-hubdate="${dateStr}">
+        <div class="hub-week-strip ${isToday ? 'today' : ''}" data-hubdate="${dateStr}"${isToday ? ' aria-current="date"' : ''}>
           <div class="hub-strip-left">
             <span class="hub-strip-dow">${dayNames[i]}</span>
             <span class="hub-strip-date">${d}</span>
-            ${isToday ? '<span class="hub-strip-today-badge">TODAY</span>' : ''}
           </div>
           <div class="hub-strip-content">${highlights}</div>
           <div class="hub-strip-right">
@@ -4162,6 +4193,10 @@ window.openFoodForDay = async (dateStr) => {
 
 /* ================= FOOD MODULE & POSTS ================= */
 let view = new Date(), monthIdx = {}, openDay = null, openPosts = [], dayViewMode = 'list';
+// Remembers which photo each post's carousel is showing, so reordering knows
+// what to move and a redraw can put every carousel back. Declared here rather
+// than beside its helpers to keep it out of the temporal dead zone.
+let photoPos = {};
 
 async function loadMonth(){
   const mk = `month:${view.getFullYear()}-${pad(view.getMonth()+1)}`;
@@ -4236,6 +4271,7 @@ function normalizeToPosts(rawItems){
 
 async function openDaySheet(dKey){
   openDay = dKey;
+  photoPos = {};   // carousel positions belong to the day being closed
   const raw = (await store.get(`day:${openDay}`)) || [];
   openPosts = normalizeToPosts(raw);
   const [y,m,d] = openDay.split('-');
@@ -4284,6 +4320,10 @@ function drawDay(){
       mediaMarkup = `
       <div class="photo-carousel" id="carousel_${pIdx}">
         <span class="carousel-counter" id="counter_${pIdx}">1 / ${photos.length}</span>
+        <div class="photo-move" id="photomove_${pIdx}">
+          <button class="photo-move-btn" id="photomoveL_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, -1)" title="Move this photo earlier" aria-label="Move this photo earlier">←</button>
+          <button class="photo-move-btn" id="photomoveR_${pIdx}" onclick="event.stopPropagation(); movePhoto(${pIdx}, 1)" title="Move this photo later" aria-label="Move this photo later">→</button>
+        </div>
         <button class="carousel-nav-btn prev" onclick="event.stopPropagation(); slidePhoto(${pIdx}, -1)">‹</button>
         <button class="carousel-nav-btn next" onclick="event.stopPropagation(); slidePhoto(${pIdx}, 1)">›</button>
         <div class="photo-track" id="track_${pIdx}" onscroll="onTrackScroll(${pIdx}, ${photos.length})">
@@ -4377,6 +4417,7 @@ function drawDay(){
     e.stopPropagation();
     openPosts.splice(+b.dataset.delpost, 1);
     activeEditPostIdx = null;
+    photoPos = {};   // splicing shifts every later post's index
     save(); drawDay();
   });
 
@@ -4389,6 +4430,12 @@ function drawDay(){
       const temp = openPosts[pIdx];
       openPosts[pIdx] = openPosts[targetIdx];
       openPosts[targetIdx] = temp;
+      // Carousel positions travel with their post
+      const tPos = photoPos[pIdx];
+      photoPos[pIdx] = photoPos[targetIdx];
+      photoPos[targetIdx] = tPos;
+      if(photoPos[pIdx] === undefined) delete photoPos[pIdx];
+      if(photoPos[targetIdx] === undefined) delete photoPos[targetIdx];
       save(true);
       drawDay();
     };
@@ -4440,6 +4487,14 @@ function drawDay(){
       await save(true);
     };
   });
+
+  // A fresh render starts every carousel at photo 1, so seed the reorder
+  // buttons' end-of-run state, then restore any position the user had.
+  openPosts.forEach((p, i) => {
+    const total = (p.photos || []).length;
+    if(total > 1) syncPhotoMoveBtns(i, 0, total);
+  });
+  restorePhotoPos();
 }
 
 /* ---------- UNIFIED FOOD ADD BUTTON & ACTION SHEET ---------- */
@@ -4523,14 +4578,71 @@ window.slidePhoto = (pIdx, dir) => {
 };
 window.onTrackScroll = (pIdx, total) => {
   const track = $(`track_${pIdx}`);
-  if(!track) return;
+  if(!track || !track.clientWidth) return;
   const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
+  photoPos[pIdx] = currentIdx;
   const counter = $(`counter_${pIdx}`);
   if(counter) counter.textContent = `${currentIdx + 1} / ${total}`;
   const dots = $(`dots_${pIdx}`);
   if(dots){
     dots.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
   }
+  syncPhotoMoveBtns(pIdx, currentIdx, total);
+};
+
+/* ---------- REORDER PHOTOS WITHIN A POST ----------
+   Which photo moves is whichever one you are looking at, so the control
+   needs the carousel's current index. onTrackScroll already computes it
+   for the counter and dots; photoPos just remembers it. (photoPos itself is
+   declared with the other day-sheet state, above.) */
+
+function syncPhotoMoveBtns(pIdx, idx, total){
+  const l = $(`photomoveL_${pIdx}`), r = $(`photomoveR_${pIdx}`);
+  if(l) l.disabled = (idx <= 0);
+  if(r) r.disabled = (idx >= total - 1);
+}
+
+/* drawDay() rebuilds the markup, so every track resets to photo 1.
+   Put each carousel back where the user left it. */
+function restorePhotoPos(){
+  Object.keys(photoPos).forEach(k => {
+    const pIdx = Number(k);
+    const post = openPosts[pIdx];
+    const total = (post && post.photos) ? post.photos.length : 0;
+    const idx = Math.min(photoPos[pIdx], total - 1);
+    const track = $(`track_${pIdx}`);
+    if(!track || idx <= 0 || total < 2) { if(total > 1) syncPhotoMoveBtns(pIdx, 0, total); return; }
+    const prev = track.style.scrollBehavior;
+    track.style.scrollBehavior = 'auto';   // jump, don't animate a rebuild
+    track.scrollLeft = idx * track.clientWidth;
+    track.style.scrollBehavior = prev || '';
+    const counter = $(`counter_${pIdx}`);
+    if(counter) counter.textContent = `${idx + 1} / ${total}`;
+    const dots = $(`dots_${pIdx}`);
+    if(dots) dots.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    syncPhotoMoveBtns(pIdx, idx, total);
+  });
+}
+
+window.movePhoto = async (pIdx, dir) => {
+  const post = openPosts[pIdx];
+  const photos = post && post.photos;
+  if(!photos || photos.length < 2) return;
+
+  const from = Math.min(Math.max(photoPos[pIdx] || 0, 0), photos.length - 1);
+  const to = from + dir;
+  if(to < 0 || to >= photos.length) return;
+
+  [photos[from], photos[to]] = [photos[to], photos[from]];
+  photoPos[pIdx] = to;
+
+  await save(true);
+  drawDay();   // drawDay restores carousel positions itself
+
+  // The day's calendar thumbnail is the first photo of the first post, so
+  // moving a photo into that slot re-covers the day in the month mosaic.
+  const becameCover = (pIdx === 0 && to === 0);
+  pill(becameCover ? 'Moved · now the day’s cover' : 'Photo reordered');
 };
 
 $('viewToggle').onclick = e => {
