@@ -1,4 +1,4 @@
-const CACHE = 'meals-shell-v12';
+const CACHE = 'meals-shell-v13';
 const ASSETS = ['./', './index.html', './service-worker.js', './manifest.json', './favicon.png', './apple-touch-icon.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
