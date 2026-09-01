@@ -363,7 +363,13 @@
     gap: 6px;
   }
 
+  /* Hidden rather than removed from markup: loadHubStats() still writes to
+     these elements by id on every refresh, and a tile now reads fine as
+     just an icon and a name — the count/total was extra reading, not
+     identification. Kept in the DOM (not display:none) only where reorder
+     mode still needs it below. */
   .hub-stat {
+    display: none;
     font-size: 10.5px;
     font-weight: 600;
     color: var(--ios-label-secondary);
@@ -1137,6 +1143,49 @@
     box-shadow: inset 0 1px 3px rgba(72, 45, 34, 0.08), 0 0 0 3.5px rgba(var(--accent-rgb), 0.22), 0 0 0 1px rgba(var(--accent-rgb), 0.55);
   }
   .quick-amt { flex: 1; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+  /* Secondary field — smaller, so the item/amount line (the one thing that
+     must be filled in) still reads as the primary input on the pane. Placed
+     after .quick-input so its shorthand `padding` isn't clobbered by
+     .quick-input's own shorthand declared above. */
+  .quick-shop { font-size: 13px; padding: 9px 14px; }
+
+  /* Category as a swipeable chip strip — a tap replaces choosing from a
+     dropdown, and the real value still lives on the hidden <select> beside
+     it, so nothing else in the category-picker logic needs to know the
+     control changed shape. */
+  .quick-cat-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 2px 6px;
+    scrollbar-width: none;
+  }
+  .quick-cat-chips::-webkit-scrollbar { display: none; }
+  .quick-cat-chip {
+    flex: 0 0 auto;
+    border: none;
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    box-shadow: 0 1px 4px -1px rgba(72, 45, 34, 0.10), var(--lg-depth);
+    padding: 6px 13px;
+    border-radius: 999px;
+    font-family: var(--ios-font);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ios-label-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.4s var(--lg-spring), box-shadow 0.25s ease;
+  }
+  .quick-cat-chip:active { transform: scale(0.93); transition-duration: 0.12s; }
+  .quick-cat-chip.on {
+    background: var(--lg-regular-hi);
+    color: var(--ios-label);
+    font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.45), 0 3px 10px -3px rgba(var(--accent-rgb), 0.26), var(--lg-depth);
+  }
+  .quick-cat-chip.add { color: var(--accent-deep); }
   .quick-currency { font-size: 15px; font-weight: 700; color: var(--ios-label-secondary); }
   .quick-select {
     flex: 0 0 auto;
@@ -1223,6 +1272,9 @@
   }
   .expr-chip.amt { color: var(--accent-deep); }
   .expr-chip.muted { color: var(--ios-label-tertiary); font-weight: 500; }
+  /* Leads the row when present — the shop is the outermost context
+     ("at X, I bought Y"), so it reads first, same as it will in the list. */
+  .expr-chip.shop { background: rgba(var(--accent-rgb), 0.14); color: var(--accent-deep); }
   .expr-new {
     font-size: 11.5px;
     font-weight: 600;
@@ -1395,6 +1447,79 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  /* ---------- HUB ACTIVITY DASHBOARD (GITHUB-STYLE CONTRIBUTION GRAPH) ----------
+     One cell per day; each app that logged something that day contributes an
+     equal wedge of a conic-gradient, so a day touching several apps shows all
+     of their colors in one cell rather than picking a single "winner". */
+  .hub-contrib-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hub-contrib-scroll::-webkit-scrollbar { display: none; }
+  .hub-contrib-dow {
+    display: grid;
+    grid-template-rows: repeat(7, 11px);
+    gap: 3px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .hub-contrib-dow span {
+    font-size: 8.5px;
+    line-height: 11px;
+    color: var(--ios-label-secondary);
+    white-space: nowrap;
+  }
+  .hub-contrib-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 11px);
+    gap: 3px;
+  }
+  .hub-contrib-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    background: var(--ios-fill);
+    cursor: pointer;
+    transition: transform 0.15s var(--lg-spring);
+  }
+  .hub-contrib-cell.today { box-shadow: 0 0 0 1.5px var(--ios-label); }
+  .hub-contrib-cell:hover { transform: scale(1.25); }
+  .hub-contrib-cell.pad { visibility: hidden; }
+  .hub-contrib-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--ios-separator);
+  }
+  .hub-contrib-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--ios-label-secondary);
+  }
+  .hub-contrib-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .hub-contrib-tip {
+    margin-top: 10px;
+    padding: 9px 12px;
+    border-radius: 13px;
+    background: var(--lg-clear);
+    box-shadow: var(--lg-depth);
+    font-size: 12px;
+    color: var(--ios-label);
   }
 
   /* ---------- BUDGET LOGS CALENDAR ---------- */
@@ -2710,12 +2835,14 @@
       <!-- EXPENSE -->
       <div class="quick-pane" id="quickPane_expense" hidden>
         <div class="quick-row">
+          <input type="text" id="quickShop" class="quick-input quick-shop" placeholder="Shop (optional)" enterkeyhint="next" autocapitalize="off" autocomplete="off">
+        </div>
+        <div class="quick-row">
           <input type="text" id="quickExpr" class="quick-input" placeholder="milk tea 200 linepay post" enterkeyhint="send" autocapitalize="off" autocomplete="off" spellcheck="false">
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
-        <div class="quick-row">
-          <select id="quickCat" class="quick-select"></select>
-        </div>
+        <div class="quick-cat-chips" id="quickCatChips"></div>
+        <select id="quickCat" class="quick-select" hidden></select>
         <div class="expr-preview" id="quickExprPreview"></div>
       </div>
 
@@ -2779,6 +2906,22 @@
         Meals · Budget · Health &amp; Sleep<br>Tap any day to inspect full life records.
       </div>
       <div id="hubDayDetail" class="hub-day-drawer" hidden></div>
+    </div>
+
+    <!-- HUB ACTIVITY DASHBOARD — GITHUB-STYLE CONTRIBUTION GRAPH, ONE COLOR PER APP -->
+    <div class="mod-card" id="hubContribCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-weight:600;font-size:15px">Activity</span>
+        <span style="font-size:11.5px;color:var(--ios-label-secondary)" id="hubContribRange">—</span>
+      </div>
+      <div class="hub-contrib-scroll">
+        <div class="hub-contrib-dow">
+          <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
+        </div>
+        <div class="hub-contrib-grid" id="hubContribGrid"></div>
+      </div>
+      <div class="hub-contrib-legend" id="hubContribLegend"></div>
+      <div id="hubContribTip" class="hub-contrib-tip" hidden></div>
     </div>
 
     <!-- HUB APPS SECTION HEADER WITH REORDER TOGGLE -->
@@ -2989,7 +3132,7 @@
     <!-- 6-PILLAR SUB-NAVIGATION -->
     <div class="b-sub-nav" id="bSubNav">
       <button class="active" data-btab="overview">Overview</button>
-      <button data-btab="logs">Logs &amp; Calendar</button>
+      <button data-btab="logs">History</button>
       <button data-btab="transfers">Transfers</button>
       <button data-btab="envelopes">Envelopes</button>
       <button data-btab="subscriptions">Subscriptions</button>
@@ -3000,30 +3143,24 @@
 
     <!-- SUB-TAB 1: OVERVIEW -->
     <div class="b-panel" id="bp-overview">
-      <!-- 1. NEW LOG CARD (PLACED AT THE VERY TOP) -->
-      <div class="mod-card" style="margin-bottom:18px">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">New Log</span>
-        <div class="form-group">
-          <label>Type, Amount &amp; Account</label>
-          <div style="display:flex;gap:8px">
-            <select id="bType" style="width:115px"><option value="exp">Expense (-)</option><option value="inc">Income (+)</option></select>
-            <input type="number" id="bAmt" placeholder="0.00" step="0.01">
-            <select id="bAccountSelect" style="flex:1"></select>
+      <!-- 1. CALENDAR (moved here from its own tab — the first page shows
+           accounts, analysis and the calendar; New Log is now at the bottom,
+           since it's a form you visit to act, not a summary you read) -->
+      <div class="mod-card">
+        <div class="top" style="margin-bottom:12px">
+          <div class="month" id="bCalMTitle" style="font-size:18px">—</div>
+          <div class="nav">
+            <button id="bCalPrev" aria-label="Previous month">←</button>
+            <button id="bCalNext" aria-label="Next month">→</button>
           </div>
         </div>
-        <div class="form-group">
-          <label>Category, Date &amp; Description</label>
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <select id="bCat" style="width:125px"></select>
-            <input type="date" id="bDate" style="flex:1">
-          </div>
-          <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
-        </div>
-        <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
+        <div class="tally" style="margin-bottom:12px"><span id="bCalTallyTxt">$0.00 spent this month</span><span class="bar"><i id="bCalTallyBar" style="width:0%"></i></span></div>
+        <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="b-cal-grid" id="bCalGrid"></div>
       </div>
 
       <!-- 2. OVERVIEW RECAP CARD (WITH MONTHLY / WEEKLY TOGGLE) -->
-      <div class="b-recap-card">
+      <div class="b-recap-card" style="margin-top:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div class="view-toggle" id="bOverviewToggle">
             <button class="active" data-bov="monthly">Monthly</button>
@@ -3101,24 +3238,58 @@
       </div>
 
       <div id="bList"></div>
-    </div>
 
-    <!-- SUB-TAB: LOGS & CALENDAR -->
-    <div class="b-panel" id="bp-logs" hidden>
-      <div class="mod-card">
-        <div class="top" style="margin-bottom:12px">
-          <div class="month" id="bCalMTitle" style="font-size:18px">—</div>
-          <div class="nav">
-            <button id="bCalPrev" aria-label="Previous month">←</button>
-            <button id="bCalNext" aria-label="Next month">→</button>
-          </div>
+      <!-- FRIEND-PAID (先付的但還沒付): a friend fronted the money — it
+           still counts as that day's spend, but no account of mine is
+           touched until it's actually paid back. Settling creates a real
+           transfer-out entry, so the repayment itself is recorded too. -->
+      <div class="mod-card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-weight:600;font-size:15px">Paid by Friends</span>
+          <button class="action-btn" id="toggleSettledOwedBtn" style="padding:4px 10px;font-size:11.5px">Show Settled</button>
         </div>
-        <div class="tally" style="margin-bottom:12px"><span id="bCalTallyTxt">$0.00 spent this month</span><span class="bar"><i id="bCalTallyBar" style="width:0%"></i></span></div>
-        <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-        <div class="b-cal-grid" id="bCalGrid"></div>
+        <div id="owedList"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--ios-separator)">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
+            <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="owedItem" placeholder="What was it?" style="flex:1">
+            <input type="date" id="owedDate" style="width:130px">
+          </div>
+          <button class="action-btn" id="addOwedBtn" style="width:100%;margin-top:8px">＋ Log What They Paid</button>
+        </div>
       </div>
 
-      <div class="b-month-header">
+      <!-- 3. NEW LOG — a form you visit to act, so it sits below the
+           summary you land on, not ahead of it. -->
+      <div class="mod-card" style="margin-top:18px">
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">New Log</span>
+        <div class="form-group">
+          <label>Type, Amount &amp; Account</label>
+          <div style="display:flex;gap:8px">
+            <select id="bType" style="width:115px"><option value="exp">Expense (-)</option><option value="inc">Income (+)</option></select>
+            <input type="number" id="bAmt" placeholder="0.00" step="0.01">
+            <select id="bAccountSelect" style="flex:1"></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category, Date &amp; Description</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <select id="bCat" style="width:125px"></select>
+            <input type="date" id="bDate" style="flex:1">
+          </div>
+          <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
+        </div>
+        <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
+      </div>
+    </div>
+
+    <!-- SUB-TAB: LOGS (calendar moved to Overview; this keeps the full
+         month-by-month history list) -->
+    <div class="b-panel" id="bp-logs" hidden>
+      <div class="b-month-header" style="margin-top:0">
         <h3 id="bMonthLogsTitle">Monthly Logs (Newest First)</h3>
       </div>
       <div id="bMonthLogsList"></div>
@@ -3656,6 +3827,43 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="settleOwedModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Pay Back</h3>
+      <button class="icon danger" id="closeSettleOwedModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="settleOwedSummary" style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:16px;line-height:1.45"></p>
+      <div class="form-group">
+        <label>Pay from</label>
+        <select id="settleOwedAccount"></select>
+      </div>
+      <button class="action-btn" id="confirmSettleOwedBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Confirm Repayment</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="accDetailModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="accDetailName">Account</h3>
+      <button class="icon danger" id="closeAccDetailModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--ios-separator)">
+        <span style="font-size:12.5px;color:var(--ios-label-secondary)">Balance</span>
+        <span id="accDetailBalance" style="font-size:22px;font-weight:800">$0.00</span>
+      </div>
+      <div id="accDetailList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="editEntryModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
@@ -3683,6 +3891,10 @@
           <input type="date" id="editDate" style="flex:1">
         </div>
         <input type="text" id="editPayment" placeholder="Payment method (optional)">
+      </div>
+      <div class="form-group">
+        <label>Shop (optional)</label>
+        <input type="text" id="editShop" placeholder="Where was this?">
       </div>
       <div class="form-group">
         <label>Description</label>
@@ -3908,6 +4120,41 @@
           <span style="font-size:11px;color:var(--ios-label-secondary)" id="detailMilestoneSummary">0 reached</span>
         </div>
         <div id="detailMilestonesList"></div>
+        <button class="action-btn" id="addMilestoneBtn" style="width:100%;margin-top:8px;padding:8px;font-size:12.5px">＋ Add Milestone</button>
+        <div id="addMilestoneForm" hidden style="margin-top:10px">
+          <div class="form-group" style="margin-bottom:8px">
+            <input type="text" id="newMilestoneName" placeholder="Name (e.g. First Trip Together)">
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="form-group" style="flex:1;margin-bottom:0">
+              <input type="number" id="newMilestoneDays" placeholder="Days from start" min="1">
+            </div>
+            <button class="action-btn" id="saveMilestoneBtn" style="padding:0 18px;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-EVENTS: the same group, counted from different start dates —
+           e.g. one "Piercings" event holding a left-ear entry and a
+           right-ear entry, each ticking from its own day. -->
+      <div class="days-milestones-box" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:700;font-size:13px;color:var(--ios-label)">Sub-Events</span>
+          <span style="font-size:11px;color:var(--ios-label-secondary)">Each counts from its own date</span>
+        </div>
+        <div id="detailSubEventsList"></div>
+        <button class="action-btn" id="addSubEventBtn" style="width:100%;margin-top:8px;padding:8px;font-size:12.5px">＋ Add Sub-Event</button>
+        <div id="addSubEventForm" hidden style="margin-top:10px">
+          <div class="form-group" style="margin-bottom:8px">
+            <input type="text" id="newSubEventName" placeholder="Name (e.g. Left Ear)">
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="form-group" style="flex:1;margin-bottom:0">
+              <input type="date" id="newSubEventDate">
+            </div>
+            <button class="action-btn" id="saveSubEventBtn" style="padding:0 18px;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
+          </div>
+        </div>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:16px">
@@ -4067,6 +4314,21 @@
 
 <script>
 const MEALS = ['Breakfast','Lunch','Dinner','Snack','Late night'];
+// Chronological, for sorting — distinct from MEALS above, which orders the
+// tag chips (selected meal first, then the rest) and is a different concern.
+const MEAL_SORT_ORDER = ['Breakfast','Lunch','Snack','Dinner','Late night'];
+function mealSortRank(meal){
+  const i = MEAL_SORT_ORDER.indexOf(meal);
+  return i === -1 ? MEAL_SORT_ORDER.length : i;   // untagged posts sort last
+}
+// A tag change should move a post immediately — tag it Breakfast and it
+// goes to the top — so this runs on every write, not just once on load.
+// Sort is stable, so posts sharing a meal keep whatever relative order
+// they already had (including one set by the move-up/down buttons).
+function sortPostsByMeal(posts){
+  posts.sort((a, b) => mealSortRank(a.meal) - mealSortRank(b.meal));
+  return posts;
+}
 const MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
 const WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -4600,12 +4862,38 @@ async function populateCategorySelects(preferValue){
   const cats = await getCategories();
   const optsHtml = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
     + `<option value="__add__">+ Add category…</option>`;
-  ['quickCat', 'bCat'].forEach(id => {
+  ['quickCat', 'bCat', 'editCat'].forEach(id => {
     const el = $(id);
     if(!el) return;
     const keep = preferValue && cats.some(c => c.v === preferValue) ? preferValue : (el.value || cats[0].v);
     el.innerHTML = optsHtml;
     el.value = cats.some(c => c.v === keep) ? keep : cats[0].v;
+  });
+  renderQuickCatChips();   // the visible control for quickCat; the select above is its value store
+}
+
+// Quick Add's category picker is chips, not a dropdown — this renders them
+// from the hidden #quickCat select's current options/value, so it never
+// has to duplicate the category list itself.
+function renderQuickCatChips(){
+  const box = $('quickCatChips');
+  const sel = $('quickCat');
+  if(!box || !sel) return;
+  const current = sel.value;
+  box.innerHTML = [...sel.options].map(o => o.value === '__add__'
+    ? `<button class="quick-cat-chip add" data-cv="__add__">+ Add</button>`
+    : `<button class="quick-cat-chip ${o.value === current ? 'on' : ''}" data-cv="${escapeHtml(o.value)}">${o.textContent}</button>`
+  ).join('');
+  box.querySelectorAll('button').forEach(btn => btn.onclick = () => {
+    if(btn.dataset.cv === '__add__'){
+      $('newCatName').value = '';
+      $('addCatModal').hidden = false;
+      $('newCatName').focus();
+      return;
+    }
+    sel.value = btn.dataset.cv;
+    renderQuickCatChips();
+    renderExprPreview();
   });
 }
 
@@ -4637,8 +4925,13 @@ function initCategoryPickers(){
     await populateCategorySelects(name);
     pill(exists ? `Using existing "${name}"` : `Category "${name}" added`);
   };
-  $('quickCat').onchange = () => onCatSelectChange($('quickCat'), renderExprPreview);
+  // quickCat itself has no onchange wiring — it's a hidden value store now;
+  // renderQuickCatChips() owns selection via its own click handlers.
   $('bCat').onchange = () => onCatSelectChange($('bCat'));
+  // The edit-entry modal's category picker gets the same "+ Add category"
+  // escape hatch as the other two, so adding a category mid-edit doesn't
+  // require abandoning the edit first.
+  $('editCat').onchange = () => onCatSelectChange($('editCat'));
 }
 
 async function renderExprPreview(){
@@ -4660,9 +4953,11 @@ async function renderExprPreview(){
   const accLabel = p.account
     ? (matched ? matched.name : titleCase(p.account))
     : accounts[0].name;
+  const shop = ($('quickShop').value || '').trim();
 
   box.innerHTML =
-      `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
+      (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
+    + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
     + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
     + (p.payment ? `<span class="expr-chip">${escapeHtml(titleCase(p.payment))}</span>` : `<span class="expr-chip muted">no payment</span>`)
     + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
@@ -4675,6 +4970,7 @@ async function quickLogExpense(){
 
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
+  const shop = ($('quickShop').value || '').trim();
 
   const accounts = await getAccounts();
   let acc = p.account ? matchAccount(accounts, p.account) : accounts[0];
@@ -4698,12 +4994,14 @@ async function quickLogExpense(){
     cat,
     desc: p.item ? titleCase(p.item) : cat,
     payment: p.payment ? titleCase(p.payment) : null,
+    shop: shop ? titleCase(shop) : null,
     date: dateVal,
     dateKey: dateVal.slice(0, 7)
   });
   await store.set('budget:entries', entries);
 
   $('quickExpr').value = '';
+  $('quickShop').value = '';
   renderExprPreview();
   syncQuickSend();
   refreshHub();
@@ -4740,6 +5038,7 @@ async function quickLogNote(){
 function refreshHub(){
   if(typeof loadHubStats === 'function') loadHubStats();
   if(typeof loadHubMasterCalendar === 'function') loadHubMasterCalendar();
+  if(typeof loadHubContributions === 'function') loadHubContributions();
 }
 
 function initQuickAdd(){
@@ -4809,9 +5108,10 @@ function initQuickAdd(){
   });
 
   // The expense line drives both the send button and the parse preview.
-  // (quickCat's own onchange is wired in initCategoryPickers(), which also
-  // handles the "add category" option — it must own this alone.)
+  // (quickCat's chips are wired by renderQuickCatChips() itself, called
+  // from populateCategorySelects() — there's no separate select to bind here.)
   if($('quickExpr')) $('quickExpr').oninput = () => { syncQuickSend(); renderExprPreview(); };
+  if($('quickShop')) $('quickShop').oninput = renderExprPreview;
   renderExprPreview();
 
   const dateInput = $('quickDate');
@@ -5113,6 +5413,119 @@ async function loadHubMasterCalendar(){
   }
 }
 
+/* ================= HUB ACTIVITY DASHBOARD (GITHUB-STYLE CONTRIBUTION GRAPH) =================
+   One column per week, one cell per day, going back HUB_CONTRIB_WEEKS weeks from the
+   current week. Each app that logged something on a given day contributes an equal
+   wedge of a conic-gradient to that day's cell, so a day touching several apps shows
+   every color at once instead of picking a single "winner" like the badge dots above do. */
+const HUB_CONTRIB_WEEKS = 20;
+const HUB_CONTRIB_APPS = [
+  { id: 'food', label: 'Food Diary', color: '#F59E0B' },
+  { id: 'budget', label: 'Budget', color: '#10B981' },
+  { id: 'health', label: 'Health', color: '#EC4899' },
+  { id: 'mood', label: 'Moodboard', color: '#8B5CF6' },
+  { id: 'selfies', label: 'Selfies', color: '#3B82F6' },
+  { id: 'days', label: 'Countings', color: '#14B8A6' }
+];
+
+/* Mood pins and selfies store their date via toLocaleDateString(), not ISO, so
+   this re-parses whatever Date() itself can make sense of rather than assuming
+   a format — anything it can't parse is simply left out of the graph. */
+function parseLooseDate(str){
+  if(!str) return null;
+  const d = new Date(str);
+  if(isNaN(d.getTime())) return null;
+  return key(d);
+}
+
+function hubContribCellStyle(apps){
+  if(!apps.length) return '';
+  const colors = apps.map(id => (HUB_CONTRIB_APPS.find(a => a.id === id) || {}).color).filter(Boolean);
+  if(colors.length === 1) return `background:${colors[0]}`;
+  const step = 360 / colors.length;
+  const stops = colors.map((c, i) => `${c} ${i * step}deg ${(i + 1) * step}deg`).join(', ');
+  return `background:conic-gradient(${stops})`;
+}
+
+function showHubContribTip(dateStr, apps){
+  const tip = $('hubContribTip');
+  if(!tip || !dateStr) return;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateLabel = `${MONTHS[m - 1]} ${d}, ${y}`;
+  tip.innerHTML = apps.length
+    ? `<strong>${dateLabel}</strong> — ${apps.map(id => (HUB_CONTRIB_APPS.find(a => a.id === id) || {}).label || id).join(', ')}`
+    : `<strong>${dateLabel}</strong> — No activity logged.`;
+  tip.hidden = false;
+}
+
+async function loadHubContributions(){
+  const grid = $('hubContribGrid');
+  if(!grid) return;
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dow = today.getDay();
+    const daysSinceMonday = (dow === 0) ? 6 : dow - 1;
+    const weekStart = new Date(today); weekStart.setDate(today.getDate() - daysSinceMonday);
+    const gridStart = new Date(weekStart); gridStart.setDate(weekStart.getDate() - (HUB_CONTRIB_WEEKS - 1) * 7);
+    const rangeStart = key(gridStart);
+    const todayStr = key(today);
+
+    const [allKeys, budgetEntries, healthLogs, moodPins, selfiePics, daysEvents] = await Promise.all([
+      store.keys(),
+      store.get('budget:entries'),
+      store.get('health:logs'),
+      store.get('mood:pins'),
+      store.get('selfies:photos'),
+      store.get('days:events')
+    ]);
+
+    const activity = {};
+    function mark(dateStr, appId){
+      if(!dateStr || dateStr < rangeStart || dateStr > todayStr) return;
+      if(!activity[dateStr]) activity[dateStr] = new Set();
+      activity[dateStr].add(appId);
+    }
+
+    (allKeys || []).forEach(k => {
+      const s = String(k);
+      if(s.startsWith('day:')) mark(s.slice(4), 'food');
+    });
+    (budgetEntries || []).forEach(e => mark(e.date, 'budget'));
+    Object.keys(healthLogs || {}).forEach(d => mark(d, 'health'));
+    (moodPins || []).forEach(p => mark(parseLooseDate(p.date), 'mood'));
+    (selfiePics || []).forEach(p => mark(parseLooseDate(p.date), 'selfies'));
+    (daysEvents || []).forEach(ev => mark(parseLooseDate(ev.createdAt) || ev.date, 'days'));
+
+    let html = '';
+    for(let col = 0; col < HUB_CONTRIB_WEEKS; col++){
+      const colStart = new Date(gridStart); colStart.setDate(gridStart.getDate() + col * 7);
+      for(let row = 0; row < 7; row++){
+        const dt = new Date(colStart); dt.setDate(colStart.getDate() + row);
+        const dateStr = key(dt);
+        if(dateStr > todayStr){
+          html += `<div class="hub-contrib-cell pad"></div>`;
+          continue;
+        }
+        const apps = [...(activity[dateStr] || [])];
+        html += `<div class="hub-contrib-cell ${dateStr === todayStr ? 'today' : ''}" data-date="${dateStr}" data-apps="${apps.join(',')}" style="${hubContribCellStyle(apps)}"></div>`;
+      }
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('.hub-contrib-cell:not(.pad)').forEach(cell => {
+      cell.onclick = () => showHubContribTip(cell.dataset.date, cell.dataset.apps ? cell.dataset.apps.split(',').filter(Boolean) : []);
+    });
+
+    if($('hubContribRange')) $('hubContribRange').textContent = `${MONTHS[gridStart.getMonth()].slice(0, 3)} ${gridStart.getDate()} – Today`;
+    if($('hubContribLegend')){
+      $('hubContribLegend').innerHTML = HUB_CONTRIB_APPS.map(a => `
+        <span class="hub-contrib-legend-item"><span class="hub-contrib-legend-dot" style="background:${a.color}"></span>${a.label}</span>
+      `).join('');
+    }
+  } catch(err){
+    console.error('loadHubContributions error:', err);
+  }
+}
+
 if($('hubCalToggle')){
   $('hubCalToggle').querySelectorAll('button').forEach(btn => {
     btn.onclick = () => {
@@ -5382,7 +5795,7 @@ async function openDaySheet(dKey){
   openDay = dKey;
   photoPos = {};   // carousel positions belong to the day being closed
   const raw = (await store.get(`day:${openDay}`)) || [];
-  openPosts = normalizeToPosts(raw);
+  openPosts = sortPostsByMeal(normalizeToPosts(raw));   // sort on open too, for days saved before this existed
   const [y,m,d] = openDay.split('-');
   const dt = new Date(+y, +m-1, +d);
   $('dNum').textContent = +d;
@@ -5524,9 +5937,10 @@ function drawDay(){
 
   el.querySelectorAll('[data-delpost]').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
+    const removed = openPosts[+b.dataset.delpost];
+    if(removed) delete photoPos[removed.id];
     openPosts.splice(+b.dataset.delpost, 1);
     activeEditPostIdx = null;
-    photoPos = {};   // splicing shifts every later post's index
     save(); drawDay();
   });
 
@@ -5539,12 +5953,8 @@ function drawDay(){
       const temp = openPosts[pIdx];
       openPosts[pIdx] = openPosts[targetIdx];
       openPosts[targetIdx] = temp;
-      // Carousel positions travel with their post
-      const tPos = photoPos[pIdx];
-      photoPos[pIdx] = photoPos[targetIdx];
-      photoPos[targetIdx] = tPos;
-      if(photoPos[pIdx] === undefined) delete photoPos[pIdx];
-      if(photoPos[targetIdx] === undefined) delete photoPos[targetIdx];
+      // photoPos is keyed by post id, not array position, so it already
+      // travels with each post through this swap — nothing to do here.
       save(true);
       drawDay();
     };
@@ -5689,7 +6099,8 @@ window.onTrackScroll = (pIdx, total) => {
   const track = $(`track_${pIdx}`);
   if(!track || !track.clientWidth) return;
   const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
-  photoPos[pIdx] = currentIdx;
+  const post = openPosts[pIdx];
+  if(post) photoPos[post.id] = currentIdx;
   const counter = $(`counter_${pIdx}`);
   if(counter) counter.textContent = `${currentIdx + 1} / ${total}`;
   const dots = $(`dots_${pIdx}`);
@@ -5712,13 +6123,16 @@ function syncPhotoMoveBtns(pIdx, idx, total){
 }
 
 /* drawDay() rebuilds the markup, so every track resets to photo 1.
-   Put each carousel back where the user left it. */
+   Put each carousel back where the user left it. Walks openPosts by its
+   current (post-sort, post-render) index, but looks each one's saved
+   position up by post id — so a post that moved since photoPos was last
+   written (meal sort, manual reorder, a deletion elsewhere) still gets its
+   own position back, not whatever now happens to sit at its old index. */
 function restorePhotoPos(){
-  Object.keys(photoPos).forEach(k => {
-    const pIdx = Number(k);
-    const post = openPosts[pIdx];
-    const total = (post && post.photos) ? post.photos.length : 0;
-    const idx = Math.min(photoPos[pIdx], total - 1);
+  openPosts.forEach((post, pIdx) => {
+    if(!(post.id in photoPos)) return;
+    const total = (post.photos || []).length;
+    const idx = Math.min(photoPos[post.id], total - 1);
     const track = $(`track_${pIdx}`);
     if(!track || idx <= 0 || total < 2) { if(total > 1) syncPhotoMoveBtns(pIdx, 0, total); return; }
     const prev = track.style.scrollBehavior;
@@ -5738,12 +6152,12 @@ window.movePhoto = async (pIdx, dir) => {
   const photos = post && post.photos;
   if(!photos || photos.length < 2) return;
 
-  const from = Math.min(Math.max(photoPos[pIdx] || 0, 0), photos.length - 1);
+  const from = Math.min(Math.max(photoPos[post.id] || 0, 0), photos.length - 1);
   const to = from + dir;
   if(to < 0 || to >= photos.length) return;
 
   [photos[from], photos[to]] = [photos[to], photos[from]];
-  photoPos[pIdx] = to;
+  photoPos[post.id] = to;
 
   await save(true);
   drawDay();   // drawDay restores carousel positions itself
@@ -5767,6 +6181,7 @@ $('viewToggle').onclick = e => {
    indexed (n / thumb / hasText drive the calendar mosaic). */
 async function writeDay(dayKey, posts){
   if(!dayKey) return;
+  sortPostsByMeal(posts);   // single choke point: every write path lands here
   const [y,m,dd] = dayKey.split('-');
   const flatPhotos = [];
   posts.forEach(p => (p.photos||[]).forEach(ph => flatPhotos.push(ph)));
@@ -5920,8 +6335,8 @@ function renderMonthLogsList(monthEntries, allEntries){
           return `
         <div class="b-item-row">
           <div class="b-item-info">
-            <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
-            <span class="b-item-desc">${item.date}${item.payment ? ` · ${item.payment}` : ''}</span>
+            <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
+            <span class="b-item-desc">${item.date}${item.owedBy ? ` · Paid by ${escapeHtml(item.owedBy)}` : (item.payment ? ` · ${item.payment}` : '')}</span>
           </div>
           <div class="b-item-right">
             <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
@@ -6046,15 +6461,15 @@ async function loadBudgetModule(){
   $('trFromAcc').innerHTML = accOptions;
   $('trToAcc').innerHTML = accOptions;
 
-  // Render Accounts Grid
+  // Render Accounts Grid — each card opens its own transaction list
   $('bAccountsGrid').innerHTML = accounts.map(a => `
-    <div class="acc-card">
+    <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
       <div class="acc-title">
-        <span>${a.name}</span>
+        <span>${escapeHtml(a.name)}</span>
         <span class="acc-bal">$${a.balance.toFixed(2)}</span>
       </div>
       <div class="acc-spent">Spent this month: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
-    </div>
+    </button>
   `).join('');
 
   // "＋ Add Account" had markup but no handler — this wires it up.
@@ -6098,10 +6513,22 @@ async function loadBudgetModule(){
 
   renderBudgetTransactions(entries, accounts, $('bMonthFilter').value);
 
+  // The calendar now lives on the Overview tab (the module's landing page),
+  // so it needs drawing eagerly here too, not just when the History tab is
+  // clicked — otherwise Overview would show an empty grid on first open.
+  drawBudgetLogsTab();
   loadEnvelopes();
   loadSubscriptions();
   loadGoals();
   loadTransfersHistory();
+  loadOwedList();
+  if($('owedDate') && !$('owedDate').value) $('owedDate').value = key(new Date());
+
+  // Keep the account drill-down in step if an edit/delete happened while it
+  // was open — those actions route back through loadBudgetModule().
+  if(accDetailAccountId && $('accDetailModal') && !$('accDetailModal').hidden){
+    openAccountDetail(accDetailAccountId);
+  }
 }
 
 function renderBudgetTransactions(entries, accounts, monthFilter){
@@ -6151,8 +6578,8 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
           return `
           <div class="b-item-row">
             <div class="b-item-info">
-              <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
-              <span class="b-item-desc">${acc ? acc.name : 'Account'}${item.payment ? ` · ${item.payment}` : ''}</span>
+              <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
+              <span class="b-item-desc">${item.owedBy ? `Paid by ${escapeHtml(item.owedBy)}` : (acc ? acc.name : 'Account')}${item.payment ? ` · ${item.payment}` : ''}</span>
             </div>
             <div class="b-item-right">
               <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
@@ -6201,6 +6628,189 @@ $('bAddBtn').onclick = async () => {
   loadBudgetModule();
 };
 
+/* ---------- ACCOUNT DRILL-DOWN ----------
+   Tapping an account card shows its own transactions rather than requiring
+   a trip through the month filter on the main list. Reuses the exact same
+   day-grouped row markup and edit/delete wiring as the other two entry
+   lists, so an edit made here behaves identically to one made anywhere
+   else — same modal, same account-balance math, same refresh. */
+let accDetailAccountId = null;
+
+window.openAccountDetail = async (accountId) => {
+  accDetailAccountId = accountId;
+  const accounts = await getAccounts();
+  const acc = accounts.find(a => a.id === accountId);
+  if(!acc) return;
+
+  $('accDetailName').textContent = acc.name;
+  $('accDetailBalance').textContent = `$${acc.balance.toFixed(2)}`;
+
+  const entries = (await store.get('budget:entries')) || [];
+  const mine = entries.filter(e => e.accountId === accountId);
+  const el = $('accDetailList');
+
+  if(!mine.length){
+    el.innerHTML = `<div class="empty" style="padding:24px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No transactions on this account yet.</div>`;
+  } else {
+    const dayGroups = {};
+    mine.forEach(item => { (dayGroups[item.date] ||= []).push(item); });
+    const sortedDays = Object.keys(dayGroups).sort().reverse();
+
+    el.innerHTML = sortedDays.map(dKey => `
+      <div class="b-day-group" style="margin-bottom:12px">
+        <div class="b-day-head"><span class="b-day-title">${dKey}</span></div>
+        <div class="b-item-list">
+          ${dayGroups[dKey].map(item => {
+            const origIdx = entries.indexOf(item);
+            return `
+          <div class="b-item-row">
+            <div class="b-item-info">
+              <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
+              <span class="b-item-desc">${item.payment || ''}</span>
+            </div>
+            <div class="b-item-right">
+              <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+              <button class="icon" onclick="editBudgetEntry(${origIdx})" title="Edit">${PENCIL}</button>
+              <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
+            </div>
+          </div>`;
+          }).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  $('accDetailModal').hidden = false;
+};
+
+function initAccountDetailModal(){
+  $('closeAccDetailModal').onclick = () => {
+    $('accDetailModal').hidden = true;
+    accDetailAccountId = null;
+  };
+}
+
+let showSettledOwed = false;
+let settlingOwedId = null;
+
+async function loadOwedList(){
+  const owed = (await store.get('budget:owed')) || [];
+  const list = owed.filter(o => showSettledOwed ? true : !o.settled)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const el = $('owedList');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-secondary);font-size:13px">${showSettledOwed ? 'Nothing here yet.' : 'Nobody owes anything right now.'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(o => `
+    <div class="b-item-row">
+      <div class="b-item-info">
+        <span class="b-item-cat">${escapeHtml(o.person)} · ${escapeHtml(o.item || 'No item')}</span>
+        <span class="b-item-desc">${o.date}${o.settled ? ' · settled' : ''}</span>
+      </div>
+      <div class="b-item-right">
+        <span class="b-item-amt exp">-${o.amt.toFixed(2)}</span>
+        ${o.settled ? '' : `<button class="action-btn" style="padding:4px 10px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">Pay Back</button>`}
+        <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.openSettleOwed = async (id) => {
+  const owed = (await store.get('budget:owed')) || [];
+  const o = owed.find(x => x.id === id);
+  if(!o) return;
+  settlingOwedId = id;
+  $('settleOwedSummary').textContent = `Pay ${o.person} back ${o.amt.toFixed(2)} for ${o.item || 'this'}.`;
+  const accounts = await getAccounts();
+  $('settleOwedAccount').innerHTML = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  $('settleOwedModal').hidden = false;
+};
+
+window.deleteOwed = async (id) => {
+  if(!confirm('Delete this record? This does not touch the matching expense entry.')) return;
+  const owed = (await store.get('budget:owed')) || [];
+  const idx = owed.findIndex(x => x.id === id);
+  if(idx === -1) return;
+  owed.splice(idx, 1);
+  await store.set('budget:owed', owed);
+  loadOwedList();
+};
+
+function initOwedTracker(){
+  $('toggleSettledOwedBtn').onclick = () => {
+    showSettledOwed = !showSettledOwed;
+    $('toggleSettledOwedBtn').textContent = showSettledOwed ? 'Hide Settled' : 'Show Settled';
+    loadOwedList();
+  };
+
+  $('addOwedBtn').onclick = async () => {
+    const person = $('owedPerson').value.trim();
+    const amt = parseFloat($('owedAmt').value);
+    if(!person) return alert('Who paid?');
+    if(isNaN(amt) || amt <= 0) return alert('Enter a valid amount.');
+    const item = $('owedItem').value.trim();
+    const date = $('owedDate').value || key(new Date());
+    const owed = (await store.get('budget:owed')) || [];
+    const id = 'owed_' + Date.now();
+    const entries = (await store.get('budget:entries')) || [];
+    const entryId = 'tx_' + Date.now();
+    entries.unshift({
+      id: entryId, type: 'exp', amt, accountId: null, cat: 'General',
+      desc: item || `Paid by ${person}`,
+      payment: null, owedBy: person,
+      date, dateKey: date.slice(0, 7)
+    });
+    await store.set('budget:entries', entries);
+    owed.unshift({ id, person, item, amt, date, settled: false, entryId });
+    await store.set('budget:owed', owed);
+    $('owedPerson').value = '';
+    $('owedAmt').value = '';
+    $('owedItem').value = '';
+    $('owedDate').value = key(new Date());
+    loadOwedList();
+    loadBudgetModule();
+    refreshHub();
+    pill(`Logged — ${person} paid ${amt.toFixed(2)}`);
+  };
+
+  $('closeSettleOwedModal').onclick = () => {
+    $('settleOwedModal').hidden = true;
+    settlingOwedId = null;
+  };
+
+  $('confirmSettleOwedBtn').onclick = async () => {
+    if(!settlingOwedId) return;
+    const owed = (await store.get('budget:owed')) || [];
+    const o = owed.find(x => x.id === settlingOwedId);
+    if(!o) return;
+    const accountId = $('settleOwedAccount').value;
+    const accounts = await getAccounts();
+    const acc = accounts.find(a => a.id === accountId);
+    if(acc) acc.balance -= o.amt;
+    await store.set('budget:accounts', accounts);
+    const today = key(new Date());
+    const entries = (await store.get('budget:entries')) || [];
+    entries.unshift({
+      id: 'tx_' + Date.now(), type: 'exp', amt: o.amt, accountId,
+      cat: 'General', desc: `Paid back ${o.person}`, payment: null,
+      date: today, dateKey: today.slice(0, 7)
+    });
+    await store.set('budget:entries', entries);
+    o.settled = true;
+    o.settledDate = today;
+    o.settledAccountId = accountId;
+    await store.set('budget:owed', owed);
+    $('settleOwedModal').hidden = true;
+    settlingOwedId = null;
+    loadOwedList();
+    loadBudgetModule();
+    refreshHub();
+    pill(`Paid ${o.person} back — ${o.amt.toFixed(2)}`);
+  };
+}
+
 let editingEntryIdx = -1;
 
 window.editBudgetEntry = async (idx) => {
@@ -6211,15 +6821,14 @@ window.editBudgetEntry = async (idx) => {
 
   const accounts = await getAccounts();
   $('editAccount').innerHTML = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-  const cats = await getCategories();
-  $('editCat').innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('');
+  await populateCategorySelects(item.cat);   // fills editCat too, with "+ Add category" included
 
   $('editType').value = item.type;
   $('editAmt').value = item.amt;
   $('editAccount').value = item.accountId;
-  $('editCat').value = cats.some(c => c.v === item.cat) ? item.cat : cats[0].v;
   $('editDate').value = item.date;
   $('editPayment').value = item.payment || '';
+  $('editShop').value = item.shop || '';
   $('editDesc').value = item.desc || '';
   $('editEntryModal').hidden = false;
 };
@@ -6252,6 +6861,7 @@ function initEditEntryModal(){
       type, amt, accountId, date,
       cat: $('editCat').value,
       payment: $('editPayment').value.trim() || null,
+      shop: $('editShop').value.trim() || null,
       desc: $('editDesc').value.trim() || $('editCat').value,
       dateKey: date.slice(0, 7)
     };
@@ -7451,8 +8061,12 @@ function getEventMilestones(ev){
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const dayChecks = [100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000, 10000];
-  const yearChecks = [1, 2, 3, 5, 10, 20, 30, 50];
+  // Trimmed on purpose — this used to generate 18 fixed milestones (10 day
+  // counts + 8 year counts) whether or not any of them meant anything for a
+  // given event. A handful of genuinely common ones stay as defaults;
+  // anything more specific is now something you add yourself, below.
+  const dayChecks = [100, 365, 1000];
+  const yearChecks = [1, 5, 10];
 
   const list = [];
 
@@ -7481,6 +8095,23 @@ function getEventMilestones(ev){
       passed: diff <= 0,
       type: 'year',
       cnt: yr
+    });
+  });
+
+  // Custom milestones the user added for this specific event — a day
+  // count from its start date, same math as the built-in day presets, so
+  // it sorts and reads identically once merged in below.
+  (ev.customMilestones || []).forEach((cm, i) => {
+    const target = new Date(start.getTime() + cm.days * 86400000);
+    const targetZero = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+    const diff = Math.round((targetZero - today) / 86400000);
+    list.push({
+      name: cm.name || `${cm.days.toLocaleString()} Days`,
+      dateStr: `${target.getFullYear()}/${pad(target.getMonth()+1)}/${pad(target.getDate())}`,
+      diff,
+      passed: diff <= 0,
+      type: 'custom',
+      customIdx: i
     });
   });
 
@@ -7868,6 +8499,54 @@ window.openDayDetailModalById = (id) => {
   if(ev) openDayDetailModal(ev);
 };
 
+window.deleteCustomMilestone = async (idx) => {
+  const ev = currentDetailEvent;
+  if(!ev || !ev.customMilestones) return;
+  ev.customMilestones.splice(idx, 1);
+  await store.set('days:events', daysEventsCache);
+  openDayDetailModal(ev);
+};
+
+// Sub-events: entries within one event that each count from their own
+// date, rather than the event's own ev.date — the "same group, different
+// piercing dates" case. Always counts up (days since), which matches
+// every example given for this; there's no reason a sub-event would be a
+// future countdown when the parent event already covers that case.
+function renderSubEvents(ev){
+  const el = $('detailSubEventsList');
+  if(!el) return;
+  const items = ev.subItems || [];
+  if(!items.length){
+    el.innerHTML = `<div style="padding:10px 6px;color:var(--ios-label-tertiary);font-size:12.5px">No sub-events yet — add one for each start date within this group.</div>`;
+    return;
+  }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  el.innerHTML = items.map((si, i) => {
+    const [y, m, d] = si.date.split('-').map(Number);
+    const start = new Date(y, m - 1, d);
+    const days = Math.round((today - start) / 86400000);
+    return `
+    <div class="days-milestone-row">
+      <div>
+        <span class="days-milestone-name">${escapeHtml(si.name || 'Untitled')}</span>
+        <span class="days-milestone-date">${si.date}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="days-milestone-stat ${days >= 0 ? 'passed' : 'upcoming'}">${days >= 0 ? `${days} days` : `in ${-days} days`}</span>
+        <button class="icon danger" style="width:24px;height:24px" onclick="deleteSubEvent(${i})" title="Remove">${CROSS}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.deleteSubEvent = async (idx) => {
+  const ev = currentDetailEvent;
+  if(!ev || !ev.subItems) return;
+  ev.subItems.splice(idx, 1);
+  await store.set('days:events', daysEventsCache);
+  openDayDetailModal(ev);
+};
+
 function openDayDetailModal(ev){
   currentDetailEvent = ev;
   const calc = getEventCalcInfo(ev);
@@ -7903,17 +8582,58 @@ function openDayDetailModal(ev){
   $('detailMilestoneSummary').textContent = `${passedCount} / ${milestones.length} reached`;
 
   const mListEl = $('detailMilestonesList');
-  mListEl.innerHTML = milestones.slice(0, 8).map(m => `
+  mListEl.innerHTML = milestones.slice(0, 12).map(m => `
     <div class="days-milestone-row">
       <div>
-        <span class="days-milestone-name">${m.name}</span>
+        <span class="days-milestone-name">${escapeHtml(m.name)}</span>
         <span class="days-milestone-date">${m.dateStr}</span>
       </div>
-      <div>
+      <div style="display:flex;align-items:center;gap:6px">
         ${m.passed ? '<span class="days-milestone-stat passed">Reached ✓</span>' : `<span class="days-milestone-stat upcoming">in ${m.diff} days</span>`}
+        ${m.type === 'custom' ? `<button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>` : ''}
       </div>
     </div>
   `).join('');
+
+  // Add-milestone form: hidden until asked for, and reset+re-hidden each
+  // time the modal opens so a half-typed milestone from a previous event
+  // never leaks into this one.
+  $('addMilestoneForm').hidden = true;
+  $('newMilestoneName').value = '';
+  $('newMilestoneDays').value = '';
+  $('addMilestoneBtn').onclick = () => {
+    $('addMilestoneForm').hidden = false;
+    $('newMilestoneName').focus();
+  };
+  $('saveMilestoneBtn').onclick = async () => {
+    const days = parseInt($('newMilestoneDays').value, 10);
+    if(!days || days < 1) return alert('Enter how many days from the start date.');
+    const name = $('newMilestoneName').value.trim();
+    if(!ev.customMilestones) ev.customMilestones = [];
+    ev.customMilestones.push({ name, days });
+    await store.set('days:events', daysEventsCache);
+    openDayDetailModal(ev);   // re-render with the new milestone included
+    pill('Milestone added');
+  };
+
+  renderSubEvents(ev);
+  $('addSubEventForm').hidden = true;
+  $('newSubEventName').value = '';
+  $('newSubEventDate').value = '';
+  $('addSubEventBtn').onclick = () => {
+    $('addSubEventForm').hidden = false;
+    $('newSubEventName').focus();
+  };
+  $('saveSubEventBtn').onclick = async () => {
+    const date = $('newSubEventDate').value;
+    if(!date) return alert('Pick a start date.');
+    const name = $('newSubEventName').value.trim();
+    if(!ev.subItems) ev.subItems = [];
+    ev.subItems.push({ name, date });
+    await store.set('days:events', daysEventsCache);
+    openDayDetailModal(ev);   // re-render with the new sub-event included
+    pill('Sub-event added');
+  };
 
   // Pin button state
   $('detailPinBtn').onclick = async () => {
@@ -8494,6 +9214,8 @@ async function initApp(){
   initCategoryPickers();
   populateCategorySelects().catch(()=>{});
   initEditEntryModal();
+  initAccountDetailModal();
+  initOwedTracker();
   initHubAppOrder().catch(()=>{});
   // Restore the two calendar view preferences before the first paint of each.
   restoreHubMasterMode().catch(()=>{});
@@ -8508,6 +9230,7 @@ async function initApp(){
   ]).then(() => {
     loadHubStats();
     loadHubMasterCalendar();
+    loadHubContributions();
   }).catch(()=>{});
 }
 initApp();
