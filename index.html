@@ -2613,27 +2613,46 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 6px;
+    gap: 8px;
+    padding: 10px 6px;
     border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
     font-size: 13px;
   }
   .days-milestone-row:last-child {
     border-bottom: none;
   }
+  /* Name and date stack on their own line every time, regardless of name
+     length — a preset like "1st Anniversary" plus its edit/delete icons
+     used to be just wide enough to wrap unpredictably mid-row. */
+  .days-milestone-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
   .days-milestone-name {
     font-weight: 600;
     color: var(--ios-label);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .days-milestone-date {
     font-size: 11.5px;
     color: var(--ios-label-secondary);
-    margin-left: 6px;
+  }
+  .days-milestone-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .days-milestone-stat {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 999px;
+    white-space: nowrap;
   }
   .days-milestone-stat.passed {
     background: rgba(52, 199, 89, 0.15);
@@ -2642,6 +2661,24 @@
   .days-milestone-stat.upcoming {
     background: rgba(var(--accent-rgb), 0.12);
     color: #E8663D;
+  }
+
+  /* Add/Edit Milestone form — a distinct well beneath the list, not just
+     bare inputs floating under the Add button. */
+  .milestone-form-box {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
+  }
+  .milestone-form-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ios-label-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
   }
 
   /* Theme Pickers in Add Modal */
@@ -3307,6 +3344,10 @@
             <input type="date" id="bDate" style="flex:1">
           </div>
           <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
+        </div>
+        <div class="form-group">
+          <label>Payment Method (optional)</label>
+          <input type="text" id="bPayment" placeholder="e.g. Cash, Credit Card, LinePay">
         </div>
         <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
       </div>
@@ -4152,15 +4193,19 @@
         </div>
         <div id="detailMilestonesList"></div>
         <button class="action-btn" id="addMilestoneBtn" style="width:100%;margin-top:8px;padding:8px;font-size:12.5px">＋ Add Milestone</button>
-        <div id="addMilestoneForm" hidden style="margin-top:10px">
-          <div class="form-group" style="margin-bottom:8px">
-            <input type="text" id="newMilestoneName" placeholder="Name (e.g. First Trip Together)">
+        <div id="addMilestoneForm" class="milestone-form-box" hidden>
+          <div class="milestone-form-title" id="milestoneFormTitle">New Milestone</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Name</label>
+            <input type="text" id="newMilestoneName" placeholder="e.g. First Trip Together">
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Days from start</label>
+            <input type="number" id="newMilestoneDays" placeholder="e.g. 100" min="1">
           </div>
           <div style="display:flex;gap:8px">
-            <div class="form-group" style="flex:1;margin-bottom:0">
-              <input type="number" id="newMilestoneDays" placeholder="Days from start" min="1">
-            </div>
-            <button class="action-btn" id="saveMilestoneBtn" style="padding:0 18px;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
+            <button id="cancelMilestoneBtn" style="flex:1;padding:10px;background:none;border:none;border-radius:14px;color:var(--ios-label-secondary);font-size:13.5px;font-weight:600;cursor:pointer">Cancel</button>
+            <button class="action-btn" id="saveMilestoneBtn" style="flex:1;justify-content:center;padding:10px;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
           </div>
         </div>
       </div>
@@ -6675,6 +6720,7 @@ $('bAddBtn').onclick = async () => {
   const cat = $('bCat').value;
   const dateVal = $('bDate').value || new Date().toISOString().slice(0, 10);
   const desc = $('bDesc').value.trim();
+  const payment = $('bPayment').value.trim();
   if(isNaN(amt) || amt <= 0) return alert('Please enter a valid amount.');
 
   const accounts = (await store.get('budget:accounts')) || [];
@@ -6693,10 +6739,12 @@ $('bAddBtn').onclick = async () => {
     accountId,
     cat,
     desc: desc || (type === 'inc' ? 'Income' : 'Expense'),
+    payment: payment || null,
     date: dateVal,
     dateKey: dateVal.slice(0, 7)
   });
   await store.set('budget:entries', entries);
+  $('bPayment').value = '';
   $('bAmt').value = '';
   $('bDesc').value = '';
   pill('Transaction Logged');
@@ -7230,6 +7278,15 @@ async function drawReportsChart(){
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Derived from the canvas's own size rather than hardcoded — the canvas
+  // has been resized before (280→240 when it moved into the Monthly
+  // Report card) without these coordinates following, which left the pie
+  // drawn off-center and clipped against the edge.
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const outerR = Math.min(cx, cy) - 15;
+  const innerR = outerR * (60 / 110);
+
   const colors = ['#2563EB', '#16A34A', '#D97706', '#DC2626', '#9333EA', '#0891B2'];
   const total = Object.values(catTotals).reduce((a, b) => a + b, 0);
 
@@ -7237,7 +7294,7 @@ async function drawReportsChart(){
     ctx.font = '14px -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText('No expenses to analyze', canvas.width/2, canvas.height/2);
+    ctx.fillText('No expenses to analyze', cx, cy);
     $('chartLegend').innerHTML = '';
     return;
   }
@@ -7249,10 +7306,10 @@ async function drawReportsChart(){
   entriesList.forEach(([cat, val], i) => {
     const sliceAngle = (val / total) * 2 * Math.PI;
     const color = colors[i % colors.length];
-    
+
     ctx.beginPath();
-    ctx.moveTo(140, 140);
-    ctx.arc(140, 140, 110, startAngle, startAngle + sliceAngle);
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
     ctx.closePath();
     ctx.fillStyle = color;
     ctx.fill();
@@ -7263,7 +7320,7 @@ async function drawReportsChart(){
   });
 
   ctx.beginPath();
-  ctx.arc(140, 140, 60, 0, 2 * Math.PI);
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
   ctx.fillStyle = '#FFFFFF';
   ctx.fill();
 
@@ -7290,7 +7347,7 @@ async function renderPaymentBreakdown(){
   });
 
   const rows = Object.values(totals).sort((a, b) => b.amt - a.amt);
-  if(untracked > 0) rows.push({ label: 'Not recorded', amt: untracked, muted: true });
+  if(untracked > 0) rows.push({ label: 'No payment method noted', amt: untracked, muted: true });
 
   if(!rows.length){
     el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No expenses yet.</div>`;
@@ -8770,6 +8827,7 @@ window.editCustomMilestone = (idx) => {
   editingMilestone = { kind: 'custom', idx };
   $('newMilestoneName').value = m.name || '';
   $('newMilestoneDays').value = m.days;
+  $('milestoneFormTitle').textContent = 'Edit Milestone';
   $('saveMilestoneBtn').textContent = 'Save';
   $('addMilestoneForm').hidden = false;
   $('newMilestoneName').focus();
@@ -8783,6 +8841,7 @@ window.editPresetMilestone = (presetKey) => {
   editingMilestone = { kind: 'preset', presetKey };
   $('newMilestoneName').value = m.name;
   $('newMilestoneDays').value = m.daysFromStart;
+  $('milestoneFormTitle').textContent = 'Edit Milestone';
   $('saveMilestoneBtn').textContent = 'Save';
   $('addMilestoneForm').hidden = false;
   $('newMilestoneName').focus();
@@ -8808,13 +8867,13 @@ function renderSubEvents(ev){
     const days = Math.round((today - start) / 86400000);
     return `
     <div class="days-milestone-row">
-      <div>
+      <div class="days-milestone-info">
         <span class="days-milestone-name">${escapeHtml(si.name || 'Untitled')}</span>
         <span class="days-milestone-date">${si.date}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div class="days-milestone-actions">
         <span class="days-milestone-stat ${days >= 0 ? 'passed' : 'upcoming'}">${days >= 0 ? `${days} days` : `in ${-days} days`}</span>
-        <button class="icon danger" style="width:24px;height:24px" onclick="deleteSubEvent(${i})" title="Remove">${CROSS}</button>
+        <button class="icon danger" style="width:22px;height:22px" onclick="deleteSubEvent(${i})" title="Remove">${CROSS}</button>
       </div>
     </div>`;
   }).join('');
@@ -8865,15 +8924,15 @@ function openDayDetailModal(ev){
   const mListEl = $('detailMilestonesList');
   mListEl.innerHTML = milestones.slice(0, 12).map(m => `
     <div class="days-milestone-row">
-      <div>
+      <div class="days-milestone-info">
         <span class="days-milestone-name">${escapeHtml(m.name)}</span>
         <span class="days-milestone-date">${m.dateStr}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div class="days-milestone-actions">
         ${m.passed ? '<span class="days-milestone-stat passed">Reached ✓</span>' : `<span class="days-milestone-stat upcoming">in ${m.diff} days</span>`}
         ${m.type === 'custom'
-          ? `<button class="icon" style="width:24px;height:24px" onclick="editCustomMilestone(${m.customIdx})" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>`
-          : `<button class="icon" style="width:24px;height:24px" onclick="editPresetMilestone('${m.presetKey}')" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="dismissPresetMilestone('${m.presetKey}')" title="Remove">${CROSS}</button>`}
+          ? `<button class="icon" style="width:22px;height:22px" onclick="editCustomMilestone(${m.customIdx})" title="Edit">${PENCIL}</button><button class="icon danger" style="width:22px;height:22px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>`
+          : `<button class="icon" style="width:22px;height:22px" onclick="editPresetMilestone('${m.presetKey}')" title="Edit">${PENCIL}</button><button class="icon danger" style="width:22px;height:22px" onclick="dismissPresetMilestone('${m.presetKey}')" title="Remove">${CROSS}</button>`}
       </div>
     </div>
   `).join('');
@@ -8884,15 +8943,21 @@ function openDayDetailModal(ev){
   $('addMilestoneForm').hidden = true;
   $('newMilestoneName').value = '';
   $('newMilestoneDays').value = '';
+  $('milestoneFormTitle').textContent = 'New Milestone';
   $('saveMilestoneBtn').textContent = 'Add';
   editingMilestone = null;
   $('addMilestoneBtn').onclick = () => {
     editingMilestone = null;
     $('newMilestoneName').value = '';
     $('newMilestoneDays').value = '';
+    $('milestoneFormTitle').textContent = 'New Milestone';
     $('saveMilestoneBtn').textContent = 'Add';
     $('addMilestoneForm').hidden = false;
     $('newMilestoneName').focus();
+  };
+  $('cancelMilestoneBtn').onclick = () => {
+    editingMilestone = null;
+    $('addMilestoneForm').hidden = true;
   };
   $('saveMilestoneBtn').onclick = async () => {
     const days = parseInt($('newMilestoneDays').value, 10);
