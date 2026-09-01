@@ -275,9 +275,13 @@
   }
 
   /* ---------- HUB RECTANGULAR APP LIST (IOS WIDGET LIST STYLE) ---------- */
+  /* Tiles, not a bar list — a small grid of app icons, closer to a phone
+     home screen than to a settings list. Same rows, same DOM, same
+     moveHubApp()/reorder-mode logic underneath; only the layout direction
+     of each row's contents changes, via flex-direction below. */
   .hub-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 18px;
     margin-bottom: 24px;
@@ -285,9 +289,12 @@
 
   .hub-list-row {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    padding: 18px 8px 14px;
     border-radius: 22px !important;
     background: var(--lg-regular) !important;
     backdrop-filter: var(--lg-filter) !important;
@@ -295,7 +302,6 @@
     border: none !important;
     box-shadow: var(--lg-cast), var(--lg-depth) !important;
     cursor: pointer;
-    text-align: left;
     transition: transform 0.4s var(--lg-spring), background 0.2s ease, box-shadow 0.3s ease !important;
   }
 
@@ -313,14 +319,15 @@
 
   .hub-row-left {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
   }
 
   .hub-row-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -336,52 +343,47 @@
   /* The icon tile lifts a touch when its row does — parallax within the row */
   .hub-list-row:hover .hub-row-icon { transform: scale(1.06); }
   .hub-row-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
   }
 
   .hub-row-title {
-    font-size: 15.5px;
+    font-size: 12.5px;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
     color: var(--ios-label);
+    white-space: normal;
   }
 
   .hub-row-right {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .hub-stat {
-    font-size: 12px;
+    font-size: 10.5px;
     font-weight: 600;
     color: var(--ios-label-secondary);
     background: var(--lg-clear);
     border: none;
     backdrop-filter: var(--lg-filter-thin);
     -webkit-backdrop-filter: var(--lg-filter-thin);
-    padding: 4px 12px;
+    padding: 3px 9px;
     border-radius: 999px;
     letter-spacing: -0.01em;
     box-shadow: 0 1px 4px -1px rgba(72, 45, 34, 0.10), var(--lg-depth);
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .hub-chevron {
-    color: var(--ios-label-tertiary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, color 0.2s ease;
-  }
-  .hub-chevron svg {
-    width: 16px;
-    height: 16px;
-  }
-  .hub-list-row:hover .hub-chevron {
-    color: var(--ios-label);
-    transform: translateX(3px);
-  }
+  /* A tile is its own affordance — a chevron implying "this is a row" no
+     longer fits, so the arrow is dropped rather than shrunk. */
+  .hub-chevron { display: none; }
 
   .hub-reorder-controls {
     display: none;
@@ -1092,6 +1094,20 @@
     letter-spacing: 0.5px;
   }
   .quick-when { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+  /* Tapping the label opens the native date picker — the input itself is
+     an invisible, same-size overlay rather than a visible form field, so
+     Quick Add keeps reading as one line, not a form. */
+  .quick-when-picker { position: relative; display: inline-flex; cursor: pointer; }
+  .quick-when-picker input[type="date"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    margin: 0;
+    -webkit-appearance: none;
+  }
   .quick-modes { margin-bottom: 12px; width: fit-content; }
   .quick-pane[hidden] { display: none !important; }
   .quick-row {
@@ -1283,6 +1299,18 @@
     justify-content: center;
     padding: 0;
   }
+  /* Reorder arrows share the corner-button treatment but sit at the bottom,
+     so they don't collide with the remove (✕) button at top-right. */
+  .quick-thumb button.qmove {
+    top: auto;
+    bottom: 2px;
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+  }
+  .quick-thumb button.qmove.left { left: 2px; right: auto; }
+  .quick-thumb button.qmove.right { right: 2px; }
+  .quick-thumb button.qmove:disabled { opacity: 0.35; }
 
   /* ---------- HUB MASTER CALENDAR & SYNCED BADGES ---------- */
   .hub-cal-grid {
@@ -2232,32 +2260,6 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .days-live-ticker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    font-size: 12.5px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--ios-label);
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.85);
-    width: fit-content;
-    margin: 0 auto 14px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-  .days-live-ticker span {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 2px;
-  }
-  .days-live-ticker small {
-    font-size: 10px;
-    color: var(--ios-label-secondary);
-    font-weight: 500;
-  }
   .days-progress-bar {
     width: 100%;
     height: 7px;
@@ -2680,7 +2682,10 @@
     <div class="mod-card quick-card" id="quickAdd">
       <div class="quick-head">
         <span class="quick-label">Quick add</span>
-        <span class="quick-when" id="quickWhen">Today</span>
+        <label class="quick-when-picker">
+          <span class="quick-when" id="quickWhen">Today</span>
+          <input type="date" id="quickDate" aria-label="Log to a different day">
+        </label>
       </div>
 
       <div class="view-toggle quick-modes" id="quickModes">
@@ -2709,14 +2714,7 @@
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
         <div class="quick-row">
-          <select id="quickCat" class="quick-select">
-            <option value="Food">Food</option>
-            <option value="Transport">Transport</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Bills">Bills</option>
-            <option value="Entertainment">Fun</option>
-            <option value="General">Other</option>
-          </select>
+          <select id="quickCat" class="quick-select"></select>
         </div>
         <div class="expr-preview" id="quickExprPreview"></div>
       </div>
@@ -3016,14 +3014,7 @@
         <div class="form-group">
           <label>Category, Date &amp; Description</label>
           <div style="display:flex;gap:8px;margin-bottom:8px">
-            <select id="bCat" style="width:125px">
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Bills">Bills</option>
-              <option value="Entertainment">Fun</option>
-              <option value="General">Other</option>
-            </select>
+            <select id="bCat" style="width:125px"></select>
             <input type="date" id="bDate" style="flex:1">
           </div>
           <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
@@ -3189,6 +3180,10 @@
         <span style="font-weight:600;font-size:16px;display:block;margin-bottom:12px">📊 Expense Breakdown Chart</span>
         <canvas id="expenseChartCanvas" width="280" height="280" style="margin:0 auto;display:block"></canvas>
         <div id="chartLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:12.5px"></div>
+      </div>
+      <div class="mod-card">
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">💳 By Payment Method</span>
+        <div id="paymentBreakdown"></div>
       </div>
     </div>
 
@@ -3505,6 +3500,7 @@
           <option value="daysDesc">Most Days</option>
           <option value="daysAsc">Least Days</option>
           <option value="newest">Newest</option>
+          <option value="category">By Category</option>
         </select>
       </div>
 
@@ -3609,6 +3605,112 @@
 </div>
 
 <!-- MULTI-PHOTO UPLOAD MODAL -->
+<div class="modal-overlay" id="addAccModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>New Account</h3>
+      <button class="icon danger" id="closeAddAccModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="newAccName" placeholder="e.g. Cathay Bank" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Starting balance</label>
+        <input type="number" id="newAccBalance" placeholder="0.00" inputmode="decimal" step="0.01">
+      </div>
+      <button class="action-btn" id="saveAddAccBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Account</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="quickMealSplitModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Multiple Photos</h3>
+      <button class="icon danger" id="closeQuickSplitModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:16px;line-height:1.45">How would you like to log these photos?</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="action-btn" id="btnQuickSameMeal" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14px">Same Meal</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Combine into 1 card with swipeable carousel</div>
+          </div>
+        </button>
+        <button class="action-btn" id="btnQuickDiffMeals" style="width:100%;padding:14px 16px;justify-content:flex-start;text-align:left">
+          <div>
+            <div style="font-weight:700;font-size:14px">Different Meals</div>
+            <div style="font-size:12px;font-weight:400;color:var(--ios-label-secondary);margin-top:2px">Create separate cards for each photo</div>
+          </div>
+        </button>
+        <button id="btnCancelQuickSplit" style="margin-top:4px;padding:8px;background:none;border:none;color:var(--ios-label-secondary);font-size:13px;cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editEntryModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Edit Transaction</h3>
+      <button class="icon danger" id="closeEditEntryModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Type, Amount &amp; Account</label>
+        <div style="display:flex;gap:8px">
+          <select id="editType" style="width:110px">
+            <option value="exp">Expense (-)</option>
+            <option value="inc">Income (+)</option>
+          </select>
+          <input type="number" id="editAmt" placeholder="0.00" inputmode="decimal" step="0.01" style="flex:1">
+          <select id="editAccount" style="width:100px"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Category, Date &amp; Payment</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <select id="editCat" style="width:125px"></select>
+          <input type="date" id="editDate" style="flex:1">
+        </div>
+        <input type="text" id="editPayment" placeholder="Payment method (optional)">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="editDesc" placeholder="What was this for?">
+      </div>
+      <button class="action-btn" id="saveEditEntryBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addCatModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>New Category</h3>
+      <button class="icon danger" id="closeAddCatModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="newCatName" placeholder="e.g. Pets" autocomplete="off">
+      </div>
+      <button class="action-btn" id="saveAddCatBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Category</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="multiPhotoModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
@@ -3797,12 +3899,6 @@
         <div class="days-hero-unit" id="detailHeroUnit">DAYS</div>
       </div>
 
-      <div class="days-live-ticker" id="detailLiveTicker">
-        <span><b id="dtHrs">00</b><small>h</small></span> :
-        <span><b id="dtMins">00</b><small>m</small></span> :
-        <span><b id="dtSecs">00</b><small>s</small></span>
-      </div>
-
       <div id="detailNotesBox" style="background:rgba(255,255,255,0.6);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--ios-label);line-height:1.45;margin-bottom:12px;border:0.5px solid rgba(255,255,255,0.8);word-break:break-word" hidden></div>
 
       <!-- MILESTONES PREDICTOR -->
@@ -3975,6 +4071,7 @@ const MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
 const WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const CROSS  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const $ = id => document.getElementById(id);
 
 /* ---------- STORAGE INTERFACE ---------- */
@@ -4247,13 +4344,25 @@ function renderQuickThumbs(){
   const btn = $('quickPhotoBtn');
   if(!box) return;
   box.hidden = quickPhotos.length === 0;
-  box.innerHTML = quickPhotos.map((p, i) =>
-    `<div class="quick-thumb"><img src="${p.thumb || p.src}" alt=""><button data-qrm="${i}" aria-label="Remove photo">✕</button></div>`
+  const multi = quickPhotos.length > 1;
+  box.innerHTML = quickPhotos.map((p, i) => `
+    <div class="quick-thumb">
+      <img src="${p.thumb || p.src}" alt="">
+      ${multi ? `<button class="qmove left" data-qmv="${i}" data-dir="-1" ${i===0?'disabled':''} aria-label="Move earlier">‹</button>` : ''}
+      ${multi ? `<button class="qmove right" data-qmv="${i}" data-dir="1" ${i===quickPhotos.length-1?'disabled':''} aria-label="Move later">›</button>` : ''}
+      <button data-qrm="${i}" aria-label="Remove photo">✕</button>
+    </div>`
   ).join('');
   box.querySelectorAll('[data-qrm]').forEach(b => b.onclick = () => {
     quickPhotos.splice(+b.dataset.qrm, 1);
     renderQuickThumbs();
     syncQuickSend();
+  });
+  box.querySelectorAll('[data-qmv]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.qmv, dir = +b.dataset.dir, j = i + dir;
+    if(j < 0 || j >= quickPhotos.length) return;
+    [quickPhotos[i], quickPhotos[j]] = [quickPhotos[j], quickPhotos[i]];
+    renderQuickThumbs();
   });
   if(btn) btn.classList.toggle('has-photos', quickPhotos.length > 0);
 }
@@ -4347,29 +4456,67 @@ async function quickLogMeal(){
   const note = (noteEl.value || '').trim();
   if(!quickPhotos.length && !note) return;
 
+  // Multiple photos are ambiguous on their own: one meal with several shots,
+  // or several separate things logged in one pass. Ask, rather than guess —
+  // the day sheet's own "Add" flow already makes this same choice for the
+  // same reason, so this mirrors it instead of picking a default silently.
+  if(quickPhotos.length > 1){
+    $('quickMealSplitModal').hidden = false;
+    return;
+  }
+  await commitQuickMeal('same');
+}
+
+// mode: 'same' bundles everything into one card (the only path when there's
+// 0-1 photos); 'diff' gives each photo its own card, discarding the shared
+// note per photo — matching exactly what the day sheet's "Different Meals"
+// choice already does, for the same reason: a note written for the whole
+// batch doesn't obviously belong to any one split-off photo.
+async function commitQuickMeal(mode){
+  const noteEl = $('quickMealNote');
+  const note = (noteEl.value || '').trim();
   const now = new Date();
-  const dk = key(now);
+  const dk = quickTargetDate();
   const posts = normalizeToPosts((await store.get(`day:${dk}`)) || []);
-  posts.unshift({
-    id: 'post_' + Date.now(),
-    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    timeType: 'detail',
-    meal: mealFromHour(now.getHours()),
-    note,
-    photos: quickPhotos,
-    aiAnalysis: null
-  });
+
+  if(mode === 'diff' && quickPhotos.length > 1){
+    quickPhotos.forEach((photo, idx) => {
+      posts.unshift({
+        id: 'post_' + (Date.now() + idx),
+        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+        timeType: 'detail',
+        meal: mealFromHour(now.getHours()),
+        note: '',
+        photos: [photo],
+        aiAnalysis: null
+      });
+    });
+  } else {
+    posts.unshift({
+      id: 'post_' + Date.now(),
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      timeType: 'detail',
+      meal: mealFromHour(now.getHours()),
+      note,
+      photos: quickPhotos,
+      aiAnalysis: null
+    });
+  }
   await writeDay(dk, posts);
 
-  // If the day sheet happens to be open on today, keep it in step.
+  // If the day sheet happens to be open on the target day, keep it in step.
   if(openDay === dk){ openPosts = posts; photoPos = {}; drawDay(); }
 
+  const count = quickPhotos.length;
   quickPhotos = [];
   noteEl.value = '';
   renderQuickThumbs();
   syncQuickSend();
   refreshHub();
-  pill('Logged to today');
+  $('quickMealSplitModal').hidden = true;
+  pill(mode === 'diff'
+    ? `${count} separate entries → ${quickWhenPhrase()}`
+    : `Logged to ${quickWhenPhrase()}`);
 }
 
 /* ---------- ONE-LINE EXPENSE ----------
@@ -4429,6 +4576,71 @@ async function getAccounts(){
   return accounts;
 }
 
+/* ---------- EXPENSE CATEGORIES ----------
+   Both category pickers (Quick Add's and Budget's) share one list: the
+   fixed defaults plus whatever the user has added, stored at
+   budget:categories. A "+ Add category…" option lives at the end of each
+   select; picking it opens a small modal rather than a category actually
+   being selectable, so the flow the same as it already is for accounts. */
+const DEFAULT_CATS = [
+  { v: 'Food', l: 'Food' },
+  { v: 'Transport', l: 'Transport' },
+  { v: 'Shopping', l: 'Shopping' },
+  { v: 'Bills', l: 'Bills' },
+  { v: 'Entertainment', l: 'Fun' },
+  { v: 'General', l: 'Other' }
+];
+
+async function getCategories(){
+  const custom = (await store.get('budget:categories')) || [];
+  return [...DEFAULT_CATS, ...custom.map(c => ({ v: c, l: c }))];
+}
+
+async function populateCategorySelects(preferValue){
+  const cats = await getCategories();
+  const optsHtml = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
+    + `<option value="__add__">+ Add category…</option>`;
+  ['quickCat', 'bCat'].forEach(id => {
+    const el = $(id);
+    if(!el) return;
+    const keep = preferValue && cats.some(c => c.v === preferValue) ? preferValue : (el.value || cats[0].v);
+    el.innerHTML = optsHtml;
+    el.value = cats.some(c => c.v === keep) ? keep : cats[0].v;
+  });
+}
+
+// Shared by both category selects' onchange — "__add__" opens the modal,
+// anything else is a real pick and falls through to normal handling.
+function onCatSelectChange(el, thenFn){
+  if(el.value !== '__add__'){ if(thenFn) thenFn(); return; }
+  $('newCatName').value = '';
+  $('addCatModal').hidden = false;
+  $('newCatName').focus();
+}
+
+function initCategoryPickers(){
+  $('closeAddCatModal').onclick = () => {
+    $('addCatModal').hidden = true;
+    populateCategorySelects();   // reset the "__add__" placeholder back to a real value
+  };
+  $('saveAddCatBtn').onclick = async () => {
+    const name = $('newCatName').value.trim();
+    if(!name) return alert('Give the category a name.');
+    const cats = await getCategories();
+    const exists = cats.some(c => c.v.toLowerCase() === name.toLowerCase());
+    if(!exists){
+      const custom = (await store.get('budget:categories')) || [];
+      custom.push(name);
+      await store.set('budget:categories', custom);
+    }
+    $('addCatModal').hidden = true;
+    await populateCategorySelects(name);
+    pill(exists ? `Using existing "${name}"` : `Category "${name}" added`);
+  };
+  $('quickCat').onchange = () => onCatSelectChange($('quickCat'), renderExprPreview);
+  $('bCat').onchange = () => onCatSelectChange($('bCat'));
+}
+
 async function renderExprPreview(){
   const box = $('quickExprPreview');
   if(!box) return;
@@ -4462,7 +4674,7 @@ async function quickLogExpense(){
   if(p.empty || p.noAmount || !(p.amt > 0)) return;
 
   const cat = $('quickCat').value;
-  const dateVal = key(new Date());
+  const dateVal = quickTargetDate();
 
   const accounts = await getAccounts();
   let acc = p.account ? matchAccount(accounts, p.account) : accounts[0];
@@ -4495,9 +4707,10 @@ async function quickLogExpense(){
   renderExprPreview();
   syncQuickSend();
   refreshHub();
+  const whenSuffix = dateVal === key(new Date()) ? '' : ` · ${quickWhenPhrase()}`;
   pill(created
-    ? `$${p.amt.toFixed(2)} · new account ${acc.name}`
-    : `$${p.amt.toFixed(2)} → ${acc.name}`);
+    ? `$${p.amt.toFixed(2)} · new account ${acc.name}${whenSuffix}`
+    : `$${p.amt.toFixed(2)} → ${acc.name}${whenSuffix}`);
 }
 
 async function quickLogNote(){
@@ -4505,7 +4718,7 @@ async function quickLogNote(){
   const note = (el.value || '').trim();
   if(!note) return;
   const now = new Date();
-  const dk = key(now);
+  const dk = quickTargetDate();
   const posts = normalizeToPosts((await store.get(`day:${dk}`)) || []);
   posts.unshift({
     id: 'post_' + Date.now(),
@@ -4521,7 +4734,7 @@ async function quickLogNote(){
   el.value = '';
   syncQuickSend();
   refreshHub();
-  pill('Note saved to today');
+  pill(`Note saved to ${quickWhenPhrase()}`);
 }
 
 function refreshHub(){
@@ -4578,6 +4791,12 @@ function initQuickAdd(){
   $('aiRunBtn').onclick = onAiRun;
   syncAiRun();
 
+  $('btnQuickSameMeal').onclick = () => commitQuickMeal('same');
+  $('btnQuickDiffMeals').onclick = () => commitQuickMeal('diff');
+  $('closeQuickSplitModal').onclick = $('btnCancelQuickSplit').onclick = () => {
+    $('quickMealSplitModal').hidden = true;
+  };
+
   // Enter sends, so a whole entry can be made without leaving the keyboard.
   const onEnter = (el, fn) => { if(el) el.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); fn(); } }; };
   onEnter($('quickMealNote'), quickLogMeal);
@@ -4590,18 +4809,46 @@ function initQuickAdd(){
   });
 
   // The expense line drives both the send button and the parse preview.
+  // (quickCat's own onchange is wired in initCategoryPickers(), which also
+  // handles the "add category" option — it must own this alone.)
   if($('quickExpr')) $('quickExpr').oninput = () => { syncQuickSend(); renderExprPreview(); };
-  if($('quickCat')) $('quickCat').onchange = renderExprPreview;
   renderExprPreview();
 
-  const when = $('quickWhen');
-  if(when){
-    const now = new Date();
-    when.textContent = `Today · ${WD[now.getDay()]} ${now.getDate()}`;
+  const dateInput = $('quickDate');
+  if(dateInput){
+    dateInput.value = key(new Date());
+    dateInput.max = key(new Date());   // logging into the future isn't a real day yet
+    dateInput.onchange = updateQuickWhenLabel;
   }
+  updateQuickWhenLabel();
 
   setQuickMode('meal');
   renderQuickThumbs();
+}
+
+// The date Quick Add writes to — defaults to today, but can be pointed at
+// any past day via the picker in the header.
+function quickTargetDate(){
+  const v = $('quickDate') ? $('quickDate').value : '';
+  return v || key(new Date());
+}
+
+function updateQuickWhenLabel(){
+  const when = $('quickWhen');
+  if(!when) return;
+  when.textContent = quickTargetDate() === key(new Date())
+    ? `Today · ${WD[new Date().getDay()].slice(0,3)} ${new Date().getDate()}`
+    : `Logging to · ${quickWhenPhrase()}`;
+}
+
+// "today" or e.g. "Mon 30" — used in both the header label and the pill
+// confirmation, so a backdated entry never silently reads as if it just
+// went into today.
+function quickWhenPhrase(){
+  const dk = quickTargetDate();
+  if(dk === key(new Date())) return 'today';
+  const [y, m, d] = dk.split('-').map(Number);
+  return `${WD[new Date(y, m - 1, d).getDay()].slice(0,3)} ${d}`;
 }
 
 async function loadHubStats(){
@@ -5564,7 +5811,7 @@ $('bSubNav').onclick = e => {
     if(el) el.hidden = (p !== activeBTab);
   });
   if(activeBTab === 'logs') drawBudgetLogsTab();
-  if(activeBTab === 'reports') drawReportsChart();
+  if(activeBTab === 'reports'){ drawReportsChart(); renderPaymentBreakdown(); }
 };
 
 async function drawBudgetLogsTab(){
@@ -5625,13 +5872,13 @@ async function drawBudgetLogsTab(){
   $('bCalGrid').innerHTML = html;
 
   // Render that month's logs below calendar, newest first!
-  renderMonthLogsList(monthEntries);
+  renderMonthLogsList(monthEntries, entries);
 }
 
 $('bCalPrev').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() - 1); drawBudgetLogsTab(); };
 $('bCalNext').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() + 1); drawBudgetLogsTab(); };
 
-function renderMonthLogsList(monthEntries){
+function renderMonthLogsList(monthEntries, allEntries){
   const el = $('bMonthLogsList');
   if(!monthEntries.length){
     el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No transactions recorded for this month.</div>`;
@@ -5668,7 +5915,9 @@ function renderMonthLogsList(monthEntries){
         <span class="b-day-total" style="color:${dayNet>=0?'var(--ios-green)':'var(--ios-red)'}">${dayNetStr}</span>
       </div>
       <div class="b-item-list">
-        ${items.map(item => `
+        ${items.map(item => {
+          const origIdx = allEntries.indexOf(item);
+          return `
         <div class="b-item-row">
           <div class="b-item-info">
             <span class="b-item-cat">${item.cat} · ${item.desc || 'No description'}</span>
@@ -5676,8 +5925,11 @@ function renderMonthLogsList(monthEntries){
           </div>
           <div class="b-item-right">
             <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+            <button class="icon" onclick="editBudgetEntry(${origIdx})" title="Edit">${PENCIL}</button>
+            <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
           </div>
-        </div>`).join('')}
+        </div>`;
+        }).join('')}
       </div>
     </div>`;
   }).join('');
@@ -5805,6 +6057,27 @@ async function loadBudgetModule(){
     </div>
   `).join('');
 
+  // "＋ Add Account" had markup but no handler — this wires it up.
+  $('bAddAccBtn').onclick = () => {
+    $('newAccName').value = '';
+    $('newAccBalance').value = '';
+    $('addAccModal').hidden = false;
+    $('newAccName').focus();
+  };
+  $('closeAddAccModal').onclick = () => { $('addAccModal').hidden = true; };
+  $('saveAddAccBtn').onclick = async () => {
+    const name = $('newAccName').value.trim();
+    if(!name) return alert('Give the account a name.');
+    const bal = parseFloat($('newAccBalance').value) || 0;
+    const accs = (await store.get('budget:accounts')) || [];
+    accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0 });
+    await store.set('budget:accounts', accs);
+    $('addAccModal').hidden = true;
+    loadBudgetModule();
+    refreshHub();
+    pill(`Account "${name}" added`);
+  };
+
   // Setup Monthly Filter
   const monthSet = new Set();
   monthSet.add(curMonthKey);
@@ -5883,6 +6156,7 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
             </div>
             <div class="b-item-right">
               <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+              <button class="icon" onclick="editBudgetEntry(${origIdx})" title="Edit">${PENCIL}</button>
               <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
             </div>
           </div>`;
@@ -5926,6 +6200,70 @@ $('bAddBtn').onclick = async () => {
   pill('Transaction Logged');
   loadBudgetModule();
 };
+
+let editingEntryIdx = -1;
+
+window.editBudgetEntry = async (idx) => {
+  const entries = (await store.get('budget:entries')) || [];
+  const item = entries[idx];
+  if(!item) return;
+  editingEntryIdx = idx;
+
+  const accounts = await getAccounts();
+  $('editAccount').innerHTML = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  const cats = await getCategories();
+  $('editCat').innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('');
+
+  $('editType').value = item.type;
+  $('editAmt').value = item.amt;
+  $('editAccount').value = item.accountId;
+  $('editCat').value = cats.some(c => c.v === item.cat) ? item.cat : cats[0].v;
+  $('editDate').value = item.date;
+  $('editPayment').value = item.payment || '';
+  $('editDesc').value = item.desc || '';
+  $('editEntryModal').hidden = false;
+};
+
+function initEditEntryModal(){
+  $('closeEditEntryModal').onclick = () => { $('editEntryModal').hidden = true; editingEntryIdx = -1; };
+  $('saveEditEntryBtn').onclick = async () => {
+    if(editingEntryIdx < 0) return;
+    const amt = parseFloat($('editAmt').value);
+    if(isNaN(amt) || amt <= 0) return alert('Enter a valid amount.');
+    const type = $('editType').value;
+    const accountId = $('editAccount').value;
+    const date = $('editDate').value || key(new Date());
+
+    const entries = (await store.get('budget:entries')) || [];
+    const old = entries[editingEntryIdx];
+    if(!old) return;
+
+    // Undo the old entry's effect, then apply the edited one — same account
+    // or a different one, doesn't matter, the math nets out correctly either way.
+    const accounts = await getAccounts();
+    const oldAcc = accounts.find(a => a.id === old.accountId);
+    if(oldAcc) oldAcc.balance += (old.type === 'exp' ? old.amt : -old.amt);
+    const newAcc = accounts.find(a => a.id === accountId);
+    if(newAcc) newAcc.balance += (type === 'exp' ? -amt : amt);
+    await store.set('budget:accounts', accounts);
+
+    entries[editingEntryIdx] = {
+      ...old,
+      type, amt, accountId, date,
+      cat: $('editCat').value,
+      payment: $('editPayment').value.trim() || null,
+      desc: $('editDesc').value.trim() || $('editCat').value,
+      dateKey: date.slice(0, 7)
+    };
+    await store.set('budget:entries', entries);
+
+    $('editEntryModal').hidden = true;
+    editingEntryIdx = -1;
+    loadBudgetModule();
+    refreshHub();
+    pill('Transaction updated');
+  };
+}
 
 window.delBudget = async (idx) => {
   const entries = (await store.get('budget:entries')) || [];
@@ -6115,6 +6453,45 @@ async function drawReportsChart(){
   ctx.fill();
 
   $('chartLegend').innerHTML = legendHtml;
+}
+
+/* Spend grouped by how it was paid. Payment is a free-text field (whatever
+   was typed in the one-line expense parser), so entries are grouped by
+   their lowercase value and shown under whichever original casing was
+   used first — good enough without forcing a fixed list of payment types. */
+async function renderPaymentBreakdown(){
+  const el = $('paymentBreakdown');
+  if(!el) return;
+  const entries = (await store.get('budget:entries')) || [];
+  const expenses = entries.filter(e => e.type === 'exp');
+
+  const totals = {};   // key: lowercase payment -> { label, amt }
+  let untracked = 0;
+  expenses.forEach(e => {
+    if(!e.payment){ untracked += e.amt; return; }
+    const k = e.payment.toLowerCase();
+    if(!totals[k]) totals[k] = { label: e.payment, amt: 0 };
+    totals[k].amt += e.amt;
+  });
+
+  const rows = Object.values(totals).sort((a, b) => b.amt - a.amt);
+  if(untracked > 0) rows.push({ label: 'Not recorded', amt: untracked, muted: true });
+
+  if(!rows.length){
+    el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No expenses yet.</div>`;
+    return;
+  }
+
+  const max = Math.max(...rows.map(r => r.amt));
+  el.innerHTML = rows.map(r => `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="font-weight:600;color:${r.muted ? 'var(--ios-label-tertiary)' : 'var(--ios-label)'}">${escapeHtml(r.label)}</span>
+        <span style="color:var(--ios-label-secondary)">$${r.amt.toFixed(2)}</span>
+      </div>
+      <div class="bar" style="height:5px"><i style="width:${max ? Math.round((r.amt/max)*100) : 0}%;${r.muted ? 'background:rgba(120,120,128,0.35)' : ''}"></i></div>
+    </div>
+  `).join('');
 }
 
 /* ---------- PILLAR 5: SAVINGS GOALS ---------- */
@@ -6889,7 +7266,6 @@ let daysCurrentCat = 'all';
 let daysSearchQuery = '';
 let daysSortOrder = 'nearest';
 let daysSelectedTheme = 'indigo';
-let daysTickerInterval = null;
 let currentDetailEvent = null;
 let currentPosterStyle = 'liquid';
 
@@ -7183,32 +7559,6 @@ async function loadDaysModule(){
   daysEventsCache = events;
 
   renderDaysUI();
-  startDaysTicker();
-}
-
-function startDaysTicker(){
-  if(daysTickerInterval) clearInterval(daysTickerInterval);
-  daysTickerInterval = setInterval(() => {
-    if(activeView !== 'daysView') return;
-    const now = new Date();
-
-    // Update Spotlight Ticker if present
-    const spotEv = daysEventsCache.find(e => e.pinned) || daysEventsCache[0];
-    if(spotEv){
-      const c = getEventCalcInfo(spotEv, now);
-      if($('spotHrs')) $('spotHrs').textContent = c.hrs;
-      if($('spotMins')) $('spotMins').textContent = c.mins;
-      if($('spotSecs')) $('spotSecs').textContent = c.secs;
-    }
-
-    // Update Detail Modal Ticker if open
-    if(currentDetailEvent && !$('daysDetailModal').hidden){
-      const c = getEventCalcInfo(currentDetailEvent, now);
-      if($('dtHrs')) $('dtHrs').textContent = c.hrs;
-      if($('dtMins')) $('dtMins').textContent = c.mins;
-      if($('dtSecs')) $('dtSecs').textContent = c.secs;
-    }
-  }, 1000);
 }
 
 function renderDaysUI(){
@@ -7273,12 +7623,6 @@ function renderDaysSpotlight(){
           <div class="days-hero-unit">${unitText}</div>
         </div>
 
-        <div class="days-live-ticker">
-          <span><b id="spotHrs">${calc.hrs}</b><small>h</small></span> :
-          <span><b id="spotMins">${calc.mins}</b><small>m</small></span> :
-          <span><b id="spotSecs">${calc.secs}</b><small>s</small></span>
-        </div>
-
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:12px;color:var(--ios-label-secondary)">
           <span>${ev.notes ? ev.notes : 'Tap to inspect milestones and share poster'}</span>
           <span style="font-weight:600;color:var(--theme-accent)">Details ➔</span>
@@ -7330,6 +7674,17 @@ function renderDaysList(){
     });
   } else if(daysSortOrder === 'newest'){
     list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  } else if(daysSortOrder === 'category'){
+    // Grouped by category label (alphabetical, uncategorized last), and
+    // nearest-first within each group so the grouping itself stays useful.
+    list.sort((a, b) => {
+      const la = (DAYS_CATS[a.category] || DAYS_CATS.other).label;
+      const lb = (DAYS_CATS[b.category] || DAYS_CATS.other).label;
+      if(la === 'None') return lb === 'None' ? 0 : 1;
+      if(lb === 'None') return -1;
+      if(la !== lb) return la.localeCompare(lb);
+      return getEventCalcInfo(a).absDays - getEventCalcInfo(b).absDays;
+    });
   }
 
   if(!list.length){
@@ -7534,10 +7889,6 @@ function openDayDetailModal(ev){
   $('detailHeroNum').className = `days-hero-num ${themeClass}`;
   $('detailHeroNum').textContent = calc.isToday ? '0' : calc.absDays;
   $('detailHeroUnit').textContent = calc.isToday ? 'TODAY' : (calc.isCountDown ? 'DAYS LEFT' : 'DAYS PASSED');
-
-  $('dtHrs').textContent = calc.hrs;
-  $('dtMins').textContent = calc.mins;
-  $('dtSecs').textContent = calc.secs;
 
   if(ev.notes){
     $('detailNotesBox').hidden = false;
@@ -8140,6 +8491,9 @@ if($('btnEditHubOrder')) $('btnEditHubOrder').onclick = toggleHubReorderMode;
 async function initApp(){
   showView('hub');
   initQuickAdd();
+  initCategoryPickers();
+  populateCategorySelects().catch(()=>{});
+  initEditEntryModal();
   initHubAppOrder().catch(()=>{});
   // Restore the two calendar view preferences before the first paint of each.
   restoreHubMasterMode().catch(()=>{});
