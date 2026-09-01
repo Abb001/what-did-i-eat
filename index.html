@@ -3154,8 +3154,8 @@
     <!-- BUDGET SUB-NAVIGATION -->
     <div class="b-sub-nav" id="bSubNav">
       <button class="active" data-btab="overview">Overview</button>
-      <button data-btab="logs">Log</button>
       <button data-btab="add">Add</button>
+      <button data-btab="logs">Log</button>
       <button data-btab="envelopes">Envelopes</button>
       <button data-btab="subscriptions">Subscriptions</button>
       <button data-btab="goals">Goals</button>
@@ -3192,61 +3192,36 @@
         <div class="b-cal-grid" id="bCalGrid"></div>
       </div>
 
-      <!-- 1. MONTHLY REPORT — recap stats (Monthly/Weekly toggle) plus the
-           expense breakdown chart and payment-method breakdown that used
-           to live on their own Reports tab. -->
+      <!-- 1. MONTHLY REPORT — recap stats, the Mon–Sun spend breakdown bar
+           chart (previously behind a separate Weekly toggle — merged in
+           since there's no real reason to split the same month's data
+           into two views), the expense breakdown chart, and the
+           payment-method breakdown that used to live on its own tab. -->
       <div class="b-recap-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-weight:700;font-size:15px">Monthly Report</span>
-          <div class="view-toggle" id="bOverviewToggle">
-            <button class="active" data-bov="monthly">Monthly</button>
-            <button data-bov="weekly">Weekly</button>
+        <span style="font-weight:700;font-size:15px;display:block;margin-bottom:12px">Monthly Report</span>
+
+        <div class="b-recap-grid">
+          <div class="b-recap-box">
+            <label>Income</label>
+            <span style="color:#16A34A" id="bRecapInc">+$0</span>
+          </div>
+          <div class="b-recap-box">
+            <label>Spent</label>
+            <span style="color:#DC2626" id="bRecapExp">-$0</span>
+          </div>
+          <div class="b-recap-box">
+            <label>Net Savings</label>
+            <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
           </div>
         </div>
 
-        <!-- MONTHLY CONTENT -->
-        <div id="bRecapMonthlyContent">
-          <div class="b-recap-grid">
-            <div class="b-recap-box">
-              <label>Income</label>
-              <span style="color:#16A34A" id="bRecapInc">+$0</span>
-            </div>
-            <div class="b-recap-box">
-              <label>Spent</label>
-              <span style="color:#DC2626" id="bRecapExp">-$0</span>
-            </div>
-            <div class="b-recap-box">
-              <label>Net Savings</label>
-              <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
-            </div>
+        <!-- 7-Day Mini Bar Chart -->
+        <div style="margin-top:14px;padding-top:14px;border-top:0.5px solid var(--ios-separator)">
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ios-label-secondary);margin-bottom:8px">
+            <span>Mon – Sun Spend Breakdown</span>
+            <span id="bWeekDaysTotal">$0 total</span>
           </div>
-        </div>
-
-        <!-- WEEKLY CONTENT -->
-        <div id="bRecapWeeklyContent" hidden>
-          <div class="b-recap-grid">
-            <div class="b-recap-box">
-              <label>This Week</label>
-              <span style="color:#DC2626" id="bWeeklyExp">-$0</span>
-            </div>
-            <div class="b-recap-box">
-              <label>Daily Avg</label>
-              <span style="color:var(--ios-label)" id="bWeeklyDailyAvg">$0</span>
-            </div>
-            <div class="b-recap-box">
-              <label>Week Budget</label>
-              <span style="color:var(--ios-label)" id="bWeeklyBudget">$500</span>
-            </div>
-          </div>
-
-          <!-- 7-Day Mini Bar Chart -->
-          <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--ios-separator)">
-            <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ios-label-secondary);margin-bottom:8px">
-              <span>Mon – Sun Spend Breakdown</span>
-              <span id="bWeekDaysTotal">$0 total</span>
-            </div>
-            <div class="b-week-bars" id="bWeekBars"></div>
-          </div>
+          <div class="b-week-bars" id="bWeekBars"></div>
         </div>
 
         <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--ios-separator);text-align:center">
@@ -3287,27 +3262,17 @@
     <!-- SUB-TAB: LOG (renamed from History — Paid by Friends now lives
          here too, alongside the full month-by-month history list). -->
     <div class="b-panel" id="bp-logs" hidden>
-      <!-- FRIEND-PAID (先付的但還沒付): a friend fronted the money — it
-           still counts as that day's spend, but no account of mine is
-           touched until it's actually paid back. Settling creates a real
-           transfer-out entry, so the repayment itself is recorded too. -->
+      <!-- FRIEND-PAID RECORDS (先付的但還沒付): the list of what friends
+           have covered lives here alongside your own transaction history
+           — this tab is for reviewing records. Logging a new one happens
+           on the Add tab instead, next to every other way of adding a
+           record. -->
       <div class="mod-card" style="margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <span style="font-weight:600;font-size:15px">Paid by Friends</span>
           <button class="action-btn" id="toggleSettledOwedBtn" style="padding:4px 10px;font-size:11.5px">Show Settled</button>
         </div>
         <div id="owedList"></div>
-        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--ios-separator)">
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
-            <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
-          </div>
-          <div style="display:flex;gap:8px">
-            <input type="text" id="owedItem" placeholder="What was it?" style="flex:1">
-            <input type="date" id="owedDate" style="width:130px">
-          </div>
-          <button class="action-btn" id="addOwedBtn" style="width:100%;margin-top:8px">＋ Log What They Paid</button>
-        </div>
       </div>
 
       <div class="b-month-header" style="margin-top:0">
@@ -3316,13 +3281,14 @@
       <div id="bMonthLogsList"></div>
     </div>
 
-    <!-- SUB-TAB: ADD — New Log and Transfers share one tab now, switched
-         by a mode toggle, since both are "visit to act" forms rather than
-         summaries you land on. -->
+    <!-- SUB-TAB: ADD — every way of logging a new record shares this one
+         tab (a mode toggle switches between them), since Overview and Log
+         are for landing on a summary or history, not visiting to act. -->
     <div class="b-panel" id="bp-add" hidden>
       <div class="view-toggle" id="bAddModeToggle" style="margin-bottom:16px">
         <button class="active" data-baddmode="entry">New Log</button>
         <button data-baddmode="transfer">Transfer</button>
+        <button data-baddmode="owed">Friend Paid</button>
       </div>
 
       <div class="mod-card" id="bAddEntryPane">
@@ -3360,8 +3326,25 @@
           <input type="number" id="trAmt" placeholder="100.00" step="0.01">
         </div>
         <button class="action-btn" id="btnExecuteTransfer" style="width:100%">Execute Account Transfer</button>
+        <div id="trHistoryList" style="margin-top:12px"></div>
       </div>
-      <div id="trHistoryList"></div>
+
+      <!-- FRIEND-PAID (先付的但還沒付): a friend fronted the money — it
+           still counts as that day's spend, but no account of mine is
+           touched until it's actually paid back. Settling creates a real
+           transfer-out entry, so the repayment itself is recorded too. -->
+      <div class="mod-card" id="bOwedPane" hidden>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log What a Friend Paid</span>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
+          <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
+        </div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="owedItem" placeholder="What was it?" style="flex:1">
+          <input type="date" id="owedDate" style="width:130px">
+        </div>
+        <button class="action-btn" id="addOwedBtn" style="width:100%;margin-top:8px">＋ Log What They Paid</button>
+      </div>
     </div>
 
     <!-- SUB-TAB: ENVELOPES (full add/edit/delete) -->
@@ -3371,9 +3354,9 @@
         <p style="font-size:13px;color:var(--mid);margin-bottom:14px">Set specific budget limits for categories. Progress bars alert you when you near 100%.</p>
         <div id="envelopeList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px"></div>
         <div style="display:flex;gap:8px;padding-top:10px;border-top:0.5px solid var(--ios-separator)">
-          <select id="newEnvelopeCat" style="width:130px"></select>
-          <input type="number" id="newEnvelopeLimit" placeholder="Limit $" step="0.01" style="flex:1">
-          <button class="action-btn" id="addEnvelopeBtn">＋ Add</button>
+          <select id="newEnvelopeCat" style="width:110px;min-width:0"></select>
+          <input type="number" id="newEnvelopeLimit" placeholder="Limit $" step="0.01" style="flex:1;min-width:0">
+          <button class="action-btn" id="addEnvelopeBtn" style="flex:0 0 auto;padding:0 14px">＋ Add</button>
         </div>
       </div>
     </div>
@@ -4965,6 +4948,7 @@ function initCategoryPickers(){
   $('closeAddCatModal').onclick = () => {
     $('addCatModal').hidden = true;
     populateCategorySelects();   // reset the "__add__" placeholder back to a real value
+    if(typeof loadEnvelopes === 'function') loadEnvelopes();   // same reset, for the envelope pickers
   };
   $('saveAddCatBtn').onclick = async () => {
     const name = $('newCatName').value.trim();
@@ -4978,6 +4962,7 @@ function initCategoryPickers(){
     }
     $('addCatModal').hidden = true;
     await populateCategorySelects(name);
+    if(typeof loadEnvelopes === 'function') await loadEnvelopes(name);
     pill(exists ? `Using existing "${name}"` : `Category "${name}" added`);
   };
   // quickCat itself has no onchange wiring — it's a hidden value store now;
@@ -6293,9 +6278,9 @@ $('bSubNav').onclick = e => {
   switchBudgetTab(btn.dataset.btab);
 };
 
-// The Add tab holds New Log and Transfer as two modes of one form-visiting
-// tab, rather than two separate tabs — switched the same way the Quick
-// Add panes and the Overview Monthly/Weekly toggle already are.
+// The Add tab holds New Log, Transfer and Friend Paid as three modes of
+// one form-visiting tab, rather than separate tabs — switched the same
+// way the Quick Add panes already are.
 $('bAddModeToggle').onclick = e => {
   const btn = e.target.closest('button');
   if(!btn) return;
@@ -6303,6 +6288,7 @@ $('bAddModeToggle').onclick = e => {
   $('bAddModeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
   $('bAddEntryPane').hidden = (mode !== 'entry');
   $('bTransferPane').hidden = (mode !== 'transfer');
+  $('bOwedPane').hidden = (mode !== 'owed');
 };
 
 // Overview's spend calendar is hidden by default (the Monthly Report /
@@ -6498,18 +6484,10 @@ async function loadBudgetModule(){
   });
 
   const maxDaySpend = Math.max(...weekDaySpends.map(d => d.exp), 10);
-  // No editable "goal" concept on Overview any more — Envelope Budgets now
-  // covers per-category limits, so this stat quietly uses a fixed baseline
-  // rather than exposing another number to configure.
-  const weeklyBudget = Math.round(2000 / 4.3);
-  const dailyAvg = (weekTotalExp / (currentDayOfWeek + 1)).toFixed(2);
+  $('bWeekDaysTotal').textContent = `$${weekTotalExp.toFixed(2)} total`;
 
-  $('bWeeklyExp').textContent = `-$${weekTotalExp.toFixed(2)}`;
-  $('bWeeklyDailyAvg').textContent = `$${dailyAvg}`;
-  $('bWeeklyBudget').textContent = `$${weeklyBudget}`;
-  $('bWeekDaysTotal').textContent = `$${weekTotalExp.toFixed(2)} spent this week`;
-
-  // Draw 7-Day Mini Bar Chart
+  // Draw 7-Day Mini Bar Chart — lives directly in the Monthly Report card
+  // now, not behind a separate Weekly toggle.
   $('bWeekBars').innerHTML = weekDaySpends.map((item, idx) => {
     const isToday = (idx === currentDayOfWeek);
     const heightPct = Math.min(100, Math.round((item.exp / maxDaySpend) * 100));
@@ -6521,16 +6499,6 @@ async function loadBudgetModule(){
       <span class="b-week-bar-label">${weekDayLabels[idx]}</span>
     </div>`;
   }).join('');
-
-  // Weekly / Monthly Toggle Handler
-  $('bOverviewToggle').onclick = e => {
-    const b = e.target.closest('button');
-    if(!b) return;
-    const mode = b.dataset.bov;
-    $('bOverviewToggle').querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn === b));
-    $('bRecapMonthlyContent').hidden = (mode !== 'monthly');
-    $('bRecapWeeklyContent').hidden = (mode !== 'weekly');
-  };
 
   // Populate Accounts dropdowns — same helper as everywhere else, so
   // balances shown here always read the same number as the accounts grid.
@@ -7120,7 +7088,7 @@ function envelopeRowHtml(env, spent, editable){
     </div>`;
 }
 
-async function loadEnvelopes(){
+async function loadEnvelopes(preferCat){
   const envelopes = (await store.get('budget:envelopes')) || [];
   const entries = (await store.get('budget:entries')) || [];
   const spentByCat = {};
@@ -7132,13 +7100,16 @@ async function loadEnvelopes(){
     $('envelopeList').innerHTML = envelopes.length
       ? envelopes.map(env => envelopeRowHtml(env, spentByCat[env.cat] || 0, true)).join('')
       : emptyMsg;
-    // Wire up the category select for any row currently mid-edit.
+    // Wire up the category select for any row currently mid-edit — it
+    // gets the same "+ Add category…" escape hatch as everywhere else.
     if(editingEnvelopeId){
       const cats = await getCategories();
       const sel = $(`editEnvelopeCat_${editingEnvelopeId}`);
       const env = envelopes.find(e => e.id === editingEnvelopeId);
       if(sel && env){
-        sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}" ${c.v===env.cat?'selected':''}>${escapeHtml(c.l)}</option>`).join('');
+        sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}" ${c.v===env.cat?'selected':''}>${escapeHtml(c.l)}</option>`).join('')
+          + `<option value="__add__">+ Add category…</option>`;
+        sel.onchange = () => onCatSelectChange(sel);
       }
     }
   }
@@ -7152,9 +7123,10 @@ async function loadEnvelopes(){
     const cats = await getCategories();
     const used = new Set(envelopes.map(e => e.cat));
     const available = cats.filter(c => !used.has(c.v) && c.v !== '__add__');
-    $('newEnvelopeCat').innerHTML = available.length
-      ? available.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
-      : `<option value="">All categories have an envelope</option>`;
+    $('newEnvelopeCat').innerHTML = available.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
+      + `<option value="__add__">+ Add category…</option>`;
+    if(preferCat && available.some(c => c.v === preferCat)) $('newEnvelopeCat').value = preferCat;
+    $('newEnvelopeCat').onchange = () => onCatSelectChange($('newEnvelopeCat'));
   }
 }
 
@@ -7164,6 +7136,7 @@ window.cancelEnvelopeEdit = () => { editingEnvelopeId = null; loadEnvelopes(); }
 window.saveEnvelopeEdit = async (id) => {
   const catSel = $(`editEnvelopeCat_${id}`);
   const limitInput = $(`editEnvelopeLimit_${id}`);
+  if(catSel.value === '__add__') return alert('Pick a category first.');
   const limit = parseFloat(limitInput.value);
   if(isNaN(limit) || limit <= 0) return alert('Enter a valid limit.');
   const envelopes = (await store.get('budget:envelopes')) || [];
@@ -7190,7 +7163,7 @@ window.deleteEnvelope = async (id) => {
 if($('addEnvelopeBtn')) $('addEnvelopeBtn').onclick = async () => {
   const cat = $('newEnvelopeCat').value;
   const limit = parseFloat($('newEnvelopeLimit').value);
-  if(!cat) return alert('Pick a category.');
+  if(!cat || cat === '__add__') return alert('Pick a category.');
   if(isNaN(limit) || limit <= 0) return alert('Enter a valid limit.');
   const envelopes = (await store.get('budget:envelopes')) || [];
   if(envelopes.some(e => e.cat === cat)) return alert('That category already has an envelope — edit it instead.');
@@ -8319,8 +8292,15 @@ function getEventMilestones(ev){
   const yearChecks = [1, 5, 10];
 
   const list = [];
+  // Presets a user dismissed or edited-away for this event, so they don't
+  // reappear — an edit re-dismisses the original preset and adds a real
+  // customMilestones entry in its place, which is why editing one also
+  // makes it deletable the normal way afterward.
+  const dismissed = new Set(ev.dismissedMilestones || []);
 
   dayChecks.forEach(cnt => {
+    const key = `day:${cnt}`;
+    if(dismissed.has(key)) return;
     const target = new Date(start.getTime() + cnt * 86400000);
     const targetZero = new Date(target.getFullYear(), target.getMonth(), target.getDate());
     const diff = Math.round((targetZero - today) / 86400000);
@@ -8330,21 +8310,28 @@ function getEventMilestones(ev){
       diff,
       passed: diff <= 0,
       type: 'day',
-      cnt
+      cnt,
+      presetKey: key,
+      daysFromStart: cnt
     });
   });
 
   yearChecks.forEach(yr => {
+    const key = `year:${yr}`;
+    if(dismissed.has(key)) return;
     const target = new Date(y + yr, m - 1, d);
     const targetZero = new Date(target.getFullYear(), target.getMonth(), target.getDate());
     const diff = Math.round((targetZero - today) / 86400000);
+    const daysFromStart = Math.round((targetZero - start) / 86400000);
     list.push({
       name: `${getOrdinalSuffix(yr)} Anniversary`,
       dateStr: `${target.getFullYear()}/${pad(target.getMonth()+1)}/${pad(target.getDate())}`,
       diff,
       passed: diff <= 0,
       type: 'year',
-      cnt: yr
+      cnt: yr,
+      presetKey: key,
+      daysFromStart
     });
   });
 
@@ -8757,15 +8744,45 @@ window.deleteCustomMilestone = async (idx) => {
   openDayDetailModal(ev);
 };
 
-let editingMilestoneIdx = null;
+// Presets (100/365/1000 Days, 1st/5th/10th Anniversary) aren't stored
+// records — they're computed fresh every render — so "deleting" one just
+// remembers it's dismissed for this event, and getEventMilestones() above
+// filters it back out next time.
+window.dismissPresetMilestone = async (presetKey) => {
+  const ev = currentDetailEvent;
+  if(!ev) return;
+  if(!ev.dismissedMilestones) ev.dismissedMilestones = [];
+  if(!ev.dismissedMilestones.includes(presetKey)) ev.dismissedMilestones.push(presetKey);
+  await store.set('days:events', daysEventsCache);
+  openDayDetailModal(ev);
+};
+
+// editingMilestone tracks either a custom entry ({kind:'custom', idx}) or
+// a preset ({kind:'preset', presetKey}) — editing a preset dismisses the
+// original and adds a real customMilestones entry in its place, so it's
+// a normal editable/deletable milestone from then on.
+let editingMilestone = null;
 
 window.editCustomMilestone = (idx) => {
   const ev = currentDetailEvent;
   if(!ev || !ev.customMilestones || !ev.customMilestones[idx]) return;
   const m = ev.customMilestones[idx];
-  editingMilestoneIdx = idx;
+  editingMilestone = { kind: 'custom', idx };
   $('newMilestoneName').value = m.name || '';
   $('newMilestoneDays').value = m.days;
+  $('saveMilestoneBtn').textContent = 'Save';
+  $('addMilestoneForm').hidden = false;
+  $('newMilestoneName').focus();
+};
+
+window.editPresetMilestone = (presetKey) => {
+  const ev = currentDetailEvent;
+  if(!ev) return;
+  const m = getEventMilestones(ev).find(x => x.presetKey === presetKey);
+  if(!m) return;
+  editingMilestone = { kind: 'preset', presetKey };
+  $('newMilestoneName').value = m.name;
+  $('newMilestoneDays').value = m.daysFromStart;
   $('saveMilestoneBtn').textContent = 'Save';
   $('addMilestoneForm').hidden = false;
   $('newMilestoneName').focus();
@@ -8854,7 +8871,9 @@ function openDayDetailModal(ev){
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         ${m.passed ? '<span class="days-milestone-stat passed">Reached ✓</span>' : `<span class="days-milestone-stat upcoming">in ${m.diff} days</span>`}
-        ${m.type === 'custom' ? `<button class="icon" style="width:24px;height:24px" onclick="editCustomMilestone(${m.customIdx})" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>` : ''}
+        ${m.type === 'custom'
+          ? `<button class="icon" style="width:24px;height:24px" onclick="editCustomMilestone(${m.customIdx})" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>`
+          : `<button class="icon" style="width:24px;height:24px" onclick="editPresetMilestone('${m.presetKey}')" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="dismissPresetMilestone('${m.presetKey}')" title="Remove">${CROSS}</button>`}
       </div>
     </div>
   `).join('');
@@ -8866,9 +8885,9 @@ function openDayDetailModal(ev){
   $('newMilestoneName').value = '';
   $('newMilestoneDays').value = '';
   $('saveMilestoneBtn').textContent = 'Add';
-  editingMilestoneIdx = null;
+  editingMilestone = null;
   $('addMilestoneBtn').onclick = () => {
-    editingMilestoneIdx = null;
+    editingMilestone = null;
     $('newMilestoneName').value = '';
     $('newMilestoneDays').value = '';
     $('saveMilestoneBtn').textContent = 'Add';
@@ -8880,13 +8899,20 @@ function openDayDetailModal(ev){
     if(!days || days < 1) return alert('Enter how many days from the start date.');
     const name = $('newMilestoneName').value.trim();
     if(!ev.customMilestones) ev.customMilestones = [];
-    if(editingMilestoneIdx !== null && ev.customMilestones[editingMilestoneIdx]){
-      ev.customMilestones[editingMilestoneIdx] = { name, days };
+    if(editingMilestone && editingMilestone.kind === 'custom' && ev.customMilestones[editingMilestone.idx]){
+      ev.customMilestones[editingMilestone.idx] = { name, days };
+    } else if(editingMilestone && editingMilestone.kind === 'preset'){
+      // Editing a preset dismisses the computed original and adds a real
+      // customMilestones entry in its place — from here on it behaves
+      // like any other custom milestone (editable and deletable in place).
+      if(!ev.dismissedMilestones) ev.dismissedMilestones = [];
+      if(!ev.dismissedMilestones.includes(editingMilestone.presetKey)) ev.dismissedMilestones.push(editingMilestone.presetKey);
+      ev.customMilestones.push({ name, days });
     } else {
       ev.customMilestones.push({ name, days });
     }
-    const wasEditing = editingMilestoneIdx !== null;
-    editingMilestoneIdx = null;
+    const wasEditing = !!editingMilestone;
+    editingMilestone = null;
     await store.set('days:events', daysEventsCache);
     openDayDetailModal(ev);   // re-render with the milestone change included
     pill(wasEditing ? 'Milestone updated' : 'Milestone added');
