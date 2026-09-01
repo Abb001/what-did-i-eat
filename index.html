@@ -1185,7 +1185,11 @@
     font-weight: 700;
     box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.45), 0 3px 10px -3px rgba(var(--accent-rgb), 0.26), var(--lg-depth);
   }
-  .quick-cat-chip.add { color: var(--accent-deep); }
+  /* Named quick-cat-chip-add, not .add — the bare .add class is the
+     unrelated floating "+ Add photo" FAB (position:fixed !important),
+     and sharing that class name yanked this chip out of the row and
+     pinned it to the bottom of the viewport. */
+  .quick-cat-chip.quick-cat-chip-add { color: var(--accent-deep); }
   .quick-currency { font-size: 15px; font-weight: 700; color: var(--ios-label-secondary); }
   .quick-select {
     flex: 0 0 auto;
@@ -2803,6 +2807,24 @@
       </div>
     </div>
 
+    <div style="display:flex;justify-content:flex-end;margin:10px 2px 0">
+      <button id="hubCustomizeBtn" style="background:none;border:none;color:var(--ios-label-secondary);font-size:12.5px;font-weight:600;cursor:pointer;padding:4px 2px">Customize ▾</button>
+    </div>
+    <div class="mod-card" id="hubCustomizePanel" hidden style="margin-top:8px">
+      <label style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px;cursor:pointer;padding:6px 0">
+        <span>Show Quick Add</span>
+        <input type="checkbox" id="toggleHubQuickAdd" style="width:20px;height:20px">
+      </label>
+      <label style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px;cursor:pointer;padding:6px 0;border-top:0.5px solid var(--ios-separator)">
+        <span>Show Calendar Overview</span>
+        <input type="checkbox" id="toggleHubCalendarCard" style="width:20px;height:20px">
+      </label>
+      <label style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px;cursor:pointer;padding:6px 0;border-top:0.5px solid var(--ios-separator)">
+        <span>Show Activity Graph</span>
+        <input type="checkbox" id="toggleHubActivity" style="width:20px;height:20px">
+      </label>
+    </div>
+
     <!-- QUICK ADD — log straight to today without opening a module or picking a day -->
     <div class="mod-card quick-card" id="quickAdd">
       <div class="quick-head">
@@ -3129,24 +3151,35 @@
       </button>
     </div>
 
-    <!-- 6-PILLAR SUB-NAVIGATION -->
+    <!-- BUDGET SUB-NAVIGATION -->
     <div class="b-sub-nav" id="bSubNav">
       <button class="active" data-btab="overview">Overview</button>
-      <button data-btab="logs">History</button>
-      <button data-btab="transfers">Transfers</button>
+      <button data-btab="logs">Log</button>
+      <button data-btab="add">Add</button>
       <button data-btab="envelopes">Envelopes</button>
       <button data-btab="subscriptions">Subscriptions</button>
-      <button data-btab="reports">Reports</button>
       <button data-btab="goals">Goals</button>
       <button data-btab="security">Security</button>
     </div>
 
-    <!-- SUB-TAB 1: OVERVIEW -->
+    <!-- SUB-TAB 1: OVERVIEW — order is Monthly Report, Bank Accounts,
+         Recent, Envelope Budgets. The spend calendar used to lead this
+         page; it's hidden by default now (Customize brings it back) with
+         the report taking its place, since a chart says more at a glance
+         than a grid of numberless day cells did. -->
     <div class="b-panel" id="bp-overview">
-      <!-- 1. CALENDAR (moved here from its own tab — the first page shows
-           accounts, analysis and the calendar; New Log is now at the bottom,
-           since it's a form you visit to act, not a summary you read) -->
-      <div class="mod-card">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button id="budgetCustomizeBtn" style="background:none;border:none;color:var(--ios-label-secondary);font-size:12.5px;font-weight:600;cursor:pointer;padding:4px 2px">Customize ▾</button>
+      </div>
+      <div class="mod-card" id="budgetCustomizePanel" hidden style="margin-bottom:12px">
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px;cursor:pointer">
+          <span>Show spend calendar</span>
+          <input type="checkbox" id="toggleBudgetCalendar" style="width:20px;height:20px">
+        </label>
+      </div>
+
+      <!-- CALENDAR — hidden unless re-enabled via Customize above. -->
+      <div class="mod-card" id="bCalendarCard" hidden>
         <div class="top" style="margin-bottom:12px">
           <div class="month" id="bCalMTitle" style="font-size:18px">—</div>
           <div class="nav">
@@ -3159,16 +3192,15 @@
         <div class="b-cal-grid" id="bCalGrid"></div>
       </div>
 
-      <!-- 2. OVERVIEW RECAP CARD (WITH MONTHLY / WEEKLY TOGGLE) -->
-      <div class="b-recap-card" style="margin-top:16px">
+      <!-- 1. MONTHLY REPORT — recap stats (Monthly/Weekly toggle) plus the
+           expense breakdown chart and payment-method breakdown that used
+           to live on their own Reports tab. -->
+      <div class="b-recap-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-weight:700;font-size:15px">Monthly Report</span>
           <div class="view-toggle" id="bOverviewToggle">
             <button class="active" data-bov="monthly">Monthly</button>
             <button data-bov="weekly">Weekly</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <label style="font-size:12px;color:var(--mid)">Goal:</label>
-            <input type="number" class="b-target-input" id="bGoalInput" value="2000">
           </div>
         </div>
 
@@ -3187,14 +3219,6 @@
               <label>Net Savings</label>
               <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
             </div>
-          </div>
-
-          <div class="b-budget-bar-box">
-            <div class="b-budget-row">
-              <span>Spent: <strong id="bCurrExp">$0</strong></span>
-              <span>Remaining: <strong id="bRemain" style="color:var(--ios-label)">$0</strong></span>
-            </div>
-            <div class="bar"><i id="bBar" style="width:0%"></i></div>
           </div>
         </div>
 
@@ -3224,26 +3248,50 @@
             <div class="b-week-bars" id="bWeekBars"></div>
           </div>
         </div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--ios-separator);text-align:center">
+          <canvas id="expenseChartCanvas" width="240" height="240" style="margin:0 auto;display:block"></canvas>
+          <div id="chartLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:12.5px"></div>
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--ios-separator)">
+          <span style="font-weight:600;font-size:13.5px;display:block;margin-bottom:10px">By Payment Method</span>
+          <div id="paymentBreakdown"></div>
+        </div>
       </div>
 
-      <div class="b-accounts-head">
+      <!-- 2. BANK ACCOUNTS & WALLETS -->
+      <div class="b-accounts-head" style="margin-top:16px">
         <h3>Bank Accounts &amp; Wallets</h3>
         <button class="action-btn" id="bAddAccBtn" style="padding:4px 10px;font-size:12px">＋ Add Account</button>
       </div>
       <div class="acc-grid" id="bAccountsGrid"></div>
 
+      <!-- 3. RECENT TRANSACTIONS -->
       <div class="b-month-header">
         <h3>Recent Transactions</h3>
         <select id="bMonthFilter" class="b-month-select"></select>
       </div>
-
       <div id="bList"></div>
 
+      <!-- 4. ENVELOPE BUDGETS — a read-only summary; edit/add/delete lives
+           on the full Envelopes tab. -->
+      <div class="mod-card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-weight:600;font-size:15px">Envelope Budgets</span>
+          <button class="action-btn" style="padding:4px 10px;font-size:11.5px" onclick="switchBudgetTab('envelopes')">Manage</button>
+        </div>
+        <div id="overviewEnvelopeList" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
+      </div>
+    </div>
+
+    <!-- SUB-TAB: LOG (renamed from History — Paid by Friends now lives
+         here too, alongside the full month-by-month history list). -->
+    <div class="b-panel" id="bp-logs" hidden>
       <!-- FRIEND-PAID (先付的但還沒付): a friend fronted the money — it
            still counts as that day's spend, but no account of mine is
            touched until it's actually paid back. Settling creates a real
            transfer-out entry, so the repayment itself is recorded too. -->
-      <div class="mod-card" style="margin-top:16px">
+      <div class="mod-card" style="margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <span style="font-weight:600;font-size:15px">Paid by Friends</span>
           <button class="action-btn" id="toggleSettledOwedBtn" style="padding:4px 10px;font-size:11.5px">Show Settled</button>
@@ -3262,10 +3310,22 @@
         </div>
       </div>
 
-      <!-- 3. NEW LOG — a form you visit to act, so it sits below the
-           summary you land on, not ahead of it. -->
-      <div class="mod-card" style="margin-top:18px">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">New Log</span>
+      <div class="b-month-header" style="margin-top:0">
+        <h3 id="bMonthLogsTitle">Monthly Logs (Newest First)</h3>
+      </div>
+      <div id="bMonthLogsList"></div>
+    </div>
+
+    <!-- SUB-TAB: ADD — New Log and Transfers share one tab now, switched
+         by a mode toggle, since both are "visit to act" forms rather than
+         summaries you land on. -->
+    <div class="b-panel" id="bp-add" hidden>
+      <div class="view-toggle" id="bAddModeToggle" style="margin-bottom:16px">
+        <button class="active" data-baddmode="entry">New Log</button>
+        <button data-baddmode="transfer">Transfer</button>
+      </div>
+
+      <div class="mod-card" id="bAddEntryPane">
         <div class="form-group">
           <label>Type, Amount &amp; Account</label>
           <div style="display:flex;gap:8px">
@@ -3284,20 +3344,8 @@
         </div>
         <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
       </div>
-    </div>
 
-    <!-- SUB-TAB: LOGS (calendar moved to Overview; this keeps the full
-         month-by-month history list) -->
-    <div class="b-panel" id="bp-logs" hidden>
-      <div class="b-month-header" style="margin-top:0">
-        <h3 id="bMonthLogsTitle">Monthly Logs (Newest First)</h3>
-      </div>
-      <div id="bMonthLogsList"></div>
-    </div>
-
-    <!-- SUB-TAB 2: TRANSFERS -->
-    <div class="b-panel" id="bp-transfers" hidden>
-      <div class="mod-card">
+      <div class="mod-card" id="bTransferPane" hidden>
         <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Transfer Money Between Accounts</span>
         <div class="form-group">
           <label>From Account (Source)</label>
@@ -3316,16 +3364,21 @@
       <div id="trHistoryList"></div>
     </div>
 
-    <!-- SUB-TAB 3: ENVELOPES -->
+    <!-- SUB-TAB: ENVELOPES (full add/edit/delete) -->
     <div class="b-panel" id="bp-envelopes" hidden>
       <div class="mod-card">
         <span style="font-weight:600;font-size:15px;display:block;margin-bottom:6px">Category Envelope Budgets</span>
         <p style="font-size:13px;color:var(--mid);margin-bottom:14px">Set specific budget limits for categories. Progress bars alert you when you near 100%.</p>
-        <div id="envelopeList" style="display:flex;flex-direction:column;gap:12px"></div>
+        <div id="envelopeList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px"></div>
+        <div style="display:flex;gap:8px;padding-top:10px;border-top:0.5px solid var(--ios-separator)">
+          <select id="newEnvelopeCat" style="width:130px"></select>
+          <input type="number" id="newEnvelopeLimit" placeholder="Limit $" step="0.01" style="flex:1">
+          <button class="action-btn" id="addEnvelopeBtn">＋ Add</button>
+        </div>
       </div>
     </div>
 
-    <!-- SUB-TAB 4: SUBSCRIPTIONS -->
+    <!-- SUB-TAB: SUBSCRIPTIONS -->
     <div class="b-panel" id="bp-subscriptions" hidden>
       <div class="mod-card">
         <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Recurring Subscriptions &amp; Bills</span>
@@ -3345,20 +3398,7 @@
       <div id="subList"></div>
     </div>
 
-    <!-- SUB-TAB 5: REPORTS -->
-    <div class="b-panel" id="bp-reports" hidden>
-      <div class="mod-card" style="text-align:center">
-        <span style="font-weight:600;font-size:16px;display:block;margin-bottom:12px">📊 Expense Breakdown Chart</span>
-        <canvas id="expenseChartCanvas" width="280" height="280" style="margin:0 auto;display:block"></canvas>
-        <div id="chartLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:12.5px"></div>
-      </div>
-      <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">💳 By Payment Method</span>
-        <div id="paymentBreakdown"></div>
-      </div>
-    </div>
-
-    <!-- SUB-TAB 6: GOALS -->
+    <!-- SUB-TAB: GOALS -->
     <div class="b-panel" id="bp-goals" hidden>
       <div class="mod-card">
         <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">🎯 Savings &amp; Dream Goals</span>
@@ -3793,6 +3833,10 @@
         <label>Starting balance</label>
         <input type="number" id="newAccBalance" placeholder="0.00" inputmode="decimal" step="0.01">
       </div>
+      <div class="form-group">
+        <label>Parent account (optional)</label>
+        <select id="newAccParent"><option value="">— Top-level account —</option></select>
+      </div>
       <button class="action-btn" id="saveAddAccBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Account</button>
     </div>
   </div>
@@ -3858,6 +3902,10 @@
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--ios-separator)">
         <span style="font-size:12.5px;color:var(--ios-label-secondary)">Balance</span>
         <span id="accDetailBalance" style="font-size:22px;font-weight:800">$0.00</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="action-btn" id="accDetailAddSubBtn" style="flex:1;padding:8px;font-size:12.5px">＋ Sub-Account</button>
+        <button class="action-btn" id="accDetailDeleteBtn" style="flex:1;padding:8px;font-size:12.5px;color:var(--ios-red)">Delete Account</button>
       </div>
       <div id="accDetailList"></div>
     </div>
@@ -4825,17 +4873,24 @@ function matchAccount(accounts, name){
       || null;
 }
 
-// Seeded lazily: Quick Add can be the first thing that ever touches accounts.
+// No default accounts are seeded — a new install starts with none, and the
+// empty-state prompts the user to add their own instead of guessing at
+// placeholder banks and balances that were never real.
 async function getAccounts(){
-  let accounts = await store.get('budget:accounts');
-  if(!accounts || !accounts.length){
-    accounts = [
-      { id: 'acc_1', name: 'Chase Bank', balance: 3500.00, spentMonth: 0 },
-      { id: 'acc_2', name: 'Apple Card', balance: 1200.00, spentMonth: 0 },
-      { id: 'acc_3', name: 'Cash', balance: 250.00, spentMonth: 0 }
-    ];
-  }
-  return accounts;
+  return (await store.get('budget:accounts')) || [];
+}
+
+// Builds <option> markup for every account <select> in the app: children
+// render indented right under their parent, and the balance is shown in
+// the label so what you pick here always reads the same number as the
+// Bank Accounts & Wallets grid — nothing to visually "sync" by hand.
+function accountOptionsHtml(accounts){
+  const topLevel = accounts.filter(a => !a.parentId);
+  return topLevel.map(a => {
+    const kids = accounts.filter(k => k.parentId === a.id);
+    return `<option value="${a.id}">${escapeHtml(a.name)} — $${a.balance.toFixed(2)}</option>`
+      + kids.map(k => `<option value="${k.id}">&nbsp;&nbsp;↳ ${escapeHtml(k.name)} — $${k.balance.toFixed(2)}</option>`).join('');
+  }).join('');
 }
 
 /* ---------- EXPENSE CATEGORIES ----------
@@ -4881,7 +4936,7 @@ function renderQuickCatChips(){
   if(!box || !sel) return;
   const current = sel.value;
   box.innerHTML = [...sel.options].map(o => o.value === '__add__'
-    ? `<button class="quick-cat-chip add" data-cv="__add__">+ Add</button>`
+    ? `<button class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`
     : `<button class="quick-cat-chip ${o.value === current ? 'on' : ''}" data-cv="${escapeHtml(o.value)}">${o.textContent}</button>`
   ).join('');
   box.querySelectorAll('button').forEach(btn => btn.onclick = () => {
@@ -4952,7 +5007,7 @@ async function renderExprPreview(){
   const matched = matchAccount(accounts, p.account);
   const accLabel = p.account
     ? (matched ? matched.name : titleCase(p.account))
-    : accounts[0].name;
+    : (accounts[0] ? accounts[0].name : 'No account');
   const shop = ($('quickShop').value || '').trim();
 
   box.innerHTML =
@@ -4973,24 +5028,28 @@ async function quickLogExpense(){
   const shop = ($('quickShop').value || '').trim();
 
   const accounts = await getAccounts();
-  let acc = p.account ? matchAccount(accounts, p.account) : accounts[0];
+  let acc = p.account ? matchAccount(accounts, p.account) : (accounts[0] || null);
   let created = false;
-  if(!acc){
+  if(!acc && p.account){
     // A name that matches nothing becomes a new account rather than being
     // silently charged to the default one. The preview said so first.
-    acc = { id: 'acc_' + Date.now(), name: titleCase(p.account), balance: 0, spentMonth: 0 };
+    acc = { id: 'acc_' + Date.now(), name: titleCase(p.account), balance: 0, spentMonth: 0, parentId: null };
     accounts.push(acc);
     created = true;
   }
-  acc.balance -= p.amt;
-  await store.set('budget:accounts', accounts);
+  // No account typed and none exist yet — logged with no account attached
+  // rather than forcing one into existence, same as a friend-paid expense.
+  if(acc){
+    acc.balance -= p.amt;
+    await store.set('budget:accounts', accounts);
+  }
 
   const entries = (await store.get('budget:entries')) || [];
   entries.unshift({
     id: 'tx_' + Date.now(),
     type: 'exp',
     amt: p.amt,
-    accountId: acc.id,
+    accountId: acc ? acc.id : null,
     cat,
     desc: p.item ? titleCase(p.item) : cat,
     payment: p.payment ? titleCase(p.payment) : null,
@@ -5008,7 +5067,7 @@ async function quickLogExpense(){
   const whenSuffix = dateVal === key(new Date()) ? '' : ` · ${quickWhenPhrase()}`;
   pill(created
     ? `$${p.amt.toFixed(2)} · new account ${acc.name}${whenSuffix}`
-    : `$${p.amt.toFixed(2)} → ${acc.name}${whenSuffix}`);
+    : `$${p.amt.toFixed(2)}${acc ? ` → ${acc.name}` : ''}${whenSuffix}`);
 }
 
 async function quickLogNote(){
@@ -6214,20 +6273,54 @@ async function save(quiet){
 let activeBTab = 'overview';
 let bCalDate = new Date();
 
-$('bSubNav').onclick = e => {
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  activeBTab = btn.dataset.btab;
-  $('bSubNav').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-  
-  const panels = ['overview', 'logs', 'transfers', 'envelopes', 'subscriptions', 'reports', 'goals', 'security'];
+// Shared by the sub-nav click handler and the Overview envelope card's
+// "Manage" shortcut, so both land on the same tab-switching logic.
+function switchBudgetTab(tab){
+  activeBTab = tab;
+  $('bSubNav').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.btab === tab));
+
+  const panels = ['overview', 'logs', 'add', 'envelopes', 'subscriptions', 'goals', 'security'];
   panels.forEach(p => {
     const el = $(`bp-${p}`);
     if(el) el.hidden = (p !== activeBTab);
   });
   if(activeBTab === 'logs') drawBudgetLogsTab();
-  if(activeBTab === 'reports'){ drawReportsChart(); renderPaymentBreakdown(); }
+}
+
+$('bSubNav').onclick = e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  switchBudgetTab(btn.dataset.btab);
 };
+
+// The Add tab holds New Log and Transfer as two modes of one form-visiting
+// tab, rather than two separate tabs — switched the same way the Quick
+// Add panes and the Overview Monthly/Weekly toggle already are.
+$('bAddModeToggle').onclick = e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const mode = btn.dataset.baddmode;
+  $('bAddModeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  $('bAddEntryPane').hidden = (mode !== 'entry');
+  $('bTransferPane').hidden = (mode !== 'transfer');
+};
+
+// Overview's spend calendar is hidden by default (the Monthly Report /
+// chart took its spot); Customize brings it back, and the choice is
+// remembered like the other calendar view preferences in this app.
+$('budgetCustomizeBtn').onclick = () => {
+  $('budgetCustomizePanel').hidden = !$('budgetCustomizePanel').hidden;
+};
+$('toggleBudgetCalendar').onchange = async (e) => {
+  const show = e.target.checked;
+  $('bCalendarCard').hidden = !show;
+  await store.set('config:budgetShowCalendar', show);
+  if(show) drawBudgetLogsTab();
+};
+store.get('config:budgetShowCalendar').then(show => {
+  $('toggleBudgetCalendar').checked = !!show;
+  $('bCalendarCard').hidden = !show;
+}).catch(() => {});
 
 async function drawBudgetLogsTab(){
   const y = bCalDate.getFullYear();
@@ -6351,18 +6444,7 @@ function renderMonthLogsList(monthEntries, allEntries){
 }
 
 async function loadBudgetModule(){
-  let accounts = await store.get('budget:accounts');
-  if(!accounts || !accounts.length){
-    accounts = [
-      { id: 'acc_1', name: 'Chase Bank', balance: 3500.00, spentMonth: 0 },
-      { id: 'acc_2', name: 'Apple Card', balance: 1200.00, spentMonth: 0 },
-      { id: 'acc_3', name: 'Cash', balance: 250.00, spentMonth: 0 }
-    ];
-    await store.set('budget:accounts', accounts);
-  }
-
-  let budgetGoal = await store.get('budget:target');
-  if(!budgetGoal) { budgetGoal = 2000.00; await store.set('budget:target', budgetGoal); }
+  let accounts = await getAccounts();
 
   const entries = (await store.get('budget:entries')) || [];
   
@@ -6388,14 +6470,6 @@ async function loadBudgetModule(){
       }
     }
   });
-
-  const budgetRemain = Math.max(0, budgetGoal - monthExpense);
-  const budgetPct = Math.min(100, Math.round((monthExpense / budgetGoal) * 100));
-
-  $('bGoalInput').value = budgetGoal;
-  $('bCurrExp').textContent = `$${monthExpense.toFixed(2)}`;
-  $('bRemain').textContent = `$${budgetRemain.toFixed(2)}`;
-  $('bBar').style.width = `${budgetPct}%`;
 
   $('bRecapInc').textContent = `+$${monthIncome.toFixed(2)}`;
   $('bRecapExp').textContent = `-$${monthExpense.toFixed(2)}`;
@@ -6424,7 +6498,10 @@ async function loadBudgetModule(){
   });
 
   const maxDaySpend = Math.max(...weekDaySpends.map(d => d.exp), 10);
-  const weeklyBudget = Math.round(budgetGoal / 4.3);
+  // No editable "goal" concept on Overview any more — Envelope Budgets now
+  // covers per-category limits, so this stat quietly uses a fixed baseline
+  // rather than exposing another number to configure.
+  const weeklyBudget = Math.round(2000 / 4.3);
   const dailyAvg = (weekTotalExp / (currentDayOfWeek + 1)).toFixed(2);
 
   $('bWeeklyExp').textContent = `-$${weekTotalExp.toFixed(2)}`;
@@ -6455,27 +6532,51 @@ async function loadBudgetModule(){
     $('bRecapWeeklyContent').hidden = (mode !== 'weekly');
   };
 
-  // Populate Accounts dropdowns
-  const accOptions = accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  // Populate Accounts dropdowns — same helper as everywhere else, so
+  // balances shown here always read the same number as the accounts grid.
+  const accOptions = accountOptionsHtml(accounts);
   $('bAccountSelect').innerHTML = accOptions;
   $('trFromAcc').innerHTML = accOptions;
   $('trToAcc').innerHTML = accOptions;
 
-  // Render Accounts Grid — each card opens its own transaction list
-  $('bAccountsGrid').innerHTML = accounts.map(a => `
-    <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
-      <div class="acc-title">
-        <span>${escapeHtml(a.name)}</span>
-        <span class="acc-bal">$${a.balance.toFixed(2)}</span>
-      </div>
-      <div class="acc-spent">Spent this month: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
-    </button>
-  `).join('');
+  // Render Accounts Grid — top-level accounts get a card; any sub-accounts
+  // render as an indented full-width strip right under their parent (grid
+  // auto-placement respects DOM order, so this needs no special layout).
+  if(!accounts.length){
+    $('bAccountsGrid').innerHTML = `<div class="empty" style="grid-column:1/-1;padding:24px 12px;text-align:center;color:var(--ios-label-secondary);font-size:13px">No accounts yet — add one to start tracking balances.</div>`;
+  } else {
+    const topLevel = accounts.filter(a => !a.parentId);
+    $('bAccountsGrid').innerHTML = topLevel.map(a => {
+      const kids = accounts.filter(k => k.parentId === a.id);
+      const card = `
+      <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
+        <div class="acc-title">
+          <span>${escapeHtml(a.name)}</span>
+          <span class="acc-bal">$${a.balance.toFixed(2)}</span>
+        </div>
+        <div class="acc-spent">Spent this month: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
+      </button>`;
+      const kidsHtml = kids.length ? `
+      <div class="acc-subgroup" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;margin:-4px 0 4px 18px">
+        ${kids.map(k => `
+        <button class="acc-card acc-subcard" onclick="openAccountDetail('${k.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font);padding:10px 14px;border-left:2px solid rgba(var(--accent-rgb),0.4)">
+          <div class="acc-title" style="font-size:12.5px">
+            <span>↳ ${escapeHtml(k.name)}</span>
+            <span class="acc-bal" style="font-size:14px">$${k.balance.toFixed(2)}</span>
+          </div>
+        </button>`).join('')}
+      </div>` : '';
+      return card + kidsHtml;
+    }).join('');
+  }
 
   // "＋ Add Account" had markup but no handler — this wires it up.
   $('bAddAccBtn').onclick = () => {
     $('newAccName').value = '';
     $('newAccBalance').value = '';
+    const topLevelAccs = accounts.filter(a => !a.parentId);
+    $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
+      + topLevelAccs.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
     $('addAccModal').hidden = false;
     $('newAccName').focus();
   };
@@ -6484,8 +6585,9 @@ async function loadBudgetModule(){
     const name = $('newAccName').value.trim();
     if(!name) return alert('Give the account a name.');
     const bal = parseFloat($('newAccBalance').value) || 0;
+    const parentId = $('newAccParent').value || null;
     const accs = (await store.get('budget:accounts')) || [];
-    accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0 });
+    accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0, parentId });
     await store.set('budget:accounts', accs);
     $('addAccModal').hidden = true;
     loadBudgetModule();
@@ -6523,6 +6625,11 @@ async function loadBudgetModule(){
   loadTransfersHistory();
   loadOwedList();
   if($('owedDate') && !$('owedDate').value) $('owedDate').value = key(new Date());
+  // The report (chart + payment breakdown) used to live on its own tab,
+  // drawn only when clicked into; it's now part of Overview, so it needs
+  // the same eager draw the calendar and logs list get above.
+  drawReportsChart();
+  renderPaymentBreakdown();
 
   // Keep the account drill-down in step if an edit/delete happened while it
   // was open — those actions route back through loadBudgetModule().
@@ -6679,6 +6786,37 @@ window.openAccountDetail = async (accountId) => {
       </div>`).join('');
   }
 
+  const kids = accounts.filter(a => a.parentId === accountId);
+  $('accDetailAddSubBtn').style.display = acc.parentId ? 'none' : '';
+  $('accDetailAddSubBtn').onclick = () => {
+    $('newAccName').value = '';
+    $('newAccBalance').value = '';
+    const topLevelAccs = accounts.filter(a => !a.parentId);
+    $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
+      + topLevelAccs.map(a => `<option value="${a.id}" ${a.id===accountId?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+    $('accDetailModal').hidden = true;
+    $('addAccModal').hidden = false;
+    $('newAccName').focus();
+  };
+  $('accDetailDeleteBtn').onclick = async () => {
+    const warnBits = [];
+    if(acc.balance !== 0) warnBits.push(`its balance of $${acc.balance.toFixed(2)}`);
+    if(kids.length) warnBits.push(`${kids.length} sub-account${kids.length > 1 ? 's' : ''} (they'll become top-level)`);
+    if(mine.length) warnBits.push(`${mine.length} transaction${mine.length > 1 ? 's' : ''} (they'll stay, unassigned)`);
+    const warn = warnBits.length ? `\n\nThis account has ${warnBits.join(' and ')}.` : '';
+    if(!confirm(`Delete "${acc.name}"?${warn}`)) return;
+    const accs = (await store.get('budget:accounts')) || [];
+    accs.forEach(a => { if(a.parentId === accountId) a.parentId = null; });
+    const idx = accs.findIndex(a => a.id === accountId);
+    if(idx !== -1) accs.splice(idx, 1);
+    await store.set('budget:accounts', accs);
+    $('accDetailModal').hidden = true;
+    accDetailAccountId = null;
+    loadBudgetModule();
+    refreshHub();
+    pill(`"${acc.name}" deleted`);
+  };
+
   $('accDetailModal').hidden = false;
 };
 
@@ -6724,7 +6862,7 @@ window.openSettleOwed = async (id) => {
   settlingOwedId = id;
   $('settleOwedSummary').textContent = `Pay ${o.person} back ${o.amt.toFixed(2)} for ${o.item || 'this'}.`;
   const accounts = await getAccounts();
-  $('settleOwedAccount').innerHTML = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  $('settleOwedAccount').innerHTML = accountOptionsHtml(accounts);
   $('settleOwedModal').hidden = false;
 };
 
@@ -6786,6 +6924,7 @@ function initOwedTracker(){
     const o = owed.find(x => x.id === settlingOwedId);
     if(!o) return;
     const accountId = $('settleOwedAccount').value;
+    if(!accountId) return alert('Add a bank account first — there\'s nowhere to pay this from yet.');
     const accounts = await getAccounts();
     const acc = accounts.find(a => a.id === accountId);
     if(acc) acc.balance -= o.amt;
@@ -6820,7 +6959,7 @@ window.editBudgetEntry = async (idx) => {
   editingEntryIdx = idx;
 
   const accounts = await getAccounts();
-  $('editAccount').innerHTML = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  $('editAccount').innerHTML = accountOptionsHtml(accounts);
   await populateCategorySelects(item.cat);   // fills editCat too, with "+ Add category" included
 
   $('editType').value = item.type;
@@ -6900,17 +7039,17 @@ $('btnExecuteTransfer').onclick = async () => {
   const fromId = $('trFromAcc').value;
   const toId = $('trToAcc').value;
   const amt = parseFloat($('trAmt').value);
+  if(!fromId || !toId) return alert('Add at least two accounts first — there\'s nothing to transfer between yet.');
   if(fromId === toId) return alert('Source and destination accounts must be different.');
   if(isNaN(amt) || amt <= 0) return alert('Please enter a valid amount.');
 
   const accounts = await store.get('budget:accounts');
   const fromAcc = accounts.find(a => a.id === fromId);
   const toAcc = accounts.find(a => a.id === toId);
-  if(fromAcc && toAcc){
-    fromAcc.balance -= amt;
-    toAcc.balance += amt;
-    await store.set('budget:accounts', accounts);
-  }
+  if(!fromAcc || !toAcc) return alert('Pick two valid accounts.');
+  fromAcc.balance -= amt;
+  toAcc.balance += amt;
+  await store.set('budget:accounts', accounts);
 
   const transfers = (await store.get('budget:transfers')) || [];
   transfers.unshift({
@@ -6943,31 +7082,124 @@ async function loadTransfersHistory(){
 }
 
 /* ---------- PILLAR 2: CATEGORY ENVELOPES ---------- */
-async function loadEnvelopes(){
-  const categories = [
-    { name: 'Food', defaultGoal: 600 },
-    { name: 'Transport', defaultGoal: 150 },
-    { name: 'Shopping', defaultGoal: 250 },
-    { name: 'Entertainment', defaultGoal: 100 }
-  ];
-  const entries = (await store.get('budget:entries')) || [];
-  
-  $('envelopeList').innerHTML = categories.map(cat => {
-    const catNameClean = cat.name.split(' ')[0];
-    const spent = entries.filter(e => e.type === 'exp' && e.cat === catNameClean).reduce((acc, x) => acc + x.amt, 0);
-    const limit = cat.defaultGoal;
-    const pct = Math.min(100, Math.round((spent / limit) * 100));
-    const isWarn = pct >= 80;
+// Envelopes are real, persisted records now (budget:envelopes: [{id, cat,
+// limit}]), not a fixed hardcoded four — add/edit/delete all work on that
+// store. loadEnvelopes() renders both the full Envelopes tab (with edit
+// controls) and the read-only summary embedded on Overview from the same
+// data, so the two can never drift apart.
+let editingEnvelopeId = null;
+
+function envelopeRowHtml(env, spent, editable){
+  const pct = Math.min(100, Math.round((spent / env.limit) * 100));
+  const isWarn = pct >= 80;
+  if(editable && editingEnvelopeId === env.id){
     return `
     <div style="background:rgba(255,255,255,0.5);padding:12px;border-radius:14px;border:0.5px solid rgba(255,255,255,0.85);margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px">
-        <span>${cat.name}</span>
-        <span>$${spent.toFixed(2)} / $${limit}</span>
+      <div style="display:flex;gap:8px">
+        <select id="editEnvelopeCat_${env.id}" style="flex:1"></select>
+        <input type="number" id="editEnvelopeLimit_${env.id}" value="${env.limit}" step="0.01" style="width:90px">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="action-btn" style="flex:1;padding:6px;font-size:12px" onclick="saveEnvelopeEdit('${env.id}')">Save</button>
+        <button class="action-btn" style="flex:1;padding:6px;font-size:12px" onclick="cancelEnvelopeEdit()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `
+    <div style="background:rgba(255,255,255,0.5);padding:12px;border-radius:14px;border:0.5px solid rgba(255,255,255,0.85);margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:600;margin-bottom:6px">
+        <span>${escapeHtml(env.cat)}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span>$${spent.toFixed(2)} / $${env.limit.toFixed(2)}</span>
+          ${editable ? `
+          <button class="icon" style="width:22px;height:22px" onclick="editEnvelope('${env.id}')" title="Edit">${PENCIL}</button>
+          <button class="icon danger" style="width:22px;height:22px" onclick="deleteEnvelope('${env.id}')" title="Delete">${CROSS}</button>` : ''}
+        </div>
       </div>
       <div class="bar"><i style="width:${pct}%;background:${isWarn?'#DC2626':'var(--accent)'}"></i></div>
     </div>`;
-  }).join('');
 }
+
+async function loadEnvelopes(){
+  const envelopes = (await store.get('budget:envelopes')) || [];
+  const entries = (await store.get('budget:entries')) || [];
+  const spentByCat = {};
+  entries.forEach(e => { if(e.type === 'exp') spentByCat[e.cat] = (spentByCat[e.cat] || 0) + e.amt; });
+
+  const emptyMsg = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No envelope budgets yet.</div>`;
+
+  if($('envelopeList')){
+    $('envelopeList').innerHTML = envelopes.length
+      ? envelopes.map(env => envelopeRowHtml(env, spentByCat[env.cat] || 0, true)).join('')
+      : emptyMsg;
+    // Wire up the category select for any row currently mid-edit.
+    if(editingEnvelopeId){
+      const cats = await getCategories();
+      const sel = $(`editEnvelopeCat_${editingEnvelopeId}`);
+      const env = envelopes.find(e => e.id === editingEnvelopeId);
+      if(sel && env){
+        sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}" ${c.v===env.cat?'selected':''}>${escapeHtml(c.l)}</option>`).join('');
+      }
+    }
+  }
+  if($('overviewEnvelopeList')){
+    $('overviewEnvelopeList').innerHTML = envelopes.length
+      ? envelopes.map(env => envelopeRowHtml(env, spentByCat[env.cat] || 0, false)).join('')
+      : emptyMsg;
+  }
+
+  if($('newEnvelopeCat')){
+    const cats = await getCategories();
+    const used = new Set(envelopes.map(e => e.cat));
+    const available = cats.filter(c => !used.has(c.v) && c.v !== '__add__');
+    $('newEnvelopeCat').innerHTML = available.length
+      ? available.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
+      : `<option value="">All categories have an envelope</option>`;
+  }
+}
+
+window.editEnvelope = (id) => { editingEnvelopeId = id; loadEnvelopes(); };
+window.cancelEnvelopeEdit = () => { editingEnvelopeId = null; loadEnvelopes(); };
+
+window.saveEnvelopeEdit = async (id) => {
+  const catSel = $(`editEnvelopeCat_${id}`);
+  const limitInput = $(`editEnvelopeLimit_${id}`);
+  const limit = parseFloat(limitInput.value);
+  if(isNaN(limit) || limit <= 0) return alert('Enter a valid limit.');
+  const envelopes = (await store.get('budget:envelopes')) || [];
+  const env = envelopes.find(e => e.id === id);
+  if(!env) return;
+  env.cat = catSel.value;
+  env.limit = limit;
+  await store.set('budget:envelopes', envelopes);
+  editingEnvelopeId = null;
+  loadEnvelopes();
+  pill('Envelope updated');
+};
+
+window.deleteEnvelope = async (id) => {
+  if(!confirm('Delete this envelope budget?')) return;
+  const envelopes = (await store.get('budget:envelopes')) || [];
+  const idx = envelopes.findIndex(e => e.id === id);
+  if(idx === -1) return;
+  envelopes.splice(idx, 1);
+  await store.set('budget:envelopes', envelopes);
+  loadEnvelopes();
+};
+
+if($('addEnvelopeBtn')) $('addEnvelopeBtn').onclick = async () => {
+  const cat = $('newEnvelopeCat').value;
+  const limit = parseFloat($('newEnvelopeLimit').value);
+  if(!cat) return alert('Pick a category.');
+  if(isNaN(limit) || limit <= 0) return alert('Enter a valid limit.');
+  const envelopes = (await store.get('budget:envelopes')) || [];
+  if(envelopes.some(e => e.cat === cat)) return alert('That category already has an envelope — edit it instead.');
+  envelopes.push({ id: 'env_' + Date.now(), cat, limit });
+  await store.set('budget:envelopes', envelopes);
+  $('newEnvelopeLimit').value = '';
+  loadEnvelopes();
+  pill('Envelope added');
+};
 
 /* ---------- PILLAR 3: SUBSCRIPTIONS & REMINDERS (NO ICONS, NO OVERFLOW) ---------- */
 $('btnAddSub').onclick = async () => {
@@ -7200,26 +7432,42 @@ $('btnParseCsvHeaders').onclick = () => {
 
 $('btnConvertImport').onclick = async () => {
   if(csvRowsData.length <= 1) return alert('No data rows to import.');
-  
+
   const dateIdx = +$('mapDate').value;
   const amtIdx = +$('mapAmount').value;
   const catIdx = +$('mapCategory').value;
   const descIdx = +$('mapDesc').value;
   const typeIdx = +$('mapType').value;
+  const accIdx = +$('mapAccount').value;
 
   const entries = (await store.get('budget:entries')) || [];
+  const accounts = await getAccounts();
   let importedCount = 0;
 
   for(let i=1; i<csvRowsData.length; i++){
     const row = csvRowsData[i];
     const amtStr = row[amtIdx] ? row[amtIdx].replace(/[^0-9.-]/g, '') : '0';
-    const amt = parseFloat(amtStr);
+    const amt = Math.abs(parseFloat(amtStr));
     if(isNaN(amt) || amt === 0) continue;
+    const type = row[typeIdx] && row[typeIdx].toLowerCase().includes('inc') ? 'inc' : 'exp';
+
+    // Match the account column against existing accounts (same
+    // substring match Quick Add uses), creating one the first time an
+    // unrecognized name shows up so repeats reuse it rather than each
+    // spawning a fresh account.
+    const accName = row[accIdx] ? row[accIdx].trim() : '';
+    let acc = accName ? matchAccount(accounts, accName) : null;
+    if(!acc && accName){
+      acc = { id: 'acc_' + Date.now() + '_' + i, name: titleCase(accName), balance: 0, spentMonth: 0, parentId: null };
+      accounts.push(acc);
+    }
+    if(acc) acc.balance += (type === 'inc' ? amt : -amt);
 
     entries.unshift({
-      type: row[typeIdx] && row[typeIdx].toLowerCase().includes('inc') ? 'inc' : 'exp',
-      amt: Math.abs(amt),
-      accountId: 'acc_1',
+      id: 'tx_' + Date.now() + '_' + i,
+      type,
+      amt,
+      accountId: acc ? acc.id : null,
       cat: row[catIdx] || 'General',
       desc: row[descIdx] || 'Imported Transaction',
       date: row[dateIdx] || new Date().toLocaleDateString(),
@@ -7228,10 +7476,12 @@ $('btnConvertImport').onclick = async () => {
     importedCount++;
   }
 
+  await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
   $('csvModal').hidden = true;
   pill(`Imported ${importedCount} Transactions`);
   loadBudgetModule();
+  refreshHub();
 };
 
 /* ---------- MULTI-PHOTO UPLOAD & ADD POST ---------- */
@@ -8507,6 +8757,20 @@ window.deleteCustomMilestone = async (idx) => {
   openDayDetailModal(ev);
 };
 
+let editingMilestoneIdx = null;
+
+window.editCustomMilestone = (idx) => {
+  const ev = currentDetailEvent;
+  if(!ev || !ev.customMilestones || !ev.customMilestones[idx]) return;
+  const m = ev.customMilestones[idx];
+  editingMilestoneIdx = idx;
+  $('newMilestoneName').value = m.name || '';
+  $('newMilestoneDays').value = m.days;
+  $('saveMilestoneBtn').textContent = 'Save';
+  $('addMilestoneForm').hidden = false;
+  $('newMilestoneName').focus();
+};
+
 // Sub-events: entries within one event that each count from their own
 // date, rather than the event's own ev.date — the "same group, different
 // piercing dates" case. Always counts up (days since), which matches
@@ -8590,7 +8854,7 @@ function openDayDetailModal(ev){
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         ${m.passed ? '<span class="days-milestone-stat passed">Reached ✓</span>' : `<span class="days-milestone-stat upcoming">in ${m.diff} days</span>`}
-        ${m.type === 'custom' ? `<button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>` : ''}
+        ${m.type === 'custom' ? `<button class="icon" style="width:24px;height:24px" onclick="editCustomMilestone(${m.customIdx})" title="Edit">${PENCIL}</button><button class="icon danger" style="width:24px;height:24px" onclick="deleteCustomMilestone(${m.customIdx})" title="Remove">${CROSS}</button>` : ''}
       </div>
     </div>
   `).join('');
@@ -8601,7 +8865,13 @@ function openDayDetailModal(ev){
   $('addMilestoneForm').hidden = true;
   $('newMilestoneName').value = '';
   $('newMilestoneDays').value = '';
+  $('saveMilestoneBtn').textContent = 'Add';
+  editingMilestoneIdx = null;
   $('addMilestoneBtn').onclick = () => {
+    editingMilestoneIdx = null;
+    $('newMilestoneName').value = '';
+    $('newMilestoneDays').value = '';
+    $('saveMilestoneBtn').textContent = 'Add';
     $('addMilestoneForm').hidden = false;
     $('newMilestoneName').focus();
   };
@@ -8610,10 +8880,16 @@ function openDayDetailModal(ev){
     if(!days || days < 1) return alert('Enter how many days from the start date.');
     const name = $('newMilestoneName').value.trim();
     if(!ev.customMilestones) ev.customMilestones = [];
-    ev.customMilestones.push({ name, days });
+    if(editingMilestoneIdx !== null && ev.customMilestones[editingMilestoneIdx]){
+      ev.customMilestones[editingMilestoneIdx] = { name, days };
+    } else {
+      ev.customMilestones.push({ name, days });
+    }
+    const wasEditing = editingMilestoneIdx !== null;
+    editingMilestoneIdx = null;
     await store.set('days:events', daysEventsCache);
-    openDayDetailModal(ev);   // re-render with the new milestone included
-    pill('Milestone added');
+    openDayDetailModal(ev);   // re-render with the milestone change included
+    pill(wasEditing ? 'Milestone updated' : 'Milestone added');
   };
 
   renderSubEvents(ev);
@@ -9120,6 +9396,35 @@ if ('serviceWorker' in navigator) {
 let isHubReorderMode = false;
 const DEFAULT_HUB_ORDER = ['food', 'budget', 'health', 'mood', 'selfies', 'days'];
 
+// Hub home page customization — hide/show the three cards above the app
+// tile grid. Each toggle mirrors what the Budget Overview's Customize
+// panel already does for its own calendar, so the pattern stays familiar.
+const HUB_CUSTOMIZE_CARDS = [
+  { toggleId: 'toggleHubQuickAdd', cardId: 'quickAdd', configKey: 'config:hubShowQuickAdd' },
+  { toggleId: 'toggleHubCalendarCard', cardId: 'hubMasterCalendarCard', configKey: 'config:hubShowCalendarCard' },
+  { toggleId: 'toggleHubActivity', cardId: 'hubContribCard', configKey: 'config:hubShowActivity' }
+];
+
+async function initHubCustomize(){
+  if($('hubCustomizeBtn')) $('hubCustomizeBtn').onclick = () => {
+    $('hubCustomizePanel').hidden = !$('hubCustomizePanel').hidden;
+  };
+
+  for(const { toggleId, cardId, configKey } of HUB_CUSTOMIZE_CARDS){
+    const toggle = $(toggleId);
+    const card = $(cardId);
+    if(!toggle || !card) continue;
+    const show = await store.get(configKey);
+    const visible = show !== false;   // defaults to shown
+    toggle.checked = visible;
+    card.hidden = !visible;
+    toggle.onchange = async (e) => {
+      card.hidden = !e.target.checked;
+      await store.set(configKey, e.target.checked);
+    };
+  }
+}
+
 async function initHubAppOrder(){
   let order = null;
   try {
@@ -9217,6 +9522,7 @@ async function initApp(){
   initAccountDetailModal();
   initOwedTracker();
   initHubAppOrder().catch(()=>{});
+  initHubCustomize().catch(()=>{});
   // Restore the two calendar view preferences before the first paint of each.
   restoreHubMasterMode().catch(()=>{});
   store.get('config:foodCalView').then(v => {
