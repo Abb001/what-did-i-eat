@@ -394,7 +394,10 @@
   .hub-reorder-controls {
     display: none;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 4px;
+    max-width: 100%;
   }
   .reorder-active .hub-reorder-controls {
     display: flex;
@@ -406,8 +409,9 @@
     display: none !important;
   }
   .hub-order-btn {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
     border-radius: 50%;
     border: 0.5px solid rgba(60, 60, 67, 0.15);
     background: rgba(255, 255, 255, 0.92);
@@ -431,6 +435,12 @@
     border-color: rgba(var(--accent-rgb), 0.35) !important;
     background: rgba(255, 255, 255, 0.88) !important;
   }
+  /* An app marked hidden only dims while reorder mode is open (so it can
+     still be found and un-hidden) — outside reorder mode it's removed from
+     layout entirely via JS, not just faded. */
+  .reorder-active .hub-list-row.app-hidden { opacity: 0.4; }
+  .hub-btn-hide.is-hidden { background: rgba(var(--accent-rgb), 0.16); color: var(--accent-deep); }
+  .hub-btn-hide.is-hidden svg { opacity: 0.6; }
 
   /* ---------- HUB WEEKLY OVERVIEW STRIP ROWS ---------- */
   .hub-week-list {
@@ -904,13 +914,13 @@
   }
   .b-week-bar-fill {
     width: 100%;
-    background: var(--ios-label);
+    background: rgba(var(--accent-rgb), 0.55);
     border-radius: 6px;
     transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     min-height: 2px;
   }
   .b-week-bar-col.today .b-week-bar-fill {
-    background: #E8663D;
+    background: var(--accent-deep);
   }
   .b-week-bar-label {
     font-size: 10.5px;
@@ -3201,6 +3211,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('food', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('food', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('food')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3222,6 +3233,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('budget', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('budget', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('budget')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3241,6 +3253,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('health', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('health', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('health')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3262,6 +3275,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('mood', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('mood', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('mood')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3282,6 +3296,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('selfies', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('selfies', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('selfies')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3305,6 +3320,7 @@
           <div class="hub-reorder-controls">
             <button class="hub-order-btn hub-btn-up" title="Move Up" onclick="event.stopPropagation();moveHubApp('days', -1)">↑</button>
             <button class="hub-order-btn hub-btn-down" title="Move Down" onclick="event.stopPropagation();moveHubApp('days', 1)">↓</button>
+            <button class="hub-order-btn hub-btn-hide" title="Hide from Hub" onclick="event.stopPropagation();toggleHubAppHidden('days')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -3738,8 +3754,9 @@
     <!-- SUB-TAB 2: HEALTH LOGGING FORM -->
     <div class="h-panel" id="hp-form" hidden>
       <div class="mod-card">
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log Daily Health &amp; Wellness</span>
-        
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:2px">Log Daily Health &amp; Wellness</span>
+        <span style="font-size:12px;color:var(--ios-label-secondary);display:block;margin-bottom:12px">Each section below saves on its own — log just your sleep, or just your weight, without filling out the rest.</span>
+
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="hDate">
@@ -3747,7 +3764,10 @@
 
         <!-- 1. SLEEP SECTION -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Sleep &amp; Wake Times</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13.5px;font-weight:700">Sleep &amp; Wake Times</span>
+            <button class="action-btn" id="btnSaveSleepSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
             <div>
               <label style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:2px">Bedtime</label>
@@ -3787,7 +3807,10 @@
 
         <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Menstrual Period &amp; Intimacy</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13.5px;font-weight:700">Menstrual Period &amp; Intimacy</span>
+            <button class="action-btn" id="btnSavePeriodSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
+          </div>
           <div class="cycle-chip-group" id="hPeriodChips">
             <button class="cycle-chip active" data-period="none">None</button>
             <button class="cycle-chip" data-period="started">Started</button>
@@ -3836,7 +3859,10 @@
 
         <!-- 4. MOOD & VITALS -->
         <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
-          <span style="font-size:13.5px;font-weight:700;display:block;margin-bottom:8px">Mood &amp; Energy</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13.5px;font-weight:700">Mood &amp; Energy</span>
+            <button class="action-btn" id="btnSaveMoodSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
+          </div>
           <div class="form-group" style="margin-bottom:8px">
             <label>Mood State</label>
             <select id="hMood">
@@ -3868,11 +3894,14 @@
         </div>
 
         <div class="form-group">
-          <label>Daily Journal / Notes</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <label style="margin-bottom:0">Daily Journal / Notes</label>
+            <button class="action-btn" id="btnSaveNotesSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
+          </div>
           <textarea id="hNotes" rows="2" placeholder="Record symptoms, workout, or thoughts..."></textarea>
         </div>
 
-        <button class="action-btn" id="btnSaveHealth" style="width:100%;margin-top:6px">Save Record</button>
+        <button class="action-btn" id="btnSaveHealth" style="width:100%;margin-top:6px">Save All Sections</button>
       </div>
     </div>
 
@@ -7275,11 +7304,15 @@ $('newAccTypeToggle').onclick = e => {
   if(btn) setAccTypeToggle(btn.dataset.acctype);
 };
 
-// True unless the entry is on an account explicitly marked "asset" — an
-// entry with no account (e.g. friend-paid) still counts as real spending,
-// and any account missing the field defaults to "spending" for backward
-// compatibility with accounts created before this distinction existed.
+// True unless the entry is on an account explicitly marked "asset", or is a
+// debt settlement (paying a friend back — the real spending was already
+// counted the moment it was logged as friend-paid, so the repayment itself
+// isn't new spending). An entry with no account (e.g. friend-paid) still
+// counts as real spending, and any account missing the accType field
+// defaults to "spending" for backward compatibility with accounts created
+// before this distinction existed.
 function isSpendingEntry(entry, accounts){
+  if(entry.isSettlement) return false;
   if(!entry.accountId) return true;
   const acc = accounts.find(a => a.id === entry.accountId);
   return !acc || acc.accType !== 'asset';
@@ -7508,7 +7541,8 @@ function initOwedTracker(){
     entries.unshift({
       id: 'tx_' + Date.now(), type: 'exp', amt: o.amt, accountId,
       cat: 'General', desc: `Paid back ${o.person}`, payment: null,
-      date: today, dateKey: today.slice(0, 7)
+      date: today, dateKey: today.slice(0, 7),
+      isSettlement: true   // the real spending was already counted when this was first logged as friend-paid — this only moves cash to settle the debt, so it must not count as new spending
     });
     await store.set('budget:entries', entries);
     o.settled = true;
@@ -8252,10 +8286,17 @@ function initHealthForm(){
     };
   });
 
-  // Hydration Water Actions
-  $('btnWater250').onclick = () => { currentWaterMl += 250; updateWaterUI(); };
-  $('btnWater500').onclick = () => { currentWaterMl += 500; updateWaterUI(); };
-  $('btnWaterReset').onclick = () => { currentWaterMl = 0; updateWaterUI(); };
+  // Hydration Water Actions — each tap saves immediately (merged into
+  // whatever else the day already has recorded), since a running water
+  // tally is naturally logged a sip at a time rather than all at once.
+  const saveWaterNow = async () => {
+    const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+    await mergeHealthFields(dateVal, { water: currentWaterMl });
+    refreshHealthCalAndHistory();
+  };
+  $('btnWater250').onclick = () => { currentWaterMl += 250; updateWaterUI(); saveWaterNow(); };
+  $('btnWater500').onclick = () => { currentWaterMl += 500; updateWaterUI(); saveWaterNow(); };
+  $('btnWaterReset').onclick = () => { currentWaterMl = 0; updateWaterUI(); saveWaterNow(); };
   updateWaterUI();
 }
 
@@ -8310,6 +8351,7 @@ function resetHealthForm(dateStr){
   $('hWeight').value = '';
   $('hNotes').value = '';
   $('hMood').value = 'Calm';
+  $('hEnergy').value = '4';
 
   selectedSleepQuality = 'Restful';
   setActiveChip('hQualityChips', 'quality-chip', 'Restful', 'quality');
@@ -8342,6 +8384,7 @@ function populateHealthForm(item){
   if(item.weight) $('hWeight').value = item.weight;
   if(item.notes) $('hNotes').value = item.notes;
   if(item.mood) $('hMood').value = item.mood;
+  if(item.energy) $('hEnergy').value = item.energy;
 
   if(item.sleepQuality){
     selectedSleepQuality = item.sleepQuality;
@@ -8383,6 +8426,16 @@ function openHealthDay(dateStr, healthLogs){
   showHealthTab('form');
 }
 
+// Merges fields into a day's record rather than replacing it outright, so
+// saving one section (or one quick action, like a water tap) never wipes
+// out whatever other sections already recorded for that same day.
+async function mergeHealthFields(dateStr, fields){
+  const healthLogs = (await store.get('health:logs')) || {};
+  healthLogs[dateStr] = { ...(healthLogs[dateStr] || {}), ...fields, date: dateStr };
+  await store.set('health:logs', healthLogs);
+  return healthLogs;
+}
+
 $('btnSaveHealth').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
   const bedtime = $('hBedtime').value;
@@ -8392,10 +8445,9 @@ $('btnSaveHealth').onclick = async () => {
   const weight = parseFloat($('hWeight').value) || null;
   const notes = $('hNotes').value.trim();
   const mood = $('hMood').value;
+  const energy = $('hEnergy').value;
 
-  const healthLogs = (await store.get('health:logs')) || {};
-  healthLogs[dateVal] = {
-    date: dateVal,
+  await mergeHealthFields(dateVal, {
     bedtime,
     waketime,
     sleepDuration,
@@ -8407,40 +8459,80 @@ $('btnSaveHealth').onclick = async () => {
     intimacy: intimacyCount,
     protection: selectedProtection,
     mood,
+    energy,
     weight,
     notes
-  };
-
-  await store.set('health:logs', healthLogs);
+  });
   pill('Health Log Saved ✓');
   loadHealthModule();
   showHealthTab('cal');
 };
 
-async function loadHealthModule(){
-  initHealthForm();
+// The four sections below (plus the water quick-add buttons) each save
+// independently — every handler reads only its own inputs and merges just
+// those fields into the day's record, so logging sleep doesn't require
+// also touching mood, period, or anything else.
+$('btnSaveSleepSection').onclick = async () => {
+  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+  const bedtime = $('hBedtime').value;
+  const waketime = $('hWaketime').value;
+  await mergeHealthFields(dateVal, {
+    bedtime, waketime,
+    sleepDuration: calculateSleepDuration(bedtime, waketime),
+    sleepQuality: selectedSleepQuality
+  });
+  pill('Sleep Logged ✓');
+  refreshHealthCalAndHistory();
+};
+
+$('btnSavePeriodSection').onclick = async () => {
+  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+  const flow = $('hFlow').value;
+  await mergeHealthFields(dateVal, {
+    period: selectedPeriodStatus,
+    flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
+    symptoms: Array.from(selectedSymptoms),
+    intimacy: intimacyCount,
+    protection: selectedProtection
+  });
+  pill('Period & Intimacy Logged ✓');
+  refreshHealthCalAndHistory();
+};
+
+$('btnSaveMoodSection').onclick = async () => {
+  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+  const weight = parseFloat($('hWeight').value) || null;
+  await mergeHealthFields(dateVal, {
+    mood: $('hMood').value,
+    energy: $('hEnergy').value,
+    weight
+  });
+  pill('Mood & Vitals Logged ✓');
+  refreshHealthCalAndHistory();
+};
+
+$('btnSaveNotesSection').onclick = async () => {
+  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
+  await mergeHealthFields(dateVal, { notes: $('hNotes').value.trim() });
+  pill('Notes Saved ✓');
+  refreshHealthCalAndHistory();
+};
+
+// Just the calendar + history list, without touching the in-progress form
+// or the quick-stats block (which reads the latest date's water level into
+// the form) — used after a per-section save so the rest of an in-progress
+// day being edited isn't disturbed.
+async function refreshHealthCalAndHistory(){
   const healthLogs = (await store.get('health:logs')) || {};
   const dates = Object.keys(healthLogs).sort().reverse();
 
-  // Update quick stats
-  if(dates.length > 0){
-    const latest = healthLogs[dates[0]];
-    $('hStatSleep').textContent = latest.sleepDuration || '-- h';
-    $('hStatSleepTimes').textContent = `${latest.bedtime || '--'} to ${latest.waketime || '--'} (${latest.sleepQuality || 'Restful'})`;
-    $('hStatWater').textContent = `${latest.water || 0} ml`;
-    currentWaterMl = latest.water || 0;
-    $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
-    $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
-  }
-
-  // Draw Health Calendar
   drawHealthCalendar(healthLogs);
 
-  // Render Health Logs (Newest First)
   const el = $('healthLogsList');
   if(!dates.length){
     el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No health entries yet.<br>Tap "＋ New Log" to track your day.</div>`;
-    return;
+    window.latestHealthLogs = healthLogs;
+    return healthLogs;
   }
 
   el.innerHTML = dates.map(dKey => {
@@ -8459,6 +8551,7 @@ async function loadHealthModule(){
     let waterBadge = item.water ? `<span class="tag" style="font-size:11px">${item.water} ml</span>` : '';
     let weightBadge = item.weight ? `<span class="tag" style="font-size:11px">${item.weight} kg</span>` : '';
     let moodBadge = item.mood ? `<span class="tag" style="font-size:11px">${item.mood}</span>` : '';
+    const hasSleep = item.sleepDuration || item.bedtime || item.waketime;
 
     return `
     <div class="mod-card" style="margin-bottom:12px;padding:14px 16px;cursor:pointer" onclick="openHealthDay('${dKey}', window.latestHealthLogs)">
@@ -8467,7 +8560,7 @@ async function loadHealthModule(){
         <button class="icon danger" onclick="event.stopPropagation();delHealthLog('${dKey}')" title="Delete">${CROSS}</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-        <span class="tag" style="font-size:11.5px">${item.sleepDuration || '--'} (${item.bedtime} - ${item.waketime}) · ${item.sleepQuality || 'Restful'}</span>
+        ${hasSleep ? `<span class="tag" style="font-size:11.5px">${item.sleepDuration || '--'} (${item.bedtime || '--'} - ${item.waketime || '--'}) · ${item.sleepQuality || 'Restful'}</span>` : ''}
         ${periodBadge}
         ${intimacyBadge}
         ${waterBadge}
@@ -8480,6 +8573,24 @@ async function loadHealthModule(){
   }).join('');
 
   window.latestHealthLogs = healthLogs;
+  return healthLogs;
+}
+
+async function loadHealthModule(){
+  initHealthForm();
+  const healthLogs = await refreshHealthCalAndHistory();
+  const dates = Object.keys(healthLogs).sort().reverse();
+
+  // Update quick stats
+  if(dates.length > 0){
+    const latest = healthLogs[dates[0]];
+    $('hStatSleep').textContent = latest.sleepDuration || '-- h';
+    $('hStatSleepTimes').textContent = `${latest.bedtime || '--'} to ${latest.waketime || '--'} (${latest.sleepQuality || 'Restful'})`;
+    $('hStatWater').textContent = `${latest.water || 0} ml`;
+    currentWaterMl = latest.water || 0;
+    $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
+    $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
+  }
 }
 
 window.delHealthLog = async (dateKey) => {
@@ -10207,11 +10318,55 @@ function toggleHubReorderMode(){
   if($('btnEditHubOrder')){
     $('btnEditHubOrder').classList.toggle('active', isHubReorderMode);
   }
+  applyHubHiddenApps();   // hidden rows only reveal themselves (dimmed) while this mode is open
   if(!isHubReorderMode){
     saveCurrentHubAppOrder();
     pill('App Order Saved ✓');
   }
 }
+
+/* ---------- HUB APP HIDING ----------
+   A tile can be hidden from the Hub entirely (e.g. you never use Selfies)
+   without losing its place in the reorder list — un-hiding it later brings
+   it back where it was. Only reachable from Reorder mode, where hidden
+   rows stay visible (dimmed) so there's a way back to un-hide them. */
+let hiddenHubApps = new Set();
+
+async function initHubHiddenApps(){
+  let hidden = null;
+  try {
+    const local = localStorage.getItem('hub:hiddenApps');
+    if(local) hidden = JSON.parse(local);
+  } catch(e){}
+  if(!hidden) hidden = await store.get('hub:hiddenApps');
+  hiddenHubApps = new Set(Array.isArray(hidden) ? hidden : []);
+  applyHubHiddenApps();
+}
+
+function applyHubHiddenApps(){
+  const listEl = $('hubAppList');
+  if(!listEl) return;
+  listEl.querySelectorAll('.hub-list-row').forEach(row => {
+    const appid = row.dataset.appid;
+    const isHidden = hiddenHubApps.has(appid);
+    row.classList.toggle('app-hidden', isHidden);
+    row.style.display = (isHidden && !isHubReorderMode) ? 'none' : '';
+    const btn = row.querySelector('.hub-btn-hide');
+    if(btn){
+      btn.classList.toggle('is-hidden', isHidden);
+      btn.title = isHidden ? 'Show on Hub' : 'Hide from Hub';
+    }
+  });
+}
+
+window.toggleHubAppHidden = async function(appid){
+  if(hiddenHubApps.has(appid)) hiddenHubApps.delete(appid);
+  else hiddenHubApps.add(appid);
+  applyHubHiddenApps();
+  const arr = [...hiddenHubApps];
+  try { localStorage.setItem('hub:hiddenApps', JSON.stringify(arr)); } catch(e){}
+  await store.set('hub:hiddenApps', arr);
+};
 
 window.moveHubApp = async function(appid, direction){
   const listEl = $('hubAppList');
@@ -10260,6 +10415,7 @@ async function initApp(){
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
   initHubAppOrder().catch(()=>{});
+  initHubHiddenApps().catch(()=>{});
   initHubCustomize().catch(()=>{});
   // Restore the two calendar view preferences before the first paint of each.
   restoreHubMasterMode().catch(()=>{});
