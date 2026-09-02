@@ -3089,6 +3089,10 @@
           <input type="text" id="quickMealNote" class="quick-input" placeholder="What did you eat?" enterkeyhint="send">
           <button class="quick-send" id="quickSend_meal" title="Log it" aria-label="Log it">↑</button>
         </div>
+        <!-- Optional — leave nothing selected and the meal is inferred from
+             the clock, same as always. Tapping the active chip again clears
+             it back to that default. -->
+        <div class="quick-cat-chips" id="quickMealChips"></div>
       </div>
 
       <!-- EXPENSE -->
@@ -4943,14 +4947,32 @@ $('btnGistPull').onclick = async () => {
 let quickMode = 'meal';
 let quickPhotos = [];
 
-// Meal is inferred from the clock. Quick Add exists to save taps, and the
-// chip is one tap to change in the day view if the guess is wrong.
+// Meal is inferred from the clock by default. Quick Add exists to save
+// taps, so picking a meal here is optional — leave it unset and this
+// guess is used, same as before; tap a chip only when the guess would be
+// wrong (e.g. a late breakfast logged after 11am).
 function mealFromHour(h){
   if(h < 11) return 'Breakfast';
   if(h < 15) return 'Lunch';
   if(h < 17) return 'Snack';
   if(h < 22) return 'Dinner';
   return 'Late night';
+}
+
+let quickSelectedMeal = null;
+
+function renderQuickMealChips(){
+  const box = $('quickMealChips');
+  if(!box) return;
+  box.innerHTML = MEALS.map(m =>
+    `<button type="button" class="quick-cat-chip ${m === quickSelectedMeal ? 'on' : ''}" data-meal="${m}">${m}</button>`
+  ).join('');
+  box.querySelectorAll('[data-meal]').forEach(b => {
+    b.onclick = () => {
+      quickSelectedMeal = (quickSelectedMeal === b.dataset.meal) ? null : b.dataset.meal;
+      renderQuickMealChips();
+    };
+  });
 }
 
 function renderQuickThumbs(){
@@ -5093,13 +5115,15 @@ async function commitQuickMeal(mode){
   const dk = quickTargetDate();
   const posts = normalizeToPosts((await store.get(`day:${dk}`)) || []);
 
+  const meal = quickSelectedMeal || mealFromHour(now.getHours());
+
   if(mode === 'diff' && quickPhotos.length > 1){
     quickPhotos.forEach((photo, idx) => {
       posts.unshift({
         id: 'post_' + (Date.now() + idx),
         time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
         timeType: 'detail',
-        meal: mealFromHour(now.getHours()),
+        meal,
         note: '',
         photos: [photo],
         aiAnalysis: null
@@ -5110,7 +5134,7 @@ async function commitQuickMeal(mode){
       id: 'post_' + Date.now(),
       time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
       timeType: 'detail',
-      meal: mealFromHour(now.getHours()),
+      meal,
       note,
       photos: quickPhotos,
       aiAnalysis: null
@@ -5124,6 +5148,8 @@ async function commitQuickMeal(mode){
   const count = quickPhotos.length;
   quickPhotos = [];
   noteEl.value = '';
+  quickSelectedMeal = null;
+  renderQuickMealChips();
   renderQuickThumbs();
   syncQuickSend();
   refreshHub();
@@ -5553,6 +5579,8 @@ function refreshHub(){
 
 function initQuickAdd(){
   if(!$('quickAdd')) return;
+
+  renderQuickMealChips();
 
   $('quickModes').onclick = e => {
     const b = e.target.closest('button');
