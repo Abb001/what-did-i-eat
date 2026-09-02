@@ -3120,6 +3120,9 @@
           <input type="text" id="quickExpr" class="quick-input" placeholder="milk tea 200 linepay post" enterkeyhint="send" autocapitalize="off" autocomplete="off" spellcheck="false">
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:2px">
+          <button type="button" class="payment-manage-btn" id="quickCatManageBtn" title="Edit categories">Manage</button>
+        </div>
         <div class="quick-cat-chips" id="quickCatChips"></div>
         <select id="quickCat" class="quick-select" hidden></select>
         <div class="expr-preview" id="quickExprPreview"></div>
@@ -3494,6 +3497,17 @@
         <button class="action-btn" id="bAddAccBtn" style="padding:4px 10px;font-size:12px">＋ Add Account</button>
       </div>
       <div class="acc-grid" id="bAccountsGrid"></div>
+
+      <!-- 2b. NET WORTH BREAKDOWN — every Spending + Asset account (down to
+           sub-accounts) as its own slice. Credit is left out on purpose:
+           it's debt owed, not money on hand. -->
+      <div class="b-recap-card" style="margin-top:16px;text-align:center">
+        <span style="font-weight:600;font-size:13.5px;display:block;margin-bottom:2px">Net Worth Breakdown</span>
+        <span style="font-size:11.5px;color:var(--ios-label-secondary);display:block;margin-bottom:10px">Spending &amp; Asset accounts — excludes Credit</span>
+        <canvas id="netWorthChartCanvas" width="240" height="240" style="margin:0 auto;display:block;touch-action:none;cursor:pointer"></canvas>
+        <div id="netWorthSliceInfo" style="min-height:18px;margin-top:6px;font-size:13px;font-weight:700;color:var(--ios-label)">&nbsp;</div>
+        <div id="netWorthLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:12.5px"></div>
+      </div>
 
       <!-- 3. RECENT TRANSACTIONS -->
       <div class="b-month-header">
@@ -4252,7 +4266,7 @@
 <div class="modal-overlay" id="addCatModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
-      <h3>New Category</h3>
+      <h3 id="addCatModalTitle">New Category</h3>
       <button class="icon danger" id="closeAddCatModal" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
@@ -4262,7 +4276,10 @@
         <label>Name</label>
         <input type="text" id="newCatName" placeholder="e.g. Pets" autocomplete="off">
       </div>
-      <button class="action-btn" id="saveAddCatBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Category</button>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="deleteCatBtn" hidden style="flex:1;padding:11px;background:none;border:none;border-radius:14px;color:var(--ios-red);font-size:13.5px;font-weight:600;cursor:pointer">Delete</button>
+        <button class="action-btn" id="saveAddCatBtn" style="flex:2;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Category</button>
+      </div>
     </div>
   </div>
 </div>
@@ -5238,11 +5255,15 @@ function accountOptionsHtml(accounts){
 }
 
 /* ---------- EXPENSE CATEGORIES ----------
-   Both category pickers (Quick Add's and Budget's) share one list: the
-   fixed defaults plus whatever the user has added, stored at
-   budget:categories. A "+ Add category…" option lives at the end of each
-   select; picking it opens a small modal rather than a category actually
-   being selectable, so the flow the same as it already is for accounts. */
+   Both category pickers (Quick Add's and Budget's) share one list, stored
+   at budget:categories as real {v, l} records — v is what's actually
+   saved on an entry, l is the label shown (they differ only for a couple
+   of the original defaults, e.g. "Entertainment" displays as "Fun"). A
+   "+ Add category…" option lives at the end of each select; picking it
+   opens a small modal rather than a category actually being selectable,
+   same flow as it already is for accounts. Every category — defaults
+   included — can be renamed or deleted from the Quick Add chip strip's
+   Manage mode, the same pattern payment methods already use. */
 const DEFAULT_CATS = [
   { v: 'Food', l: 'Food' },
   { v: 'Transport', l: 'Transport' },
@@ -5253,8 +5274,18 @@ const DEFAULT_CATS = [
 ];
 
 async function getCategories(){
-  const custom = (await store.get('budget:categories')) || [];
-  return [...DEFAULT_CATS, ...custom.map(c => ({ v: c, l: c }))];
+  let cats = (await store.get('budget:categories')) || [];
+  // Older versions stored only custom categories here, as plain strings,
+  // and always prepended the fixed defaults at read time. Fold the
+  // defaults in as real records exactly once — after that, a deleted
+  // default should stay gone rather than reappearing on every read.
+  cats = cats.map(c => typeof c === 'string' ? { v: c, l: c } : c);
+  if(!(await store.get('config:catsSeeded'))){
+    DEFAULT_CATS.forEach(d => { if(!cats.some(c => c.v === d.v)) cats.unshift({ ...d }); });
+    await store.set('config:catsSeeded', true);
+    await store.set('budget:categories', cats);
+  }
+  return cats;
 }
 
 /* ---------- PAYMENT METHODS ----------
@@ -5416,43 +5447,93 @@ async function populateCategorySelects(preferValue){
   renderQuickCatChips();   // the visible control for quickCat; the select above is its value store
 }
 
+let catManageMode = false;
+let editingCatValue = null;
+
 // Quick Add's category picker is chips, not a dropdown — this renders them
 // from the hidden #quickCat select's current options/value, so it never
-// has to duplicate the category list itself.
+// has to duplicate the category list itself. Manage mode swaps the chips
+// for the same editable-chip look payment methods use: tap the label to
+// rename, tap the × to delete — every category, defaults included.
 function renderQuickCatChips(){
   const box = $('quickCatChips');
   const sel = $('quickCat');
   if(!box || !sel) return;
   const current = sel.value;
-  box.innerHTML = [...sel.options].map(o => o.value === '__add__'
-    ? `<button class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`
-    : `<button class="quick-cat-chip ${o.value === current ? 'on' : ''}" data-cv="${escapeHtml(o.value)}">${o.textContent}</button>`
-  ).join('');
+  const opts = [...sel.options].filter(o => o.value !== '__add__');
+
+  if(catManageMode){
+    box.innerHTML = opts.map(o =>
+      `<span class="quick-cat-chip payment-chip-editable" data-cv="${escapeHtml(o.value)}">${o.textContent}<span class="payment-chip-del" data-del="${escapeHtml(o.value)}">${CROSS}</span></span>`
+    ).join('');
+    box.querySelectorAll('[data-cv]').forEach(el => {
+      el.onclick = (e) => {
+        if(e.target.closest('.payment-chip-del')) return;
+        openCatModal(el.dataset.cv);
+      };
+      const delBtn = el.querySelector('.payment-chip-del');
+      if(delBtn) delBtn.onclick = async (e) => { e.stopPropagation(); await deleteCategory(el.dataset.cv); };
+    });
+    return;
+  }
+
+  box.innerHTML = opts.map(o =>
+    `<button class="quick-cat-chip ${o.value === current ? 'on' : ''}" data-cv="${escapeHtml(o.value)}">${o.textContent}</button>`
+  ).join('') + `<button class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`;
   box.querySelectorAll('button').forEach(btn => btn.onclick = () => {
-    if(btn.dataset.cv === '__add__'){
-      $('newCatName').value = '';
-      $('addCatModal').hidden = false;
-      $('newCatName').focus();
-      return;
-    }
+    if(btn.dataset.cv === '__add__'){ openCatModal(null); return; }
     sel.value = btn.dataset.cv;
     renderQuickCatChips();
     renderExprPreview();
   });
 }
 
-// Shared by both category selects' onchange — "__add__" opens the modal,
-// anything else is a real pick and falls through to normal handling.
-function onCatSelectChange(el, thenFn){
-  if(el.value !== '__add__'){ if(thenFn) thenFn(); return; }
+function openCatModal(value){
+  editingCatValue = value;
+  $('addCatModalTitle').textContent = value ? 'Edit Category' : 'New Category';
+  $('saveAddCatBtn').textContent = value ? 'Save' : 'Add Category';
+  $('deleteCatBtn').hidden = !value;
   $('newCatName').value = '';
+  if(value){
+    getCategories().then(cats => {
+      const cat = cats.find(c => c.v === value);
+      if(cat) $('newCatName').value = cat.l;
+    });
+  }
   $('addCatModal').hidden = false;
   $('newCatName').focus();
 }
 
+async function deleteCategory(value){
+  const cats = await getCategories();
+  const cat = cats.find(c => c.v === value);
+  if(!cat) return;
+  if(!confirm(`Delete "${cat.l}"? Past entries keep showing it, but it won't be offered for new ones.`)) return;
+  const idx = cats.findIndex(c => c.v === value);
+  if(idx !== -1) cats.splice(idx, 1);
+  await store.set('budget:categories', cats);
+  await populateCategorySelects();
+  if(typeof loadEnvelopes === 'function') await loadEnvelopes();
+  pill(`"${cat.l}" deleted`);
+}
+
+// Shared by both category selects' onchange — "__add__" opens the modal,
+// anything else is a real pick and falls through to normal handling.
+function onCatSelectChange(el, thenFn){
+  if(el.value !== '__add__'){ if(thenFn) thenFn(); return; }
+  openCatModal(null);
+}
+
 function initCategoryPickers(){
+  $('quickCatManageBtn').onclick = () => {
+    catManageMode = !catManageMode;
+    $('quickCatManageBtn').classList.toggle('on', catManageMode);
+    $('quickCatManageBtn').textContent = catManageMode ? 'Done' : 'Manage';
+    renderQuickCatChips();
+  };
   $('closeAddCatModal').onclick = () => {
     $('addCatModal').hidden = true;
+    editingCatValue = null;
     populateCategorySelects();   // reset the "__add__" placeholder back to a real value
     if(typeof loadEnvelopes === 'function') loadEnvelopes();   // same reset, for the envelope pickers
   };
@@ -5460,16 +5541,50 @@ function initCategoryPickers(){
     const name = $('newCatName').value.trim();
     if(!name) return alert('Give the category a name.');
     const cats = await getCategories();
+    const dupe = cats.some(c => c.v.toLowerCase() === name.toLowerCase() && c.v !== editingCatValue);
+
+    if(editingCatValue){
+      if(dupe) return alert('That category already exists.');
+      const cat = cats.find(c => c.v === editingCatValue);
+      if(cat){
+        const oldV = cat.v;
+        cat.v = name;
+        cat.l = name;
+        await store.set('budget:categories', cats);
+        // Cascade the rename onto entries and envelope budgets so history
+        // and any active envelope keep pointing at the same category.
+        const entries = (await store.get('budget:entries')) || [];
+        let changed = false;
+        entries.forEach(e => { if(e.cat === oldV){ e.cat = name; changed = true; } });
+        if(changed) await store.set('budget:entries', entries);
+        const envelopes = (await store.get('budget:envelopes')) || [];
+        let envChanged = false;
+        envelopes.forEach(env => { if(env.cat === oldV){ env.cat = name; envChanged = true; } });
+        if(envChanged) await store.set('budget:envelopes', envelopes);
+      }
+      $('addCatModal').hidden = true;
+      editingCatValue = null;
+      await populateCategorySelects(name);
+      if(typeof loadEnvelopes === 'function') await loadEnvelopes(name);
+      pill(`Renamed to "${name}"`);
+      return;
+    }
+
     const exists = cats.some(c => c.v.toLowerCase() === name.toLowerCase());
     if(!exists){
-      const custom = (await store.get('budget:categories')) || [];
-      custom.push(name);
-      await store.set('budget:categories', custom);
+      cats.push({ v: name, l: name });
+      await store.set('budget:categories', cats);
     }
     $('addCatModal').hidden = true;
     await populateCategorySelects(name);
     if(typeof loadEnvelopes === 'function') await loadEnvelopes(name);
     pill(exists ? `Using existing "${name}"` : `Category "${name}" added`);
+  };
+  $('deleteCatBtn').onclick = async () => {
+    if(!editingCatValue) return;
+    $('addCatModal').hidden = true;
+    await deleteCategory(editingCatValue);
+    editingCatValue = null;
   };
   // quickCat itself has no onchange wiring — it's a hidden value store now;
   // renderQuickCatChips() owns selection via its own click handlers.
@@ -6825,7 +6940,6 @@ async function save(quiet){
 /* ================= 6-PILLAR EXPANDED BUDGET MODULE ================= */
 let activeBTab = 'overview';
 let bCalDate = new Date();
-let pieSliceData = [];   // {cat, val, startAngle, endAngle, color} per drawn slice, read by the tap/hover handler below
 let expandedAccIds = new Set();   // which parent accounts currently have their sub-accounts expanded
 
 // Shared by the sub-nav click handler and the Overview envelope card's
@@ -7225,6 +7339,7 @@ async function loadBudgetModule(){
   // drawn only when clicked into; it's now part of Overview, so it needs
   // the same eager draw the calendar and logs list get above.
   drawReportsChart();
+  drawNetWorthChart();
   renderPaymentBreakdown();
   renderPaymentChips('bPayment', 'bPaymentChips');
 
@@ -7976,6 +8091,71 @@ window.delSub = async (idx) => {
 };
 
 /* ---------- PILLAR 4: REPORTS CANVAS PIE CHART ---------- */
+// A warm palette built around the app's own peach accent instead of the
+// generic blue/green/red/purple defaults, so every chart in the app reads
+// as part of the same design system rather than a bolted-on library default.
+const CHART_COLORS = ['#F0754A', '#3E7CB1', '#5FA777', '#D9A441', '#B5658A', '#4FB3A9', '#C77B4A', '#8571C2'];
+
+// Draws a donut chart of {label, val} slices onto canvas, fills legendEl
+// with a matching color-coded key, and wires infoEl to show "Label: $X" on
+// tap/hover — shared by the expense breakdown and net worth charts so the
+// drawing and tooltip math (which is identical either way) lives once.
+// Slice geometry is stashed on the canvas element itself (canvas._slices)
+// rather than a shared module variable, so two independent charts on the
+// same page never read each other's data.
+function drawDonutChart(canvas, legendEl, infoEl, slices, emptyText){
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas._slices = [];
+  if(infoEl) infoEl.innerHTML = '&nbsp;';
+
+  // Derived from the canvas's own size rather than hardcoded — the expense
+  // chart's canvas was resized once (280→240) without these coordinates
+  // following, which left the pie drawn off-center and clipped.
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const outerR = Math.min(cx, cy) - 15;
+  const innerR = outerR * (60 / 110);
+
+  const total = slices.reduce((a, s) => a + s.val, 0);
+  if(!total){
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.textAlign = 'center';
+    ctx.fillText(emptyText, cx, cy);
+    if(legendEl) legendEl.innerHTML = '';
+    return;
+  }
+
+  let startAngle = 0;
+  let legendHtml = '';
+
+  slices.forEach((s, i) => {
+    const sliceAngle = (s.val / total) * 2 * Math.PI;
+    const color = CHART_COLORS[i % CHART_COLORS.length];
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    canvas._slices.push({ label: s.label, val: s.val, startAngle, endAngle: startAngle + sliceAngle, color, cx, cy, innerR, outerR });
+    startAngle += sliceAngle;
+    const pct = Math.round((s.val / total) * 100);
+    legendHtml += `<span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px"></i>${escapeHtml(s.label)}: ${pct}%</span>`;
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+
+  if(legendEl) legendEl.innerHTML = legendHtml;
+  initPieChartTooltip(canvas, infoEl);
+}
+
 async function drawReportsChart(){
   const entries = (await store.get('budget:entries')) || [];
   const accounts = await getAccounts();
@@ -7987,71 +8167,27 @@ async function drawReportsChart(){
       catTotals[e.cat] = (catTotals[e.cat] || 0) + e.amt;
     });
 
-  const canvas = $('expenseChartCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  pieSliceData = [];
-  if($('pieSliceInfo')) $('pieSliceInfo').innerHTML = '&nbsp;';
+  const slices = Object.entries(catTotals).map(([label, val]) => ({ label, val }));
+  drawDonutChart($('expenseChartCanvas'), $('chartLegend'), $('pieSliceInfo'), slices, 'No expenses this month');
+}
 
-  // Derived from the canvas's own size rather than hardcoded — the canvas
-  // has been resized before (280→240 when it moved into the Monthly
-  // Report card) without these coordinates following, which left the pie
-  // drawn off-center and clipped against the edge.
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const outerR = Math.min(cx, cy) - 15;
-  const innerR = outerR * (60 / 110);
-
-  // A warm palette built around the app's own peach accent instead of the
-  // generic blue/green/red/purple defaults, so the chart reads as part of
-  // the same design system rather than a bolted-on library default.
-  const colors = ['#F0754A', '#3E7CB1', '#5FA777', '#D9A441', '#B5658A', '#4FB3A9', '#C77B4A', '#8571C2'];
-  const total = Object.values(catTotals).reduce((a, b) => a + b, 0);
-
-  if(!total){
-    ctx.font = '14px -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.textAlign = 'center';
-    ctx.fillText('No expenses this month', cx, cy);
-    $('chartLegend').innerHTML = '';
-    return;
-  }
-
-  let startAngle = 0;
-  let legendHtml = '';
-  const entriesList = Object.entries(catTotals);
-
-  entriesList.forEach(([cat, val], i) => {
-    const sliceAngle = (val / total) * 2 * Math.PI;
-    const color = colors[i % colors.length];
-
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    pieSliceData.push({ cat, val, startAngle, endAngle: startAngle + sliceAngle, color, cx, cy, innerR, outerR });
-    startAngle += sliceAngle;
-    const pct = Math.round((val / total) * 100);
-    legendHtml += `<span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px"></i>${cat}: ${pct}%</span>`;
-  });
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fill();
-
-  $('chartLegend').innerHTML = legendHtml;
-  initPieChartTooltip(canvas);
+// All the money you actually have — every Spending and Asset account, down
+// to sub-account granularity, as its own slice. Credit accounts are left
+// out on purpose: their balance is debt owed, not money on hand, and a
+// donut chart can't represent a negative slice anyway.
+async function drawNetWorthChart(){
+  const accounts = await getAccounts();
+  const slices = accounts
+    .filter(a => a.accType !== 'credit' && a.balance > 0)
+    .map(a => ({ label: a.name, val: a.balance }));
+  drawDonutChart($('netWorthChartCanvas'), $('netWorthLegend'), $('netWorthSliceInfo'), slices, 'No account balances yet');
 }
 
 // Reads the pointer's position relative to the canvas and, if it falls
 // inside the donut ring, finds which slice (by angle) it's over — bound
-// once per canvas (guarded by a dataset flag) since drawReportsChart runs
-// on every refresh but the listener itself never needs to change.
-function initPieChartTooltip(canvas){
+// once per canvas (guarded by a dataset flag) since the draw functions
+// above run on every refresh but the listener itself never needs to change.
+function initPieChartTooltip(canvas, infoEl){
   if(canvas.dataset.tooltipBound) return;
   canvas.dataset.tooltipBound = '1';
 
@@ -8059,24 +8195,24 @@ function initPieChartTooltip(canvas){
     const rect = canvas.getBoundingClientRect();
     const x = (clientX - rect.left) * (canvas.width / rect.width);
     const y = (clientY - rect.top) * (canvas.height / rect.height);
-    if(!pieSliceData.length) return;
-    const { cx, cy, innerR, outerR } = pieSliceData[0];
+    const slices = canvas._slices || [];
+    if(!slices.length || !infoEl) return;
+    const { cx, cy, innerR, outerR } = slices[0];
     const dx = x - cx, dy = y - cy;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const info = $('pieSliceInfo');
-    if(!info || dist < innerR || dist > outerR){ if(info) info.innerHTML = '&nbsp;'; return; }
+    if(dist < innerR || dist > outerR){ infoEl.innerHTML = '&nbsp;'; return; }
     // Canvas arcs start at angle 0 along the +x axis and sweep clockwise as
     // the angle grows (since canvas y points down) — atan2(dy, dx) uses the
     // same convention, so it lines up with startAngle/endAngle directly.
     let angle = Math.atan2(dy, dx);
     if(angle < 0) angle += 2 * Math.PI;
-    const slice = pieSliceData.find(s => angle >= s.startAngle && angle < s.endAngle) || pieSliceData[pieSliceData.length - 1];
-    if(slice) info.innerHTML = `<span style="color:${slice.color}">${escapeHtml(slice.cat)}: $${slice.val.toFixed(2)}</span>`;
+    const slice = slices.find(s => angle >= s.startAngle && angle < s.endAngle) || slices[slices.length - 1];
+    if(slice) infoEl.innerHTML = `<span style="color:${slice.color}">${escapeHtml(slice.label)}: $${slice.val.toFixed(2)}</span>`;
   };
 
   canvas.addEventListener('pointermove', e => showSliceAt(e.clientX, e.clientY));
   canvas.addEventListener('pointerdown', e => showSliceAt(e.clientX, e.clientY));
-  canvas.addEventListener('pointerleave', () => { const info = $('pieSliceInfo'); if(info) info.innerHTML = '&nbsp;'; });
+  canvas.addEventListener('pointerleave', () => { if(infoEl) infoEl.innerHTML = '&nbsp;'; });
 }
 
 /* Spend grouped by how it was paid. Payment is a free-text field (whatever
