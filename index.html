@@ -2929,6 +2929,73 @@
   .fw-chev { color: var(--ios-label-tertiary); display: flex; flex-shrink: 0; }
   .fw-chev svg { width: 16px; height: 16px; }
 
+  /* Food Diary "List" view — every logged day in the month at a glance,
+     newest first, without having to tap into the day sheet just to see
+     what was eaten. */
+  .food-list-day {
+    background: var(--lg-clear);
+    backdrop-filter: var(--lg-filter-thin);
+    -webkit-backdrop-filter: var(--lg-filter-thin);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px -2px rgba(72, 45, 34, 0.10), var(--lg-depth);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-family: var(--ios-font);
+    transition: transform 0.4s var(--lg-spring), background 0.18s ease, box-shadow 0.25s ease;
+  }
+  .food-list-day:hover {
+    background: var(--lg-clear-hi);
+    transform: translateY(-1px);
+    box-shadow: var(--lg-cast-lift), var(--lg-depth);
+  }
+  .food-list-date {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ios-label);
+    margin-bottom: 8px;
+  }
+  .food-list-date .today-mark { color: var(--accent-deep); }
+  .food-list-post {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+  }
+  .food-list-post + .food-list-post {
+    border-top: 0.5px solid rgba(60, 60, 67, 0.08);
+  }
+  .food-list-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--ios-fill);
+    flex-shrink: 0;
+  }
+  .food-list-post-info {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .food-list-meal {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-deep);
+  }
+  .food-list-note {
+    font-size: 12px;
+    color: var(--ios-label-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .loading { text-align: center; color: var(--ios-label-tertiary); font-size: 14px; padding: 60px 0; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -3258,6 +3325,7 @@
     <div class="view-toggle" id="foodCalToggle" style="width:fit-content;margin-bottom:14px">
       <button data-fview="month" class="active">Month</button>
       <button data-fview="week">Week</button>
+      <button data-fview="list">List</button>
     </div>
     <div id="foodMonthView">
       <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
@@ -3265,6 +3333,9 @@
     </div>
     <div id="foodWeekView" hidden>
       <div class="food-week-list" id="foodWeekList"></div>
+    </div>
+    <div id="foodListView" hidden>
+      <div id="foodListContent"></div>
     </div>
     <div class="legend" id="calLegend">Logged days show the first photo from that day.<br>Tap any day to view multi-photo posts or analyze calories with AI.</div>
     <div class="foot">
@@ -3374,6 +3445,7 @@
             <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
           </div>
         </div>
+        <div id="bRecapAssetNote" hidden style="font-size:11px;color:var(--ios-label-tertiary);margin-top:8px">Excludes Asset accounts — see the Assets group below.</div>
 
         <!-- 7-Day Mini Bar Chart -->
         <div style="margin-top:14px;padding-top:14px;border-top:0.5px solid var(--ios-separator)">
@@ -3990,6 +4062,14 @@
       <div class="form-group">
         <label id="newAccBalanceLabel">Starting balance</label>
         <input type="number" id="newAccBalance" placeholder="0.00" inputmode="decimal" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <div class="view-toggle" id="newAccTypeToggle" style="width:fit-content">
+          <button type="button" class="active" data-acctype="spending">Spending</button>
+          <button type="button" data-acctype="asset">Asset</button>
+        </div>
+        <div style="font-size:11.5px;color:var(--ios-label-secondary);margin-top:6px;line-height:1.4">Spending accounts (checking, cash, cards) count toward Spent/Income/Net. Asset accounts (investments, savings) are tracked separately and left out of those totals.</div>
       </div>
       <div class="form-group">
         <label>Parent account (optional)</label>
@@ -6047,12 +6127,15 @@ function mondayOf(d){
 function applyFoodCalView(){
   if($('foodMonthView')) $('foodMonthView').hidden = (foodCalView !== 'month');
   if($('foodWeekView')) $('foodWeekView').hidden = (foodCalView !== 'week');
+  if($('foodListView')) $('foodListView').hidden = (foodCalView !== 'list');
   const t = $('foodCalToggle');
   if(t) t.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.fview === foodCalView));
   const legend = $('calLegend');
   if(legend){
     legend.innerHTML = foodCalView === 'week'
       ? 'A week at a time, with a bigger thumbnail for each day.<br>Tap any day to view or edit its entries.'
+      : foodCalView === 'list'
+      ? 'Every logged day this month, newest first.<br>Tap a day to open its full entries.'
       : 'Logged days show the first photo from that day.<br>Tap any day to view multi-photo posts or analyze calories with AI.';
   }
 }
@@ -6062,7 +6145,64 @@ async function loadMonth(){
   monthIdx = (await store.get(mk)) || {};
   await reconcile(mk, monthIdx);
   if(foodCalView === 'week') await drawFoodWeek();
+  else if(foodCalView === 'list') await drawFoodList();
   else drawMonth();
+}
+
+// "List" view — every logged day in the on-screen month, newest first,
+// with each post's meal tag, note preview and first photo visible without
+// tapping in. monthIdx already says which days have something logged;
+// this just fetches each of those days' real posts to show what.
+async function drawFoodList(){
+  $('mTitle').innerHTML = `${MONTHS[view.getMonth()]} <span class="yr">${view.getFullYear()}</span>`;
+  const y = view.getFullYear(), m = view.getMonth();
+  const curMonthKey = `${y}-${pad(m + 1)}`;
+  const today = new Date();
+  const todayK = key(today);
+  const isThisMonth = (today.getFullYear() === y && today.getMonth() === m);
+
+  const loggedDays = Object.keys(monthIdx).sort().reverse();   // "dd" strings, newest first
+  $('tallyTxt').textContent = `${loggedDays.length} day${loggedDays.length === 1 ? '' : 's'} logged this month`;
+  const elapsed = isThisMonth ? today.getDate() : new Date(y, m + 1, 0).getDate();
+  $('tallyBar').style.width = `${Math.min(100, Math.round((loggedDays.length / elapsed) * 100))}%`;
+  $('next').disabled = (y === today.getFullYear() && m === today.getMonth());
+
+  const el = $('foodListContent');
+  if(!loggedDays.length){
+    el.innerHTML = `<div class="empty" style="padding:32px 16px;text-align:center;color:var(--ios-label-tertiary);font-size:13.5px">No entries logged this month yet.</div>`;
+    return;
+  }
+
+  const cards = await Promise.all(loggedDays.map(async dd => {
+    const dateStr = `${curMonthKey}-${dd}`;
+    const posts = sortPostsByMeal(normalizeToPosts((await store.get(`day:${dateStr}`)) || []));
+    const d = new Date(+y, m, +dd);
+    const dateLabel = `${WD[d.getDay()]}, ${MONTHS[m]} ${+dd}${dateStr === todayK ? ' <span class="today-mark">· Today</span>' : ''}`;
+
+    const postsHtml = posts.map(p => {
+      const thumb = p.photos && p.photos[0] ? (p.photos[0].thumb || p.photos[0].src) : null;
+      const note = (p.note || '').trim();
+      return `
+      <div class="food-list-post">
+        <div class="food-list-thumb" ${thumb ? `style="background-image:url(${thumb})"` : ''}></div>
+        <div class="food-list-post-info">
+          <span class="food-list-meal">${escapeHtml(p.meal || 'Note')}</span>
+          ${note ? `<span class="food-list-note">${escapeHtml(note)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+    <button class="food-list-day" data-fld="${dateStr}">
+      <div class="food-list-date">${dateLabel}</div>
+      ${postsHtml || `<div class="food-list-note">No entries</div>`}
+    </button>`;
+  }));
+
+  el.innerHTML = cards.join('');
+  el.querySelectorAll('[data-fld]').forEach(b => {
+    b.onclick = () => openDaySheet(b.dataset.fld);
+  });
 }
 
 async function drawFoodWeek(){
@@ -6675,13 +6815,17 @@ async function drawBudgetLogsTab(){
   const total = Math.ceil((start + daysInM) / 7) * 7;
 
   const entries = (await store.get('budget:entries')) || [];
+  const accounts = await getAccounts();
   const curMonthKey = `${y}-${pad(m + 1)}`;
   const monthEntries = entries.filter(e => e.date && e.date.startsWith(curMonthKey));
 
-  // Tally for the month
+  // Tally for the month — asset-account entries (investments, savings) are
+  // excluded from the spent/income tally so it reads as real cash flow,
+  // same as the Monthly Report stats above.
   let monthSpent = 0, monthInc = 0;
   const dayTotals = {};
   monthEntries.forEach(e => {
+    if(!isSpendingEntry(e, accounts)) return;
     if(e.type === 'exp') monthSpent += e.amt;
     else monthInc += e.amt;
     const dStr = e.date;
@@ -6805,10 +6949,10 @@ async function loadBudgetModule(){
     const isThisMonth = item.date ? item.date.startsWith(curMonthKey) : true;
     if(isThisMonth){
       if(item.type === 'exp'){
-        monthExpense += item.amt;
         const acc = accounts.find(a => a.id === item.accountId);
-        if(acc) acc.spentMonth += item.amt;
-      } else {
+        if(acc) acc.spentMonth += item.amt;   // per-account total always counts its own activity, regardless of type
+        if(isSpendingEntry(item, accounts)) monthExpense += item.amt;
+      } else if(isSpendingEntry(item, accounts)){
         monthIncome += item.amt;
       }
     }
@@ -6817,6 +6961,7 @@ async function loadBudgetModule(){
   $('bRecapInc').textContent = `+$${monthIncome.toFixed(2)}`;
   $('bRecapExp').textContent = `-$${monthExpense.toFixed(2)}`;
   $('bRecapNet').textContent = `$${(monthIncome - monthExpense).toFixed(2)}`;
+  if($('bRecapAssetNote')) $('bRecapAssetNote').hidden = !accounts.some(a => a.accType === 'asset');
 
   // Calculate Weekly Statistics & 7-Day Mini Bar Breakdown
   const today = new Date();
@@ -6834,7 +6979,7 @@ async function loadBudgetModule(){
   const weekDayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   let weekTotalExp = 0;
   const weekDaySpends = weekDays.map(dateStr => {
-    const dayExp = entries.filter(e => e.date === dateStr && e.type === 'exp')
+    const dayExp = entries.filter(e => e.date === dateStr && e.type === 'exp' && isSpendingEntry(e, accounts))
                           .reduce((sum, e) => sum + e.amt, 0);
     weekTotalExp += dayExp;
     return { dateStr, exp: dayExp };
@@ -6867,19 +7012,22 @@ async function loadBudgetModule(){
   // Render Accounts Grid — top-level accounts get a card; any sub-accounts
   // render as an indented full-width strip right under their parent (grid
   // auto-placement respects DOM order, so this needs no special layout).
+  // Grouped into Spending vs. Asset sections, each with its own subtotal,
+  // so it's visually obvious which accounts feed the Spent/Income/Net
+  // stats above and which are tracked separately (net worth, not cash flow).
   if(!accounts.length){
     $('bAccountsGrid').innerHTML = `<div class="empty" style="grid-column:1/-1;padding:24px 12px;text-align:center;color:var(--ios-label-secondary);font-size:13px">No accounts yet — add one to start tracking balances.</div>`;
   } else {
-    const topLevel = accounts.filter(a => !a.parentId);
-    $('bAccountsGrid').innerHTML = topLevel.map(a => {
+    const renderCard = a => {
       const kids = accounts.filter(k => k.parentId === a.id);
+      const spentLabel = a.accType === 'asset' ? 'Withdrawn this month' : 'Spent this month';
       const card = `
       <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
         <div class="acc-title">
           <span>${escapeHtml(a.name)}</span>
           <span class="acc-bal">$${a.balance.toFixed(2)}</span>
         </div>
-        <div class="acc-spent">Spent this month: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
+        <div class="acc-spent">${spentLabel}: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
       </button>`;
       const kidsHtml = kids.length ? `
       <div class="acc-subgroup" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;margin:-4px 0 4px 18px">
@@ -6892,7 +7040,22 @@ async function loadBudgetModule(){
         </button>`).join('')}
       </div>` : '';
       return card + kidsHtml;
-    }).join('');
+    };
+
+    const groupLabel = (text, total) => `
+      <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;color:var(--ios-label-tertiary);margin:${text==='Spending'?'0':'8px'} 2px 2px">
+        <span>${text}</span><span>$${total.toFixed(2)}</span>
+      </div>`;
+
+    const spendingAccs = accounts.filter(a => !a.parentId && a.accType !== 'asset');
+    const assetAccs = accounts.filter(a => !a.parentId && a.accType === 'asset');
+    const spendingTotal = accounts.filter(a => a.accType !== 'asset').reduce((s, a) => s + a.balance, 0);
+    const assetTotal = accounts.filter(a => a.accType === 'asset').reduce((s, a) => s + a.balance, 0);
+
+    let gridHtml = '';
+    if(spendingAccs.length) gridHtml += groupLabel('Spending', spendingTotal) + spendingAccs.map(renderCard).join('');
+    if(assetAccs.length) gridHtml += groupLabel('Assets', assetTotal) + assetAccs.map(renderCard).join('');
+    $('bAccountsGrid').innerHTML = gridHtml;
   }
 
   // "＋ Add Account" had markup but no handler — this wires it up.
@@ -6908,6 +7071,7 @@ async function loadBudgetModule(){
     const topLevelAccs = accounts.filter(a => !a.parentId);
     $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
       + topLevelAccs.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+    setAccTypeToggle('spending');
     $('addAccModal').hidden = false;
     $('newAccName').focus();
   };
@@ -6928,6 +7092,7 @@ async function loadBudgetModule(){
       acc.name = name;
       acc.balance = bal;   // a direct correction, not a transaction — e.g. reconciling with the real bank balance
       acc.parentId = parentId;
+      acc.accType = newAccTypeSelected;
       await store.set('budget:accounts', accs);
       $('addAccModal').hidden = true;
       const wasEditingId = editingAccountId;
@@ -6939,7 +7104,7 @@ async function loadBudgetModule(){
       return;
     }
 
-    accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0, parentId });
+    accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0, parentId, accType: newAccTypeSelected });
     await store.set('budget:accounts', accs);
     $('addAccModal').hidden = true;
     loadBudgetModule();
@@ -7099,6 +7264,26 @@ $('bAddBtn').onclick = async () => {
    else — same modal, same account-balance math, same refresh. */
 let accDetailAccountId = null;
 let editingAccountId = null;
+let newAccTypeSelected = 'spending';
+
+function setAccTypeToggle(type){
+  newAccTypeSelected = type === 'asset' ? 'asset' : 'spending';
+  $('newAccTypeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.acctype === newAccTypeSelected));
+}
+$('newAccTypeToggle').onclick = e => {
+  const btn = e.target.closest('[data-acctype]');
+  if(btn) setAccTypeToggle(btn.dataset.acctype);
+};
+
+// True unless the entry is on an account explicitly marked "asset" — an
+// entry with no account (e.g. friend-paid) still counts as real spending,
+// and any account missing the field defaults to "spending" for backward
+// compatibility with accounts created before this distinction existed.
+function isSpendingEntry(entry, accounts){
+  if(!entry.accountId) return true;
+  const acc = accounts.find(a => a.id === entry.accountId);
+  return !acc || acc.accType !== 'asset';
+}
 
 window.openAccountDetail = async (accountId) => {
   accDetailAccountId = accountId;
@@ -7157,6 +7342,7 @@ window.openAccountDetail = async (accountId) => {
     const topLevelAccs = accounts.filter(a => !a.parentId);
     $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
       + topLevelAccs.map(a => `<option value="${a.id}" ${a.id===accountId?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+    setAccTypeToggle(acc.accType || 'spending');   // sub-account inherits its parent's type by default
     $('accDetailModal').hidden = true;
     $('addAccModal').hidden = false;
     $('newAccName').focus();
@@ -7175,6 +7361,7 @@ window.openAccountDetail = async (accountId) => {
     // one (nesting only goes one level deep) — lock it to top-level.
     $('newAccParent').disabled = kids.length > 0;
     $('newAccParent').title = kids.length > 0 ? "Already has sub-accounts, so it can't become one itself." : '';
+    setAccTypeToggle(acc.accType || 'spending');
     $('accDetailModal').hidden = true;
     $('addAccModal').hidden = false;
     $('newAccName').focus();
@@ -7516,8 +7703,9 @@ function envelopeRowHtml(env, spent, editable){
 async function loadEnvelopes(preferCat){
   const envelopes = (await store.get('budget:envelopes')) || [];
   const entries = (await store.get('budget:entries')) || [];
+  const accounts = await getAccounts();
   const spentByCat = {};
-  entries.forEach(e => { if(e.type === 'exp') spentByCat[e.cat] = (spentByCat[e.cat] || 0) + e.amt; });
+  entries.forEach(e => { if(e.type === 'exp' && isSpendingEntry(e, accounts)) spentByCat[e.cat] = (spentByCat[e.cat] || 0) + e.amt; });
 
   const emptyMsg = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No envelope budgets yet.</div>`;
 
@@ -7646,8 +7834,9 @@ window.delSub = async (idx) => {
 /* ---------- PILLAR 4: REPORTS CANVAS PIE CHART ---------- */
 async function drawReportsChart(){
   const entries = (await store.get('budget:entries')) || [];
+  const accounts = await getAccounts();
   const catTotals = {};
-  entries.filter(e => e.type === 'exp').forEach(e => {
+  entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts)).forEach(e => {
     catTotals[e.cat] = (catTotals[e.cat] || 0) + e.amt;
   });
 
@@ -7664,7 +7853,10 @@ async function drawReportsChart(){
   const outerR = Math.min(cx, cy) - 15;
   const innerR = outerR * (60 / 110);
 
-  const colors = ['#2563EB', '#16A34A', '#D97706', '#DC2626', '#9333EA', '#0891B2'];
+  // A warm palette built around the app's own peach accent instead of the
+  // generic blue/green/red/purple defaults, so the chart reads as part of
+  // the same design system rather than a bolted-on library default.
+  const colors = ['#F0754A', '#3E7CB1', '#5FA777', '#D9A441', '#B5658A', '#4FB3A9', '#C77B4A', '#8571C2'];
   const total = Object.values(catTotals).reduce((a, b) => a + b, 0);
 
   if(!total){
@@ -7712,7 +7904,8 @@ async function renderPaymentBreakdown(){
   const el = $('paymentBreakdown');
   if(!el) return;
   const entries = (await store.get('budget:entries')) || [];
-  const expenses = entries.filter(e => e.type === 'exp');
+  const accounts = await getAccounts();
+  const expenses = entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts));
 
   const totals = {};   // key: lowercase payment -> { label, amt }
   let untracked = 0;
@@ -7977,7 +8170,6 @@ $('closeMultiPhotoModal').onclick = $('btnCancelMultiPhoto').onclick = () => {
 let healthCalDate = new Date();
 let selectedPeriodStatus = 'none';
 let selectedSleepQuality = 'Restful';
-let selectedMood = 'Great';
 let selectedSymptoms = new Set();
 let currentWaterMl = 0;
 let intimacyCount = 0;
@@ -8060,20 +8252,7 @@ function initHealthForm(){
     };
   });
 
-  // Mood Chips
-  $('hMoodChips').querySelectorAll('.mood-chip').forEach(chip => {
-    chip.onclick = () => {
-      $('hMoodChips').querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      selectedMood = chip.dataset.mood;
-    };
-  });
-
   // Hydration Water Actions
-  const updateWaterUI = () => {
-    $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
-    $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
-  };
   $('btnWater250').onclick = () => { currentWaterMl += 250; updateWaterUI(); };
   $('btnWater500').onclick = () => { currentWaterMl += 500; updateWaterUI(); };
   $('btnWaterReset').onclick = () => { currentWaterMl = 0; updateWaterUI(); };
@@ -8101,19 +8280,106 @@ if($('healthSubNav')){
 }
 
 if($('btnGoNewHealthLog')){
-  $('btnGoNewHealthLog').onclick = () => showHealthTab('form');
+  $('btnGoNewHealthLog').onclick = () => {
+    resetHealthForm(new Date().toISOString().slice(0, 10));
+    showHealthTab('form');
+  };
+}
+
+function setActiveChip(groupId, chipClass, value, dataAttr){
+  const group = $(groupId);
+  if(!group) return;
+  group.querySelectorAll(`.${chipClass}`).forEach(c => {
+    c.classList.toggle('active', c.dataset[dataAttr] === value);
+  });
+}
+
+function updateWaterUI(){
+  $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`;
+  $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
+}
+
+// Every field the form can hold, set back to its blank/default state — used
+// both for "+ New Log" (so nothing from a previous entry leaks in) and as
+// the starting point before populateHealthForm() layers a real entry on top.
+function resetHealthForm(dateStr){
+  $('hDate').value = dateStr;
+  $('hBedtime').value = '';
+  $('hWaketime').value = '';
+  $('hSleepDurationTxt').textContent = calculateSleepDuration('', '');
+  $('hWeight').value = '';
+  $('hNotes').value = '';
+  $('hMood').value = 'Calm';
+
+  selectedSleepQuality = 'Restful';
+  setActiveChip('hQualityChips', 'quality-chip', 'Restful', 'quality');
+
+  selectedPeriodStatus = 'none';
+  setActiveChip('hPeriodChips', 'cycle-chip', 'none', 'period');
+  $('hFlowGroup').hidden = true;
+  $('hFlow').value = 'Medium';
+
+  selectedSymptoms = new Set();
+  $('hSymptomChips').querySelectorAll('.symptom-chip').forEach(c => c.classList.remove('active'));
+
+  intimacyCount = 0;
+  $('hIntimacyCountTxt').textContent = '0 times';
+  selectedProtection = 'none';
+  setActiveChip('hIntimacyChips', 'symptom-chip', 'none', 'protect');
+
+  currentWaterMl = 0;
+  updateWaterUI();
+}
+
+// Layers a saved entry's fields on top of the reset state above — whatever
+// the entry didn't record (an older log saved before a field existed, say)
+// just keeps the default resetHealthForm() already put there.
+function populateHealthForm(item){
+  if(!item) return;
+  if(item.bedtime) $('hBedtime').value = item.bedtime;
+  if(item.waketime) $('hWaketime').value = item.waketime;
+  $('hSleepDurationTxt').textContent = calculateSleepDuration($('hBedtime').value, $('hWaketime').value);
+  if(item.weight) $('hWeight').value = item.weight;
+  if(item.notes) $('hNotes').value = item.notes;
+  if(item.mood) $('hMood').value = item.mood;
+
+  if(item.sleepQuality){
+    selectedSleepQuality = item.sleepQuality;
+    setActiveChip('hQualityChips', 'quality-chip', item.sleepQuality, 'quality');
+  }
+
+  if(item.period){
+    selectedPeriodStatus = item.period;
+    setActiveChip('hPeriodChips', 'cycle-chip', item.period, 'period');
+    $('hFlowGroup').hidden = (item.period === 'none' || item.period === 'ended');
+    if(item.flow) $('hFlow').value = item.flow;
+  }
+
+  if(item.symptoms && item.symptoms.length){
+    selectedSymptoms = new Set(item.symptoms);
+    $('hSymptomChips').querySelectorAll('.symptom-chip').forEach(c => {
+      c.classList.toggle('active', selectedSymptoms.has(c.dataset.sym));
+    });
+  }
+
+  if(item.intimacy){
+    intimacyCount = item.intimacy;
+    $('hIntimacyCountTxt').textContent = `${intimacyCount} times`;
+  }
+  if(item.protection){
+    selectedProtection = item.protection;
+    setActiveChip('hIntimacyChips', 'symptom-chip', item.protection, 'protect');
+  }
+
+  if(item.water){
+    currentWaterMl = item.water;
+    updateWaterUI();
+  }
 }
 
 function openHealthDay(dateStr, healthLogs){
-  $('hDate').value = dateStr;
-  const item = healthLogs[dateStr];
-  if(item){
-    if(item.bedtime) $('hBedtime').value = item.bedtime;
-    if(item.waketime) $('hWaketime').value = item.waketime;
-    if(item.weight) $('hWeight').value = item.weight;
-    if(item.notes) $('hNotes').value = item.notes;
-    if(item.water) { currentWaterMl = item.water; $('hWaterValTxt').textContent = `${currentWaterMl} / 2000 ml`; $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`; }
-  }
+  resetHealthForm(dateStr);
+  populateHealthForm(healthLogs[dateStr]);
   showHealthTab('form');
 }
 
@@ -8125,6 +8391,7 @@ $('btnSaveHealth').onclick = async () => {
   const flow = $('hFlow').value;
   const weight = parseFloat($('hWeight').value) || null;
   const notes = $('hNotes').value.trim();
+  const mood = $('hMood').value;
 
   const healthLogs = (await store.get('health:logs')) || {};
   healthLogs[dateVal] = {
@@ -8139,7 +8406,7 @@ $('btnSaveHealth').onclick = async () => {
     symptoms: Array.from(selectedSymptoms),
     intimacy: intimacyCount,
     protection: selectedProtection,
-    mood: selectedMood,
+    mood,
     weight,
     notes
   };
@@ -9997,7 +10264,7 @@ async function initApp(){
   // Restore the two calendar view preferences before the first paint of each.
   restoreHubMasterMode().catch(()=>{});
   store.get('config:foodCalView').then(v => {
-    if(v === 'week' || v === 'month') foodCalView = v;
+    if(v === 'week' || v === 'month' || v === 'list') foodCalView = v;
     applyFoodCalView();
     loadMonth().catch(()=>{});
   }).catch(() => { applyFoodCalView(); loadMonth().catch(()=>{}); });
