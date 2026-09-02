@@ -945,6 +945,8 @@
   .acc-title { display: flex; align-items: center; justify-content: space-between; font-size: 13.5px; font-weight: 600; }
   .acc-bal { font-size: 16px; font-weight: 700; color: var(--ios-label); }
   .acc-spent { font-size: 11.5px; color: var(--ios-label-secondary); margin-top: 2px; }
+  .acc-toggle-sub { transition: transform 0.25s ease, background 0.2s ease, color 0.2s ease; }
+  .acc-toggle-sub.expanded { transform: rotate(180deg); }
 
   .mod-card { padding: 18px; margin-bottom: 16px; }
 
@@ -4189,6 +4191,10 @@
         <button class="action-btn" id="accDetailAddSubBtn" style="flex:1;padding:8px;font-size:12.5px">＋ Sub-Account</button>
         <button class="action-btn" id="accDetailDeleteBtn" style="flex:1;padding:8px;font-size:12.5px;color:var(--ios-red)">Delete Account</button>
       </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12.5px;font-weight:700;color:var(--ios-label-secondary);text-transform:uppercase;letter-spacing:0.02em">Transactions</span>
+        <select id="accDetailMonthFilter" class="b-month-select"></select>
+      </div>
       <div id="accDetailList"></div>
     </div>
   </div>
@@ -6818,6 +6824,7 @@ async function save(quiet){
 let activeBTab = 'overview';
 let bCalDate = new Date();
 let pieSliceData = [];   // {cat, val, startAngle, endAngle, color} per drawn slice, read by the tap/hover handler below
+let expandedAccIds = new Set();   // which parent accounts currently have their sub-accounts expanded
 
 // Shared by the sub-nav click handler and the Overview envelope card's
 // "Manage" shortcut, so both land on the same tab-switching logic.
@@ -7075,16 +7082,24 @@ async function loadBudgetModule(){
     const renderCard = a => {
       const kids = accounts.filter(k => k.parentId === a.id);
       const spentLabel = a.accType === 'asset' ? 'Withdrawn this month' : 'Spent this month';
+      const expanded = expandedAccIds.has(a.id);
+      // Sub-accounts stay out of the way until asked for — a small chevron
+      // on the parent card reveals them, rather than always taking up grid
+      // space with a strip underneath every account that has any.
+      const toggleBtn = kids.length ? `
+        <button class="icon acc-toggle-sub ${expanded ? 'expanded' : ''}" data-toggle-acc="${a.id}" onclick="event.stopPropagation();toggleAccExpanded('${a.id}')" title="${kids.length} sub-account${kids.length>1?'s':''}" style="width:24px;height:24px;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m6 9 6 6 6-6"/></svg>
+        </button>` : '';
       const card = `
       <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
         <div class="acc-title">
-          <span>${escapeHtml(a.name)}</span>
+          <span style="display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;text-overflow:ellipsis">${escapeHtml(a.name)}${toggleBtn}</span>
           <span class="acc-bal">$${a.balance.toFixed(2)}</span>
         </div>
         <div class="acc-spent">${spentLabel}: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
       </button>`;
       const kidsHtml = kids.length ? `
-      <div class="acc-subgroup" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;margin:-4px 0 4px 18px">
+      <div class="acc-subgroup" id="accSubgroup_${a.id}" style="grid-column:1/-1;display:${expanded ? 'flex' : 'none'};flex-direction:column;gap:6px;margin:-4px 0 4px 18px">
         ${kids.map(k => `
         <button class="acc-card acc-subcard" onclick="openAccountDetail('${k.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font);padding:10px 14px;border-left:2px solid rgba(var(--accent-rgb),0.4)">
           <div class="acc-title" style="font-size:12.5px">
@@ -7343,6 +7358,23 @@ function isSpendingEntry(entry, accounts){
   return !acc || acc.accType !== 'asset';
 }
 
+// Toggles a parent account's sub-accounts strip open/closed in place —
+// no full re-render, so the rest of the grid (and scroll position) stays
+// put while just that one strip appears or disappears.
+window.toggleAccExpanded = (accountId) => {
+  const el = $(`accSubgroup_${accountId}`);
+  if(!el) return;
+  // Toggles style.display directly rather than the `hidden` attribute —
+  // the strip already carries an inline `display` (flex, for its own
+  // layout), and an inline style always wins over the attribute's default
+  // UA rule, so flipping `hidden` alone wouldn't actually hide anything.
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'flex' : 'none';
+  if(opening) expandedAccIds.add(accountId); else expandedAccIds.delete(accountId);
+  const btn = document.querySelector(`[data-toggle-acc="${accountId}"]`);
+  if(btn) btn.classList.toggle('expanded', opening);
+};
+
 window.openAccountDetail = async (accountId) => {
   accDetailAccountId = accountId;
   const accounts = await getAccounts();
@@ -7353,12 +7385,29 @@ window.openAccountDetail = async (accountId) => {
   $('accDetailBalance').textContent = `$${acc.balance.toFixed(2)}`;
 
   const entries = (await store.get('budget:entries')) || [];
-  const mine = entries.filter(e => e.accountId === accountId);
+  const allMine = entries.filter(e => e.accountId === accountId);
   const el = $('accDetailList');
 
-  if(!mine.length){
-    el.innerHTML = `<div class="empty" style="padding:24px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No transactions on this account yet.</div>`;
-  } else {
+  // Defaults to the current month — an account's balance is a running
+  // total, but its transaction list was previously unfiltered and always
+  // mixed every past month in together, which read as if old spending was
+  // still happening. The dropdown still gets to every other month on request.
+  const curMonthKey = new Date().toISOString().slice(0, 7);
+  const monthSet = new Set([curMonthKey]);
+  allMine.forEach(e => { if(e.date && e.date.length >= 7) monthSet.add(e.date.slice(0, 7)); });
+  const sortedMonths = [...monthSet].sort().reverse();
+  $('accDetailMonthFilter').innerHTML = `<option value="all">All Months</option>` + sortedMonths.map(mk => {
+    const [yr, mo] = mk.split('-');
+    return `<option value="${mk}" ${mk === curMonthKey ? 'selected' : ''}>${MONTHS[+mo - 1]} ${yr}</option>`;
+  }).join('');
+
+  function renderAccDetailList(monthVal){
+    const mine = monthVal === 'all' ? allMine : allMine.filter(e => e.date && e.date.startsWith(monthVal));
+
+    if(!mine.length){
+      el.innerHTML = `<div class="empty" style="padding:24px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No transactions ${monthVal === 'all' ? 'on this account yet' : 'this month'}.</div>`;
+      return;
+    }
     const dayGroups = {};
     mine.forEach(item => { (dayGroups[item.date] ||= []).push(item); });
     const sortedDays = Object.keys(dayGroups).sort().reverse();
@@ -7385,6 +7434,9 @@ window.openAccountDetail = async (accountId) => {
         </div>
       </div>`).join('');
   }
+
+  renderAccDetailList($('accDetailMonthFilter').value);
+  $('accDetailMonthFilter').onchange = () => renderAccDetailList($('accDetailMonthFilter').value);
 
   const kids = accounts.filter(a => a.parentId === accountId);
   $('accDetailAddSubBtn').style.display = acc.parentId ? 'none' : '';
@@ -7428,7 +7480,7 @@ window.openAccountDetail = async (accountId) => {
     const warnBits = [];
     if(acc.balance !== 0) warnBits.push(`its balance of $${acc.balance.toFixed(2)}`);
     if(kids.length) warnBits.push(`${kids.length} sub-account${kids.length > 1 ? 's' : ''} (they'll become top-level)`);
-    if(mine.length) warnBits.push(`${mine.length} transaction${mine.length > 1 ? 's' : ''} (they'll stay, unassigned)`);
+    if(allMine.length) warnBits.push(`${allMine.length} transaction${allMine.length > 1 ? 's' : ''} (they'll stay, unassigned)`);
     const warn = warnBits.length ? `\n\nThis account has ${warnBits.join(' and ')}.` : '';
     if(!confirm(`Delete "${acc.name}"?${warn}`)) return;
     const accs = (await store.get('budget:accounts')) || [];
