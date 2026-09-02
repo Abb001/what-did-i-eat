@@ -4108,9 +4108,10 @@
         <label>Type</label>
         <div class="view-toggle" id="newAccTypeToggle" style="width:fit-content">
           <button type="button" class="active" data-acctype="spending">Spending</button>
+          <button type="button" data-acctype="credit">Credit</button>
           <button type="button" data-acctype="asset">Asset</button>
         </div>
-        <div style="font-size:11.5px;color:var(--ios-label-secondary);margin-top:6px;line-height:1.4">Spending accounts (checking, cash, cards) count toward Spent/Income/Net. Asset accounts (investments, savings) are tracked separately and left out of those totals.</div>
+        <div style="font-size:11.5px;color:var(--ios-label-secondary);margin-top:6px;line-height:1.4">Spending accounts (checking, cash) — a purchase reduces the balance directly. Credit accounts (credit cards) — a purchase increases what's owed instead; pay it off with a Transfer from a spending account. Asset accounts (investments, savings) are tracked separately from spending.</div>
       </div>
       <div class="form-group">
         <label>Parent account (optional)</label>
@@ -4184,7 +4185,7 @@
     </div>
     <div class="modal-body">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--ios-separator)">
-        <span style="font-size:12.5px;color:var(--ios-label-secondary)">Balance</span>
+        <span id="accDetailBalanceLabel" style="font-size:12.5px;color:var(--ios-label-secondary)">Balance</span>
         <span id="accDetailBalance" style="font-size:22px;font-weight:800">$0.00</span>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:16px">
@@ -5228,10 +5229,11 @@ async function getAccounts(){
 // Bank Accounts & Wallets grid — nothing to visually "sync" by hand.
 function accountOptionsHtml(accounts){
   const topLevel = accounts.filter(a => !a.parentId);
+  const bal = a => `$${a.balance.toFixed(2)}${a.accType === 'credit' ? ' owed' : ''}`;
   return topLevel.map(a => {
     const kids = accounts.filter(k => k.parentId === a.id);
-    return `<option value="${a.id}">${escapeHtml(a.name)} — $${a.balance.toFixed(2)}</option>`
-      + kids.map(k => `<option value="${k.id}">&nbsp;&nbsp;↳ ${escapeHtml(k.name)} — $${k.balance.toFixed(2)}</option>`).join('');
+    return `<option value="${a.id}">${escapeHtml(a.name)} — ${bal(a)}</option>`
+      + kids.map(k => `<option value="${k.id}">&nbsp;&nbsp;↳ ${escapeHtml(k.name)} — ${bal(k)}</option>`).join('');
   }).join('');
 }
 
@@ -5529,7 +5531,7 @@ async function quickLogExpense(){
   // No account typed and none exist yet — logged with no account attached
   // rather than forcing one into existence, same as a friend-paid expense.
   if(acc){
-    acc.balance -= p.amt;
+    acc.balance += acctDelta(acc, p.amt, true);
     await store.set('budget:accounts', accounts);
   }
 
@@ -7073,15 +7075,17 @@ async function loadBudgetModule(){
   // Render Accounts Grid — top-level accounts get a card; any sub-accounts
   // render as an indented full-width strip right under their parent (grid
   // auto-placement respects DOM order, so this needs no special layout).
-  // Grouped into Spending vs. Asset sections, each with its own subtotal,
-  // so it's visually obvious which accounts feed the Spent/Income/Net
-  // stats above and which are tracked separately (net worth, not cash flow).
+  // Grouped into Spending / Credit / Asset sections, each with its own
+  // subtotal — Spending and Credit both feed the spending stats elsewhere
+  // on this page (a credit charge is still real spending), while Asset is
+  // tracked separately (net worth, not cash flow). Credit's subtotal and
+  // per-card balance are what's owed, not cash on hand.
   if(!accounts.length){
     $('bAccountsGrid').innerHTML = `<div class="empty" style="grid-column:1/-1;padding:24px 12px;text-align:center;color:var(--ios-label-secondary);font-size:13px">No accounts yet — add one to start tracking balances.</div>`;
   } else {
     const renderCard = a => {
       const kids = accounts.filter(k => k.parentId === a.id);
-      const spentLabel = a.accType === 'asset' ? 'Withdrawn this month' : 'Spent this month';
+      const spentLabel = a.accType === 'asset' ? 'Withdrawn this month' : a.accType === 'credit' ? 'Charged this month' : 'Spent this month';
       const expanded = expandedAccIds.has(a.id);
       // Sub-accounts stay out of the way until asked for — a small chevron
       // on the parent card reveals them, rather than always taking up grid
@@ -7090,11 +7094,14 @@ async function loadBudgetModule(){
         <button class="icon acc-toggle-sub ${expanded ? 'expanded' : ''}" data-toggle-acc="${a.id}" onclick="event.stopPropagation();toggleAccExpanded('${a.id}')" title="${kids.length} sub-account${kids.length>1?'s':''}" style="width:24px;height:24px;flex-shrink:0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m6 9 6 6 6-6"/></svg>
         </button>` : '';
+      const balDisplay = a.accType === 'credit'
+        ? `<span class="acc-bal" style="color:var(--ios-red)">$${a.balance.toFixed(2)} owed</span>`
+        : `<span class="acc-bal">$${a.balance.toFixed(2)}</span>`;
       const card = `
       <button class="acc-card" onclick="openAccountDetail('${a.id}')" style="text-align:left;cursor:pointer;width:100%;font-family:var(--ios-font)">
         <div class="acc-title">
           <span style="display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;text-overflow:ellipsis">${escapeHtml(a.name)}${toggleBtn}</span>
-          <span class="acc-bal">$${a.balance.toFixed(2)}</span>
+          ${balDisplay}
         </div>
         <div class="acc-spent">${spentLabel}: <strong>$${a.spentMonth.toFixed(2)}</strong></div>
       </button>`;
@@ -7111,18 +7118,21 @@ async function loadBudgetModule(){
       return card + kidsHtml;
     };
 
-    const groupLabel = (text, total) => `
+    const groupLabel = (text, total, owed) => `
       <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;color:var(--ios-label-tertiary);margin:${text==='Spending'?'0':'8px'} 2px 2px">
-        <span>${text}</span><span>$${total.toFixed(2)}</span>
+        <span>${text}</span><span${owed ? ' style="color:var(--ios-red)"' : ''}>$${total.toFixed(2)}${owed ? ' owed' : ''}</span>
       </div>`;
 
-    const spendingAccs = accounts.filter(a => !a.parentId && a.accType !== 'asset');
+    const spendingAccs = accounts.filter(a => !a.parentId && a.accType !== 'asset' && a.accType !== 'credit');
+    const creditAccs = accounts.filter(a => !a.parentId && a.accType === 'credit');
     const assetAccs = accounts.filter(a => !a.parentId && a.accType === 'asset');
-    const spendingTotal = accounts.filter(a => a.accType !== 'asset').reduce((s, a) => s + a.balance, 0);
+    const spendingTotal = accounts.filter(a => a.accType !== 'asset' && a.accType !== 'credit').reduce((s, a) => s + a.balance, 0);
+    const creditTotal = accounts.filter(a => a.accType === 'credit').reduce((s, a) => s + a.balance, 0);
     const assetTotal = accounts.filter(a => a.accType === 'asset').reduce((s, a) => s + a.balance, 0);
 
     let gridHtml = '';
     if(spendingAccs.length) gridHtml += groupLabel('Spending', spendingTotal) + spendingAccs.map(renderCard).join('');
+    if(creditAccs.length) gridHtml += groupLabel('Credit', creditTotal, true) + creditAccs.map(renderCard).join('');
     if(assetAccs.length) gridHtml += groupLabel('Assets', assetTotal) + assetAccs.map(renderCard).join('');
     $('bAccountsGrid').innerHTML = gridHtml;
   }
@@ -7300,8 +7310,7 @@ $('bAddBtn').onclick = async () => {
   const accounts = (await store.get('budget:accounts')) || [];
   const acc = accounts.find(a => a.id === accountId);
   if(acc){
-    if(type === 'exp') acc.balance -= amt;
-    else acc.balance += amt;
+    acc.balance += acctDelta(acc, amt, type === 'exp');
     await store.set('budget:accounts', accounts);
   }
 
@@ -7336,8 +7345,14 @@ let editingAccountId = null;
 let newAccTypeSelected = 'spending';
 
 function setAccTypeToggle(type){
-  newAccTypeSelected = type === 'asset' ? 'asset' : 'spending';
+  newAccTypeSelected = (type === 'asset' || type === 'credit') ? type : 'spending';
   $('newAccTypeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.acctype === newAccTypeSelected));
+  // A Credit account's number is what's owed, not cash sitting in it — the
+  // balance field's label follows the type so that's never ambiguous.
+  const isCredit = newAccTypeSelected === 'credit';
+  $('newAccBalanceLabel').textContent = editingAccountId
+    ? (isCredit ? 'Amount owed' : 'Balance')
+    : (isCredit ? 'Starting amount owed' : 'Starting balance');
 }
 $('newAccTypeToggle').onclick = e => {
   const btn = e.target.closest('[data-acctype]');
@@ -7356,6 +7371,19 @@ function isSpendingEntry(entry, accounts){
   if(!entry.accountId) return true;
   const acc = accounts.find(a => a.id === entry.accountId);
   return !acc || acc.accType !== 'asset';
+}
+
+// How an account's stored balance should move for a given amount. For a
+// Spending or Asset account, balance is real money sitting in the account:
+// an expense removes it, income adds it. A Credit account's balance means
+// the opposite — what's currently owed — so a purchase (an "expense" on
+// that account) increases the balance instead, and a payment or refund
+// decreases it. Every place that mutates acc.balance for a transaction
+// goes through this so the two account kinds can't drift out of sync.
+function acctDelta(acc, amt, isExpense){
+  const owes = acc && acc.accType === 'credit';
+  const sign = isExpense ? -1 : 1;
+  return owes ? -sign * amt : sign * amt;
 }
 
 // Toggles a parent account's sub-accounts strip open/closed in place —
@@ -7382,7 +7410,9 @@ window.openAccountDetail = async (accountId) => {
   if(!acc) return;
 
   $('accDetailName').textContent = acc.name;
-  $('accDetailBalance').textContent = `$${acc.balance.toFixed(2)}`;
+  $('accDetailBalanceLabel').textContent = acc.accType === 'credit' ? 'Amount Owed' : 'Balance';
+  $('accDetailBalance').textContent = `$${acc.balance.toFixed(2)}${acc.accType === 'credit' ? ' owed' : ''}`;
+  $('accDetailBalance').style.color = acc.accType === 'credit' ? 'var(--ios-red)' : '';
 
   const entries = (await store.get('budget:entries')) || [];
   const allMine = entries.filter(e => e.accountId === accountId);
@@ -7611,7 +7641,7 @@ function initOwedTracker(){
     if(!accountId) return alert('Add a bank account first — there\'s nowhere to pay this from yet.');
     const accounts = await getAccounts();
     const acc = accounts.find(a => a.id === accountId);
-    if(acc) acc.balance -= o.amt;
+    if(acc) acc.balance += acctDelta(acc, o.amt, true);
     await store.set('budget:accounts', accounts);
     const today = key(new Date());
     const entries = (await store.get('budget:entries')) || [];
@@ -7681,9 +7711,9 @@ function initEditEntryModal(){
     // or a different one, doesn't matter, the math nets out correctly either way.
     const accounts = await getAccounts();
     const oldAcc = accounts.find(a => a.id === old.accountId);
-    if(oldAcc) oldAcc.balance += (old.type === 'exp' ? old.amt : -old.amt);
+    if(oldAcc) oldAcc.balance -= acctDelta(oldAcc, old.amt, old.type === 'exp');
     const newAcc = accounts.find(a => a.id === accountId);
-    if(newAcc) newAcc.balance += (type === 'exp' ? -amt : amt);
+    if(newAcc) newAcc.balance += acctDelta(newAcc, amt, type === 'exp');
     await store.set('budget:accounts', accounts);
 
     entries[editingEntryIdx] = {
@@ -7715,8 +7745,7 @@ window.delBudget = async (idx) => {
   const accounts = (await store.get('budget:accounts')) || [];
   const acc = accounts.find(a => a.id === item.accountId);
   if(acc){
-    if(item.type === 'exp') acc.balance += item.amt;
-    else acc.balance -= item.amt;
+    acc.balance -= acctDelta(acc, item.amt, item.type === 'exp');
     await store.set('budget:accounts', accounts);
   }
   entries.splice(idx, 1);
@@ -7738,8 +7767,12 @@ $('btnExecuteTransfer').onclick = async () => {
   const fromAcc = accounts.find(a => a.id === fromId);
   const toAcc = accounts.find(a => a.id === toId);
   if(!fromAcc || !toAcc) return alert('Pick two valid accounts.');
-  fromAcc.balance -= amt;
-  toAcc.balance += amt;
+  // Transferring into a Credit account is how its bill gets paid — the
+  // money leaving fromAcc is a normal decrease, but arriving at a credit
+  // account reduces what's owed there rather than adding a positive
+  // balance, so this goes through the same delta helper as any spend.
+  fromAcc.balance += acctDelta(fromAcc, amt, true);
+  toAcc.balance += acctDelta(toAcc, amt, false);
   await store.set('budget:accounts', accounts);
 
   const transfers = (await store.get('budget:transfers')) || [];
@@ -8212,7 +8245,7 @@ $('btnConvertImport').onclick = async () => {
       acc = { id: 'acc_' + Date.now() + '_' + i, name: titleCase(accName), balance: 0, spentMonth: 0, parentId: null };
       accounts.push(acc);
     }
-    if(acc) acc.balance += (type === 'inc' ? amt : -amt);
+    if(acc) acc.balance += acctDelta(acc, amt, type === 'exp');
 
     entries.unshift({
       id: 'tx_' + Date.now() + '_' + i,
