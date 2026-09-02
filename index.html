@@ -7185,7 +7185,13 @@ async function loadBudgetModule(){
   // Populate Accounts dropdowns — same helper as everywhere else, so
   // balances shown here always read the same number as the accounts grid.
   const accOptions = accountOptionsHtml(accounts);
-  $('bAccountSelect').innerHTML = accOptions;
+  // New Log's account picker gets an explicit "No Account" choice at the
+  // end — without it, an empty account list left this select with zero
+  // options and no visible value, so logging an entry silently attached
+  // it to nothing with no indication that had happened. Transfer's two
+  // selects are left as real-accounts-only, since a transfer without a
+  // real account on both ends isn't a transfer.
+  $('bAccountSelect').innerHTML = accOptions + `<option value="">— No Account —</option>`;
   $('trFromAcc').innerHTML = accOptions;
   $('trToAcc').innerHTML = accOptions;
 
@@ -7800,7 +7806,12 @@ window.editBudgetEntry = async (idx) => {
   editingEntryIdx = idx;
 
   const accounts = await getAccounts();
-  $('editAccount').innerHTML = accountOptionsHtml(accounts);
+  // Without an explicit "No Account" option, setting .value below to a
+  // null/empty accountId (a friend-paid entry, or one logged with no
+  // account picked) wouldn't match any <option> — the select would just
+  // fall back to whichever account happens to be first, and saving
+  // without touching this field would silently attach the entry to it.
+  $('editAccount').innerHTML = accountOptionsHtml(accounts) + `<option value="">— No Account —</option>`;
   await populateCategorySelects(item.cat);   // fills editCat too, with "+ Add category" included
 
   $('editType').value = item.type;
