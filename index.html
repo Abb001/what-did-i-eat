@@ -1035,6 +1035,97 @@
   .b-item-amt.exp { color: var(--ios-red); }
   .b-item-amt.inc { color: var(--ios-green); }
 
+  /* Friend-paid cards — a person, an item, a date, a settled state and up
+     to two actions is more than a single transaction row (name + amount +
+     edit/delete) comfortably fits on one line, so this gets its own
+     two-row card instead of squeezing into .b-item-row. */
+  .owed-card {
+    padding: 12px 14px;
+    border-bottom: 0.5px solid var(--ios-separator);
+  }
+  .owed-card:last-child { border-bottom: none; }
+  .owed-card.settled { opacity: 0.55; }
+  .owed-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .owed-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: linear-gradient(155deg, var(--accent), var(--accent-deep));
+  }
+  .owed-card-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .owed-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ios-label);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .owed-card-item {
+    font-size: 12px;
+    color: var(--ios-label-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .owed-card-amt {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ios-red);
+    flex-shrink: 0;
+  }
+  .owed-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-left: 44px;
+  }
+  .owed-card-date {
+    font-size: 11.5px;
+    color: var(--ios-label-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .owed-settled-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #16A34A;
+    background: rgba(52, 199, 89, 0.15);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .owed-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .owed-payback-btn {
+    background: var(--accent) !important;
+    color: #FFFFFF !important;
+  }
+
   /* Clean iOS Subscription Cards (No broken layout, No emoji icons) */
   .sub-card {
     display: flex;
@@ -1190,6 +1281,38 @@
      and sharing that class name yanked this chip out of the row and
      pinned it to the bottom of the viewport. */
   .quick-cat-chip.quick-cat-chip-add { color: var(--accent-deep); }
+
+  /* Payment method chips reuse the .quick-cat-chip look everywhere they
+     appear (New Log, edit entry) — one visual language for every tag
+     picker in Budget, not just Quick Add's own. */
+  .payment-manage-btn {
+    background: none;
+    border: none;
+    color: var(--ios-label-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 2px;
+  }
+  .payment-manage-btn.on { color: var(--accent-deep); }
+  .quick-cat-chip.payment-chip-editable {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-right: 6px;
+  }
+  .quick-cat-chip.payment-chip-editable .payment-chip-del {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: rgba(120, 120, 128, 0.18);
+    color: var(--ios-label-secondary);
+    font-size: 10px;
+    line-height: 1;
+  }
   .quick-currency { font-size: 15px; font-weight: 700; color: var(--ios-label-secondary); }
   .quick-select {
     flex: 0 0 auto;
@@ -3346,8 +3469,12 @@
           <input type="text" id="bDesc" placeholder="What was this for? (e.g. Lunch, Taxi, Coffee)">
         </div>
         <div class="form-group">
-          <label>Payment Method (optional)</label>
-          <input type="text" id="bPayment" placeholder="e.g. Cash, Credit Card, LinePay">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <label style="margin-bottom:0">Payment Method (optional)</label>
+            <button type="button" class="payment-manage-btn" id="bPaymentManageBtn" title="Edit payment methods">Manage</button>
+          </div>
+          <div class="quick-cat-chips" id="bPaymentChips"></div>
+          <input type="hidden" id="bPayment" value="">
         </div>
         <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
       </div>
@@ -3375,16 +3502,23 @@
            touched until it's actually paid back. Settling creates a real
            transfer-out entry, so the repayment itself is recorded too. -->
       <div class="mod-card" id="bOwedPane" hidden>
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:12px">Log What a Friend Paid</span>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
-          <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:4px">Log What a Friend Paid</span>
+        <p style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:14px;line-height:1.4">Counts toward today's spending like any expense, but doesn't touch your own balance until you pay them back.</p>
+        <div class="form-group">
+          <label>Who &amp; How Much</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
+            <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
-          <input type="text" id="owedItem" placeholder="What was it?" style="flex:1">
-          <input type="date" id="owedDate" style="width:130px">
+        <div class="form-group">
+          <label>What &amp; When</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="owedItem" placeholder="What was it?" style="flex:1">
+            <input type="date" id="owedDate" style="width:130px">
+          </div>
         </div>
-        <button class="action-btn" id="addOwedBtn" style="width:100%;margin-top:8px">＋ Log What They Paid</button>
+        <button class="action-btn owed-payback-btn" id="addOwedBtn" style="width:100%;justify-content:center;margin-top:6px">＋ Log What They Paid</button>
       </div>
     </div>
 
@@ -3843,7 +3977,7 @@
 <div class="modal-overlay" id="addAccModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
-      <h3>New Account</h3>
+      <h3 id="addAccModalTitle">New Account</h3>
       <button class="icon danger" id="closeAddAccModal" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
@@ -3854,7 +3988,7 @@
         <input type="text" id="newAccName" placeholder="e.g. Cathay Bank" autocomplete="off">
       </div>
       <div class="form-group">
-        <label>Starting balance</label>
+        <label id="newAccBalanceLabel">Starting balance</label>
         <input type="number" id="newAccBalance" placeholder="0.00" inputmode="decimal" step="0.01">
       </div>
       <div class="form-group">
@@ -3918,9 +4052,14 @@
   <div class="modal-card">
     <div class="modal-head">
       <h3 id="accDetailName">Account</h3>
-      <button class="icon danger" id="closeAccDetailModal" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="icon" id="accDetailEditBtn" title="Edit account" style="width:30px;height:30px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <button class="icon danger" id="closeAccDetailModal" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
     <div class="modal-body">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--ios-separator)">
@@ -3957,12 +4096,19 @@
         </div>
       </div>
       <div class="form-group">
-        <label>Category, Date &amp; Payment</label>
+        <label>Category &amp; Date</label>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <select id="editCat" style="width:125px"></select>
           <input type="date" id="editDate" style="flex:1">
         </div>
-        <input type="text" id="editPayment" placeholder="Payment method (optional)">
+      </div>
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <label style="margin-bottom:0">Payment Method (optional)</label>
+          <button type="button" class="payment-manage-btn" id="editPaymentManageBtn" title="Edit payment methods">Manage</button>
+        </div>
+        <div class="quick-cat-chips" id="editPaymentChips"></div>
+        <input type="hidden" id="editPayment" value="">
       </div>
       <div class="form-group">
         <label>Shop (optional)</label>
@@ -3991,6 +4137,27 @@
         <input type="text" id="newCatName" placeholder="e.g. Pets" autocomplete="off">
       </div>
       <button class="action-btn" id="saveAddCatBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add Category</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="paymentMethodModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="paymentMethodModalTitle">New Payment Method</h3>
+      <button class="icon danger" id="closePaymentMethodModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="paymentMethodName" placeholder="e.g. Apple Pay" autocomplete="off">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="deletePaymentMethodBtn" hidden style="flex:1;padding:11px;background:none;border:none;border-radius:14px;color:var(--ios-red);font-size:13.5px;font-weight:600;cursor:pointer">Delete</button>
+        <button class="action-btn" id="savePaymentMethodBtn" style="flex:2;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4939,6 +5106,151 @@ const DEFAULT_CATS = [
 async function getCategories(){
   const custom = (await store.get('budget:categories')) || [];
   return [...DEFAULT_CATS, ...custom.map(c => ({ v: c, l: c }))];
+}
+
+/* ---------- PAYMENT METHODS ----------
+   Every payment-method field in Budget (New Log, edit entry) is a chip
+   picker now, same visual language as Quick Add's category chips. Unlike
+   categories, these are seeded as real, ordinary records the first time
+   they're read — the whole point is that every one of them, defaults
+   included, can be renamed or deleted, not just added to. */
+const DEFAULT_PAYMENT_METHODS = ['Cash', 'Credit Card', 'LinePay', 'Apple Pay'];
+
+async function getPaymentMethods(){
+  let methods = await store.get('budget:paymentMethods');
+  if(!methods || !methods.length){
+    methods = [...DEFAULT_PAYMENT_METHODS];
+    await store.set('budget:paymentMethods', methods);
+  }
+  return methods;
+}
+
+// Keyed by the hidden input's id, since New Log and the edit modal each
+// have their own independent chip strip and manage-mode state.
+const paymentManageMode = {};
+
+async function renderPaymentChips(hiddenId, chipsId){
+  const hidden = $(hiddenId);
+  const box = $(chipsId);
+  if(!hidden || !box) return;
+  const methods = await getPaymentMethods();
+  const current = hidden.value;
+  const manageOn = !!paymentManageMode[hiddenId];
+
+  const noneChip = `<button type="button" class="quick-cat-chip ${!current ? 'on' : ''}" data-cv="">None</button>`;
+  const methodChips = methods.map(m => manageOn
+    ? `<span class="quick-cat-chip payment-chip-editable" data-cv="${escapeHtml(m)}">${escapeHtml(m)}<span class="payment-chip-del" data-del="${escapeHtml(m)}">${CROSS}</span></span>`
+    : `<button type="button" class="quick-cat-chip ${m === current ? 'on' : ''}" data-cv="${escapeHtml(m)}">${escapeHtml(m)}</button>`
+  ).join('');
+  const addChip = `<button type="button" class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`;
+
+  box.innerHTML = noneChip + methodChips + addChip;
+
+  box.querySelectorAll('[data-cv]').forEach(el => {
+    const cv = el.dataset.cv;
+    if(cv === '__add__'){
+      el.onclick = () => openPaymentMethodModal(null, hiddenId, chipsId);
+      return;
+    }
+    if(manageOn && cv !== ''){
+      // Manage mode: tapping the label renames, tapping the × deletes.
+      el.onclick = (e) => {
+        if(e.target.closest('.payment-chip-del')) return;
+        openPaymentMethodModal(cv, hiddenId, chipsId);
+      };
+      const delBtn = el.querySelector('.payment-chip-del');
+      if(delBtn) delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await deletePaymentMethod(cv, hiddenId, chipsId);
+      };
+    } else {
+      el.onclick = () => {
+        hidden.value = cv;
+        renderPaymentChips(hiddenId, chipsId);
+      };
+    }
+  });
+}
+
+function initPaymentManageBtn(btnId, hiddenId, chipsId){
+  const btn = $(btnId);
+  if(!btn) return;
+  btn.onclick = () => {
+    paymentManageMode[hiddenId] = !paymentManageMode[hiddenId];
+    btn.classList.toggle('on', paymentManageMode[hiddenId]);
+    btn.textContent = paymentManageMode[hiddenId] ? 'Done' : 'Manage';
+    renderPaymentChips(hiddenId, chipsId);
+  };
+}
+
+let editingPaymentMethodName = null;
+let paymentModalContext = null;
+
+function openPaymentMethodModal(name, hiddenId, chipsId){
+  editingPaymentMethodName = name;
+  paymentModalContext = { hiddenId, chipsId };
+  $('paymentMethodModalTitle').textContent = name ? 'Edit Payment Method' : 'New Payment Method';
+  $('paymentMethodName').value = name || '';
+  $('savePaymentMethodBtn').textContent = name ? 'Save' : 'Add';
+  $('deletePaymentMethodBtn').hidden = !name;
+  $('paymentMethodModal').hidden = false;
+  $('paymentMethodName').focus();
+}
+
+async function deletePaymentMethod(name, hiddenId, chipsId){
+  if(!confirm(`Delete "${name}"? Past entries keep showing it, but it won't be offered for new ones.`)) return;
+  const methods = await getPaymentMethods();
+  const idx = methods.indexOf(name);
+  if(idx !== -1) methods.splice(idx, 1);
+  await store.set('budget:paymentMethods', methods);
+  if($(hiddenId).value === name) $(hiddenId).value = '';
+  await renderPaymentChips(hiddenId, chipsId);
+  pill('Payment method deleted');
+}
+
+function initPaymentMethodModal(){
+  $('closePaymentMethodModal').onclick = () => { $('paymentMethodModal').hidden = true; editingPaymentMethodName = null; };
+  $('savePaymentMethodBtn').onclick = async () => {
+    const name = $('paymentMethodName').value.trim();
+    if(!name) return alert('Give the payment method a name.');
+    const methods = await getPaymentMethods();
+    const dupe = methods.some(m => m.toLowerCase() === name.toLowerCase() && m !== editingPaymentMethodName);
+    if(dupe) return alert('That payment method already exists.');
+
+    if(editingPaymentMethodName){
+      const idx = methods.indexOf(editingPaymentMethodName);
+      if(idx !== -1) methods[idx] = name;
+      await store.set('budget:paymentMethods', methods);
+      // Cascade the rename onto existing entries so history stays consistent
+      // with what the tag is now called.
+      const entries = (await store.get('budget:entries')) || [];
+      let changed = false;
+      entries.forEach(e => { if(e.payment === editingPaymentMethodName){ e.payment = name; changed = true; } });
+      if(changed) await store.set('budget:entries', entries);
+      pill(`"${editingPaymentMethodName}" renamed to "${name}"`);
+    } else {
+      methods.push(name);
+      await store.set('budget:paymentMethods', methods);
+      pill(`Payment method "${name}" added`);
+    }
+
+    $('paymentMethodModal').hidden = true;
+    const ctx = paymentModalContext;
+    if(ctx && $(ctx.hiddenId)){
+      if(!editingPaymentMethodName || $(ctx.hiddenId).value === editingPaymentMethodName){
+        $(ctx.hiddenId).value = name;
+      }
+      await renderPaymentChips(ctx.hiddenId, ctx.chipsId);
+    }
+    editingPaymentMethodName = null;
+  };
+  $('deletePaymentMethodBtn').onclick = async () => {
+    if(!editingPaymentMethodName) return;
+    const ctx = paymentModalContext;
+    $('paymentMethodModal').hidden = true;
+    await deletePaymentMethod(editingPaymentMethodName, ctx.hiddenId, ctx.chipsId);
+    editingPaymentMethodName = null;
+  };
 }
 
 async function populateCategorySelects(preferValue){
@@ -6585,21 +6897,48 @@ async function loadBudgetModule(){
 
   // "＋ Add Account" had markup but no handler — this wires it up.
   $('bAddAccBtn').onclick = () => {
+    editingAccountId = null;
+    $('addAccModalTitle').textContent = 'New Account';
+    $('newAccBalanceLabel').textContent = 'Starting balance';
+    $('saveAddAccBtn').textContent = 'Add Account';
     $('newAccName').value = '';
     $('newAccBalance').value = '';
+    $('newAccParent').disabled = false;
+    $('newAccParent').title = '';
     const topLevelAccs = accounts.filter(a => !a.parentId);
     $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
       + topLevelAccs.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
     $('addAccModal').hidden = false;
     $('newAccName').focus();
   };
-  $('closeAddAccModal').onclick = () => { $('addAccModal').hidden = true; };
+  $('closeAddAccModal').onclick = () => { $('addAccModal').hidden = true; editingAccountId = null; };
   $('saveAddAccBtn').onclick = async () => {
     const name = $('newAccName').value.trim();
     if(!name) return alert('Give the account a name.');
     const bal = parseFloat($('newAccBalance').value) || 0;
     const parentId = $('newAccParent').value || null;
     const accs = (await store.get('budget:accounts')) || [];
+
+    if(editingAccountId){
+      const acc = accs.find(a => a.id === editingAccountId);
+      if(!acc) return;
+      if(parentId === editingAccountId){
+        return alert("An account can't be its own parent.");
+      }
+      acc.name = name;
+      acc.balance = bal;   // a direct correction, not a transaction — e.g. reconciling with the real bank balance
+      acc.parentId = parentId;
+      await store.set('budget:accounts', accs);
+      $('addAccModal').hidden = true;
+      const wasEditingId = editingAccountId;
+      editingAccountId = null;
+      loadBudgetModule();
+      refreshHub();
+      pill(`"${name}" updated`);
+      if($('accDetailModal')) openAccountDetail(wasEditingId);   // land back on the account, showing the edit
+      return;
+    }
+
     accs.push({ id: 'acc_' + Date.now(), name, balance: bal, spentMonth: 0, parentId });
     await store.set('budget:accounts', accs);
     $('addAccModal').hidden = true;
@@ -6643,6 +6982,7 @@ async function loadBudgetModule(){
   // the same eager draw the calendar and logs list get above.
   drawReportsChart();
   renderPaymentBreakdown();
+  renderPaymentChips('bPayment', 'bPaymentChips');
 
   // Keep the account drill-down in step if an edit/delete happened while it
   // was open — those actions route back through loadBudgetModule().
@@ -6758,6 +7098,7 @@ $('bAddBtn').onclick = async () => {
    lists, so an edit made here behaves identically to one made anywhere
    else — same modal, same account-balance math, same refresh. */
 let accDetailAccountId = null;
+let editingAccountId = null;
 
 window.openAccountDetail = async (accountId) => {
   accDetailAccountId = accountId;
@@ -6805,11 +7146,35 @@ window.openAccountDetail = async (accountId) => {
   const kids = accounts.filter(a => a.parentId === accountId);
   $('accDetailAddSubBtn').style.display = acc.parentId ? 'none' : '';
   $('accDetailAddSubBtn').onclick = () => {
+    editingAccountId = null;
+    $('addAccModalTitle').textContent = 'New Account';
+    $('newAccBalanceLabel').textContent = 'Starting balance';
+    $('saveAddAccBtn').textContent = 'Add Account';
     $('newAccName').value = '';
     $('newAccBalance').value = '';
+    $('newAccParent').disabled = false;
+    $('newAccParent').title = '';
     const topLevelAccs = accounts.filter(a => !a.parentId);
     $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
       + topLevelAccs.map(a => `<option value="${a.id}" ${a.id===accountId?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+    $('accDetailModal').hidden = true;
+    $('addAccModal').hidden = false;
+    $('newAccName').focus();
+  };
+  $('accDetailEditBtn').onclick = () => {
+    editingAccountId = accountId;
+    $('addAccModalTitle').textContent = 'Edit Account';
+    $('newAccBalanceLabel').textContent = 'Balance';
+    $('saveAddAccBtn').textContent = 'Save Changes';
+    $('newAccName').value = acc.name;
+    $('newAccBalance').value = acc.balance;
+    const topLevelAccs = accounts.filter(a => !a.parentId && a.id !== accountId);
+    $('newAccParent').innerHTML = `<option value="">— Top-level account —</option>`
+      + topLevelAccs.map(a => `<option value="${a.id}" ${a.id===acc.parentId?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+    // An account that already has sub-accounts of its own can't also become
+    // one (nesting only goes one level deep) — lock it to top-level.
+    $('newAccParent').disabled = kids.length > 0;
+    $('newAccParent').title = kids.length > 0 ? "Already has sub-accounts, so it can't become one itself." : '';
     $('accDetailModal').hidden = true;
     $('addAccModal').hidden = false;
     $('newAccName').focus();
@@ -6857,15 +7222,21 @@ async function loadOwedList(){
     return;
   }
   el.innerHTML = list.map(o => `
-    <div class="b-item-row">
-      <div class="b-item-info">
-        <span class="b-item-cat">${escapeHtml(o.person)} · ${escapeHtml(o.item || 'No item')}</span>
-        <span class="b-item-desc">${o.date}${o.settled ? ' · settled' : ''}</span>
+    <div class="owed-card ${o.settled ? 'settled' : ''}">
+      <div class="owed-card-top">
+        <div class="owed-avatar">${escapeHtml((o.person || '?').trim().slice(0, 1).toUpperCase())}</div>
+        <div class="owed-card-info">
+          <span class="owed-card-name">${escapeHtml(o.person)}</span>
+          <span class="owed-card-item">${escapeHtml(o.item || 'No item')}</span>
+        </div>
+        <span class="owed-card-amt">-$${o.amt.toFixed(2)}</span>
       </div>
-      <div class="b-item-right">
-        <span class="b-item-amt exp">-${o.amt.toFixed(2)}</span>
-        ${o.settled ? '' : `<button class="action-btn" style="padding:4px 10px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">Pay Back</button>`}
-        <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
+      <div class="owed-card-bottom">
+        <span class="owed-card-date">${o.date}${o.settled ? ' <span class="owed-settled-pill">✓ Settled</span>' : ''}</span>
+        <div class="owed-card-actions">
+          ${o.settled ? '' : `<button class="action-btn owed-payback-btn" style="padding:5px 12px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">Pay Back</button>`}
+          <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -6985,6 +7356,12 @@ window.editBudgetEntry = async (idx) => {
   $('editPayment').value = item.payment || '';
   $('editShop').value = item.shop || '';
   $('editDesc').value = item.desc || '';
+  paymentManageMode['editPayment'] = false;
+  if($('editPaymentManageBtn')){
+    $('editPaymentManageBtn').classList.remove('on');
+    $('editPaymentManageBtn').textContent = 'Manage';
+  }
+  await renderPaymentChips('editPayment', 'editPaymentChips');
   $('editEntryModal').hidden = false;
 };
 
@@ -9612,6 +9989,9 @@ async function initApp(){
   initEditEntryModal();
   initAccountDetailModal();
   initOwedTracker();
+  initPaymentMethodModal();
+  initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
+  initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
   initHubAppOrder().catch(()=>{});
   initHubCustomize().catch(()=>{});
   // Restore the two calendar view preferences before the first paint of each.
