@@ -1292,6 +1292,20 @@
      pinned it to the bottom of the viewport. */
   .quick-cat-chip.quick-cat-chip-add { color: var(--accent-deep); }
 
+  /* Health item picker: a small dot flags a chip whose section already
+     has something recorded for the day being viewed. */
+  .quick-cat-chip.has-data { position: relative; }
+  .quick-cat-chip.has-data::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-deep);
+  }
+
   /* Payment method chips reuse the .quick-cat-chip look everywhere they
      appear (New Log, edit entry) — one visual language for every tag
      picker in Budget, not just Quick Add's own. */
@@ -3451,24 +3465,8 @@
       <div class="b-recap-card">
         <span style="font-weight:700;font-size:15px;display:block;margin-bottom:12px">Monthly Report</span>
 
-        <div class="b-recap-grid">
-          <div class="b-recap-box">
-            <label>Income</label>
-            <span style="color:#16A34A" id="bRecapInc">+$0</span>
-          </div>
-          <div class="b-recap-box">
-            <label>Spent</label>
-            <span style="color:#DC2626" id="bRecapExp">-$0</span>
-          </div>
-          <div class="b-recap-box">
-            <label>Net Savings</label>
-            <span style="color:var(--ios-label)" id="bRecapNet">$0</span>
-          </div>
-        </div>
-        <div id="bRecapAssetNote" hidden style="font-size:11px;color:var(--ios-label-tertiary);margin-top:8px">Excludes Asset accounts — see the Assets group below.</div>
-
         <!-- 7-Day Mini Bar Chart -->
-        <div style="margin-top:14px;padding-top:14px;border-top:0.5px solid var(--ios-separator)">
+        <div style="padding-top:2px">
           <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ios-label-secondary);margin-bottom:8px">
             <span>Mon – Sun Spend Breakdown</span>
             <span id="bWeekDaysTotal">$0 total</span>
@@ -3477,11 +3475,13 @@
         </div>
 
         <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--ios-separator);text-align:center">
-          <canvas id="expenseChartCanvas" width="240" height="240" style="margin:0 auto;display:block"></canvas>
-          <div id="chartLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:12.5px"></div>
+          <span style="font-weight:600;font-size:13.5px;display:block;margin-bottom:2px">Expense Breakdown <span style="font-weight:400;color:var(--ios-label-secondary);font-size:11.5px">(this month)</span></span>
+          <canvas id="expenseChartCanvas" width="240" height="240" style="margin:0 auto;display:block;touch-action:none;cursor:pointer"></canvas>
+          <div id="pieSliceInfo" style="min-height:18px;margin-top:6px;font-size:13px;font-weight:700;color:var(--ios-label)">&nbsp;</div>
+          <div id="chartLegend" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:12.5px"></div>
         </div>
         <div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--ios-separator)">
-          <span style="font-weight:600;font-size:13.5px;display:block;margin-bottom:10px">By Payment Method</span>
+          <span style="font-weight:600;font-size:13.5px;display:block;margin-bottom:10px">By Payment Method <span style="font-weight:400;color:var(--ios-label-secondary);font-size:11.5px">(this month)</span></span>
           <div id="paymentBreakdown"></div>
         </div>
       </div>
@@ -3759,15 +3759,23 @@
     <div class="h-panel" id="hp-form" hidden>
       <div class="mod-card">
         <span style="font-weight:600;font-size:15px;display:block;margin-bottom:2px">Log Daily Health &amp; Wellness</span>
-        <span style="font-size:12px;color:var(--ios-label-secondary);display:block;margin-bottom:12px">Each section below saves on its own — log just your sleep, or just your weight, without filling out the rest.</span>
+        <span style="font-size:12px;color:var(--ios-label-secondary);display:block;margin-bottom:12px">Pick what you want to log — only that section shows, and it saves on its own.</span>
 
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="hDate">
         </div>
 
+        <div class="quick-cat-chips" id="healthItemPicker" style="margin-bottom:4px">
+          <button type="button" class="quick-cat-chip" data-hitem="sleep">😴 Sleep</button>
+          <button type="button" class="quick-cat-chip" data-hitem="water">💧 Hydration</button>
+          <button type="button" class="quick-cat-chip" data-hitem="period">🩸 Period &amp; Intimacy</button>
+          <button type="button" class="quick-cat-chip" data-hitem="mood">😊 Mood &amp; Vitals</button>
+          <button type="button" class="quick-cat-chip" data-hitem="notes">📝 Notes</button>
+        </div>
+
         <!-- 1. SLEEP SECTION -->
-        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <div id="hSectionSleep" hidden style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-top:14px;margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:13.5px;font-weight:700">Sleep &amp; Wake Times</span>
             <button class="action-btn" id="btnSaveSleepSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
@@ -3796,7 +3804,7 @@
         </div>
 
         <!-- 2. HYDRATION WATER TRACKER -->
-        <div class="water-box" style="margin-bottom:14px">
+        <div id="hSectionWater" hidden class="water-box" style="margin-bottom:14px">
           <div class="water-header">
             <span style="font-size:13.5px;font-weight:700">Daily Hydration</span>
             <span style="font-size:13px;font-weight:700;color:var(--accent)" id="hWaterValTxt">0 / 2000 ml</span>
@@ -3810,7 +3818,7 @@
         </div>
 
         <!-- 3. MENSTRUAL PERIOD & INTIMACY SECTION -->
-        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <div id="hSectionPeriod" hidden style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:13.5px;font-weight:700">Menstrual Period &amp; Intimacy</span>
             <button class="action-btn" id="btnSavePeriodSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
@@ -3862,7 +3870,7 @@
         </div>
 
         <!-- 4. MOOD & VITALS -->
-        <div style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
+        <div id="hSectionMood" hidden style="background:rgba(255,255,255,0.45);padding:12px;border-radius:16px;border:0.5px solid rgba(255,255,255,0.8);margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:13.5px;font-weight:700">Mood &amp; Energy</span>
             <button class="action-btn" id="btnSaveMoodSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
@@ -3897,15 +3905,13 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <div id="hSectionNotes" hidden class="form-group">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
             <label style="margin-bottom:0">Daily Journal / Notes</label>
             <button class="action-btn" id="btnSaveNotesSection" style="padding:3px 10px;font-size:11px">Save ✓</button>
           </div>
           <textarea id="hNotes" rows="2" placeholder="Record symptoms, workout, or thoughts..."></textarea>
         </div>
-
-        <button class="action-btn" id="btnSaveHealth" style="width:100%;margin-top:6px">Save All Sections</button>
       </div>
     </div>
 
@@ -6811,6 +6817,7 @@ async function save(quiet){
 /* ================= 6-PILLAR EXPANDED BUDGET MODULE ================= */
 let activeBTab = 'overview';
 let bCalDate = new Date();
+let pieSliceData = [];   // {cat, val, startAngle, endAngle, color} per drawn slice, read by the tap/hover handler below
 
 // Shared by the sub-nav click handler and the Overview envelope card's
 // "Manage" shortcut, so both land on the same tab-switching logic.
@@ -6997,28 +7004,18 @@ async function loadBudgetModule(){
     $('bDate').value = new Date().toISOString().slice(0, 10);
   }
 
-  // Calculate monthly stats based on current month
+  // Current month, used to scope each account's "spent this month" badge
+  // and as the default for the transaction month filter below.
   const curMonthKey = new Date().toISOString().slice(0, 7);
-  let monthExpense = 0, monthIncome = 0;
   accounts.forEach(a => a.spentMonth = 0);
 
   entries.forEach(item => {
     const isThisMonth = item.date ? item.date.startsWith(curMonthKey) : true;
-    if(isThisMonth){
-      if(item.type === 'exp'){
-        const acc = accounts.find(a => a.id === item.accountId);
-        if(acc) acc.spentMonth += item.amt;   // per-account total always counts its own activity, regardless of type
-        if(isSpendingEntry(item, accounts)) monthExpense += item.amt;
-      } else if(isSpendingEntry(item, accounts)){
-        monthIncome += item.amt;
-      }
+    if(isThisMonth && item.type === 'exp'){
+      const acc = accounts.find(a => a.id === item.accountId);
+      if(acc) acc.spentMonth += item.amt;
     }
   });
-
-  $('bRecapInc').textContent = `+$${monthIncome.toFixed(2)}`;
-  $('bRecapExp').textContent = `-$${monthExpense.toFixed(2)}`;
-  $('bRecapNet').textContent = `$${(monthIncome - monthExpense).toFixed(2)}`;
-  if($('bRecapAssetNote')) $('bRecapAssetNote').hidden = !accounts.some(a => a.accType === 'asset');
 
   // Calculate Weekly Statistics & 7-Day Mini Bar Breakdown
   const today = new Date();
@@ -7897,14 +7894,19 @@ window.delSub = async (idx) => {
 async function drawReportsChart(){
   const entries = (await store.get('budget:entries')) || [];
   const accounts = await getAccounts();
+  const curMonthKey = new Date().toISOString().slice(0, 7);
   const catTotals = {};
-  entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts)).forEach(e => {
-    catTotals[e.cat] = (catTotals[e.cat] || 0) + e.amt;
-  });
+  entries
+    .filter(e => e.type === 'exp' && isSpendingEntry(e, accounts) && e.date && e.date.startsWith(curMonthKey))
+    .forEach(e => {
+      catTotals[e.cat] = (catTotals[e.cat] || 0) + e.amt;
+    });
 
   const canvas = $('expenseChartCanvas');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  pieSliceData = [];
+  if($('pieSliceInfo')) $('pieSliceInfo').innerHTML = '&nbsp;';
 
   // Derived from the canvas's own size rather than hardcoded — the canvas
   // has been resized before (280→240 when it moved into the Monthly
@@ -7925,7 +7927,7 @@ async function drawReportsChart(){
     ctx.font = '14px -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText('No expenses to analyze', cx, cy);
+    ctx.fillText('No expenses this month', cx, cy);
     $('chartLegend').innerHTML = '';
     return;
   }
@@ -7945,6 +7947,7 @@ async function drawReportsChart(){
     ctx.fillStyle = color;
     ctx.fill();
 
+    pieSliceData.push({ cat, val, startAngle, endAngle: startAngle + sliceAngle, color, cx, cy, innerR, outerR });
     startAngle += sliceAngle;
     const pct = Math.round((val / total) * 100);
     legendHtml += `<span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px"></i>${cat}: ${pct}%</span>`;
@@ -7956,6 +7959,39 @@ async function drawReportsChart(){
   ctx.fill();
 
   $('chartLegend').innerHTML = legendHtml;
+  initPieChartTooltip(canvas);
+}
+
+// Reads the pointer's position relative to the canvas and, if it falls
+// inside the donut ring, finds which slice (by angle) it's over — bound
+// once per canvas (guarded by a dataset flag) since drawReportsChart runs
+// on every refresh but the listener itself never needs to change.
+function initPieChartTooltip(canvas){
+  if(canvas.dataset.tooltipBound) return;
+  canvas.dataset.tooltipBound = '1';
+
+  const showSliceAt = (clientX, clientY) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * (canvas.width / rect.width);
+    const y = (clientY - rect.top) * (canvas.height / rect.height);
+    if(!pieSliceData.length) return;
+    const { cx, cy, innerR, outerR } = pieSliceData[0];
+    const dx = x - cx, dy = y - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const info = $('pieSliceInfo');
+    if(!info || dist < innerR || dist > outerR){ if(info) info.innerHTML = '&nbsp;'; return; }
+    // Canvas arcs start at angle 0 along the +x axis and sweep clockwise as
+    // the angle grows (since canvas y points down) — atan2(dy, dx) uses the
+    // same convention, so it lines up with startAngle/endAngle directly.
+    let angle = Math.atan2(dy, dx);
+    if(angle < 0) angle += 2 * Math.PI;
+    const slice = pieSliceData.find(s => angle >= s.startAngle && angle < s.endAngle) || pieSliceData[pieSliceData.length - 1];
+    if(slice) info.innerHTML = `<span style="color:${slice.color}">${escapeHtml(slice.cat)}: $${slice.val.toFixed(2)}</span>`;
+  };
+
+  canvas.addEventListener('pointermove', e => showSliceAt(e.clientX, e.clientY));
+  canvas.addEventListener('pointerdown', e => showSliceAt(e.clientX, e.clientY));
+  canvas.addEventListener('pointerleave', () => { const info = $('pieSliceInfo'); if(info) info.innerHTML = '&nbsp;'; });
 }
 
 /* Spend grouped by how it was paid. Payment is a free-text field (whatever
@@ -7967,7 +8003,8 @@ async function renderPaymentBreakdown(){
   if(!el) return;
   const entries = (await store.get('budget:entries')) || [];
   const accounts = await getAccounts();
-  const expenses = entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts));
+  const curMonthKey = new Date().toISOString().slice(0, 7);
+  const expenses = entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts) && e.date && e.date.startsWith(curMonthKey));
 
   const totals = {};   // key: lowercase payment -> { label, amt }
   let untracked = 0;
@@ -7982,7 +8019,7 @@ async function renderPaymentBreakdown(){
   if(untracked > 0) rows.push({ label: 'No payment method noted', amt: untracked, muted: true });
 
   if(!rows.length){
-    el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No expenses yet.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No expenses this month.</div>`;
     return;
   }
 
@@ -8254,6 +8291,12 @@ function initHealthForm(){
   if($('hDate') && !$('hDate').value){
     $('hDate').value = new Date().toISOString().slice(0, 10);
   }
+
+  $('healthItemPicker').onclick = e => {
+    const b = e.target.closest('[data-hitem]');
+    if(!b) return;
+    showHealthItem(activeHealthItem === b.dataset.hitem ? null : b.dataset.hitem);
+  };
   const updateDuration = () => {
     const dur = calculateSleepDuration($('hBedtime').value, $('hWaketime').value);
     $('hSleepDurationTxt').textContent = dur;
@@ -8319,7 +8362,8 @@ function initHealthForm(){
   // tally is naturally logged a sip at a time rather than all at once.
   const saveWaterNow = async () => {
     const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
-    await mergeHealthFields(dateVal, { water: currentWaterMl });
+    const logs = await mergeHealthFields(dateVal, { water: currentWaterMl });
+    updateHealthItemBadges(logs[dateVal]);
     refreshHealthCalAndHistory();
   };
   $('btnWater250').onclick = () => { currentWaterMl += 250; updateWaterUI(); saveWaterNow(); };
@@ -8368,6 +8412,43 @@ function updateWaterUI(){
   $('hWaterBar').style.width = `${Math.min(100, Math.round((currentWaterMl / 2000) * 100))}%`;
 }
 
+/* ---------- HEALTH ITEM PICKER ----------
+   Only one section is ever visible at a time: pick an item from the chip
+   row and just that section's inputs appear, instead of the whole form
+   showing at once. */
+const HEALTH_ITEM_SECTIONS = { sleep: 'hSectionSleep', water: 'hSectionWater', period: 'hSectionPeriod', mood: 'hSectionMood', notes: 'hSectionNotes' };
+let activeHealthItem = null;
+
+function showHealthItem(itemKey){
+  activeHealthItem = itemKey;
+  Object.entries(HEALTH_ITEM_SECTIONS).forEach(([key, id]) => {
+    const el = $(id);
+    if(el) el.hidden = (key !== itemKey);
+  });
+  if($('healthItemPicker')){
+    $('healthItemPicker').querySelectorAll('[data-hitem]').forEach(b => {
+      b.classList.toggle('on', b.dataset.hitem === itemKey);
+    });
+  }
+}
+
+// Marks each picker chip with a small dot when that day already has
+// something recorded for it, so reopening a logged day shows at a glance
+// what's there before picking anything.
+function updateHealthItemBadges(item){
+  const has = {
+    sleep: !!(item && (item.bedtime || item.waketime)),
+    water: !!(item && item.water),
+    period: !!(item && ((item.period && item.period !== 'none') || item.intimacy || (item.symptoms && item.symptoms.length))),
+    mood: !!(item && (item.mood || item.weight)),
+    notes: !!(item && item.notes)
+  };
+  if(!$('healthItemPicker')) return;
+  $('healthItemPicker').querySelectorAll('[data-hitem]').forEach(b => {
+    b.classList.toggle('has-data', !!has[b.dataset.hitem]);
+  });
+}
+
 // Every field the form can hold, set back to its blank/default state — used
 // both for "+ New Log" (so nothing from a previous entry leaks in) and as
 // the starting point before populateHealthForm() layers a real entry on top.
@@ -8399,6 +8480,9 @@ function resetHealthForm(dateStr){
 
   currentWaterMl = 0;
   updateWaterUI();
+
+  showHealthItem(null);
+  updateHealthItemBadges(null);
 }
 
 // Layers a saved entry's fields on top of the reset state above — whatever
@@ -8451,6 +8535,7 @@ function populateHealthForm(item){
 function openHealthDay(dateStr, healthLogs){
   resetHealthForm(dateStr);
   populateHealthForm(healthLogs[dateStr]);
+  updateHealthItemBadges(healthLogs[dateStr]);
   showHealthTab('form');
 }
 
@@ -8464,59 +8549,30 @@ async function mergeHealthFields(dateStr, fields){
   return healthLogs;
 }
 
-$('btnSaveHealth').onclick = async () => {
-  const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
-  const bedtime = $('hBedtime').value;
-  const waketime = $('hWaketime').value;
-  const sleepDuration = calculateSleepDuration(bedtime, waketime);
-  const flow = $('hFlow').value;
-  const weight = parseFloat($('hWeight').value) || null;
-  const notes = $('hNotes').value.trim();
-  const mood = $('hMood').value;
-  const energy = $('hEnergy').value;
-
-  await mergeHealthFields(dateVal, {
-    bedtime,
-    waketime,
-    sleepDuration,
-    sleepQuality: selectedSleepQuality,
-    water: currentWaterMl,
-    period: selectedPeriodStatus,
-    flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
-    symptoms: Array.from(selectedSymptoms),
-    intimacy: intimacyCount,
-    protection: selectedProtection,
-    mood,
-    energy,
-    weight,
-    notes
-  });
-  pill('Health Log Saved ✓');
-  loadHealthModule();
-  showHealthTab('cal');
-};
-
-// The four sections below (plus the water quick-add buttons) each save
-// independently — every handler reads only its own inputs and merges just
-// those fields into the day's record, so logging sleep doesn't require
-// also touching mood, period, or anything else.
+// Each section saves independently — every handler reads only its own
+// inputs and merges just those fields into the day's record, so logging
+// sleep doesn't require also touching mood, period, or anything else.
+// After saving, the section collapses back to the picker so the flow is
+// always "pick an item → fill it in → save → pick the next one".
 $('btnSaveSleepSection').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
   const bedtime = $('hBedtime').value;
   const waketime = $('hWaketime').value;
-  await mergeHealthFields(dateVal, {
+  const logs = await mergeHealthFields(dateVal, {
     bedtime, waketime,
     sleepDuration: calculateSleepDuration(bedtime, waketime),
     sleepQuality: selectedSleepQuality
   });
   pill('Sleep Logged ✓');
+  showHealthItem(null);
+  updateHealthItemBadges(logs[dateVal]);
   refreshHealthCalAndHistory();
 };
 
 $('btnSavePeriodSection').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
   const flow = $('hFlow').value;
-  await mergeHealthFields(dateVal, {
+  const logs = await mergeHealthFields(dateVal, {
     period: selectedPeriodStatus,
     flow: (selectedPeriodStatus === 'started' || selectedPeriodStatus === 'ongoing') ? flow : null,
     symptoms: Array.from(selectedSymptoms),
@@ -8524,25 +8580,31 @@ $('btnSavePeriodSection').onclick = async () => {
     protection: selectedProtection
   });
   pill('Period & Intimacy Logged ✓');
+  showHealthItem(null);
+  updateHealthItemBadges(logs[dateVal]);
   refreshHealthCalAndHistory();
 };
 
 $('btnSaveMoodSection').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
   const weight = parseFloat($('hWeight').value) || null;
-  await mergeHealthFields(dateVal, {
+  const logs = await mergeHealthFields(dateVal, {
     mood: $('hMood').value,
     energy: $('hEnergy').value,
     weight
   });
   pill('Mood & Vitals Logged ✓');
+  showHealthItem(null);
+  updateHealthItemBadges(logs[dateVal]);
   refreshHealthCalAndHistory();
 };
 
 $('btnSaveNotesSection').onclick = async () => {
   const dateVal = $('hDate').value || new Date().toISOString().slice(0, 10);
-  await mergeHealthFields(dateVal, { notes: $('hNotes').value.trim() });
+  const logs = await mergeHealthFields(dateVal, { notes: $('hNotes').value.trim() });
   pill('Notes Saved ✓');
+  showHealthItem(null);
+  updateHealthItemBadges(logs[dateVal]);
   refreshHealthCalAndHistory();
 };
 
