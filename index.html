@@ -1106,6 +1106,29 @@
     color: var(--ios-red);
     flex-shrink: 0;
   }
+  .owed-card-amt.positive { color: #16A34A; }
+  .owed-card-cat {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ios-label-secondary);
+    background: var(--ios-fill-secondary, rgba(120,120,128,0.12));
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .friend-balance-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--ios-separator);
+    font-size: 13px;
+  }
+  .friend-balance-row:last-child { border-bottom: none; }
+  .friend-balance-name { font-weight: 600; color: var(--ios-label); }
+  .friend-balance-amt.owe-them { color: var(--ios-red); font-weight: 700; }
+  .friend-balance-amt.owe-you { color: #16A34A; font-weight: 700; }
   .owed-card-bottom {
     display: flex;
     justify-content: space-between;
@@ -3533,6 +3556,14 @@
     <!-- SUB-TAB: LOG (renamed from History — Paid by Friends now lives
          here too, alongside the full month-by-month history list). -->
     <div class="b-panel" id="bp-logs" hidden>
+      <!-- FRIEND BALANCES: a net-per-friend rollup of every unsettled
+           record in both directions, so "who do I owe / who owes me" is
+           one glance instead of scanning every card below. -->
+      <div class="mod-card" id="friendBalancesCard" style="margin-bottom:16px" hidden>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:8px">Friend Balances</span>
+        <div id="friendBalancesList"></div>
+      </div>
+
       <!-- FRIEND-PAID RECORDS (先付的但還沒付): the list of what friends
            have covered lives here alongside your own transaction history
            — this tab is for reviewing records. Logging a new one happens
@@ -3608,19 +3639,38 @@
         <div id="trHistoryList" style="margin-top:12px"></div>
       </div>
 
-      <!-- FRIEND-PAID (先付的但還沒付): a friend fronted the money — it
-           still counts as that day's spend, but no account of mine is
-           touched until it's actually paid back. Settling creates a real
-           transfer-out entry, so the repayment itself is recorded too. -->
+      <!-- FRIEND-PAID (先付的但還沒付): either direction of a shared-money
+           debt. "They Paid" — a friend fronted the money, it still counts
+           as that day's spend, but no account of mine is touched until I
+           pay them back. "I Paid" — I fronted it from a real account of
+           mine (a real expense today), and the friend owes me back.
+           Settling either direction creates a matching real entry, marked
+           isSettlement so it moves money without double-counting spend. -->
       <div class="mod-card" id="bOwedPane" hidden>
-        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:4px">Log What a Friend Paid</span>
-        <p style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:14px;line-height:1.4">Counts toward today's spending like any expense, but doesn't touch your own balance until you pay them back.</p>
+        <span style="font-weight:600;font-size:15px;display:block;margin-bottom:4px">Log a Shared Expense</span>
+        <p id="owedDirHint" style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:14px;line-height:1.4">Counts toward today's spending like any expense, but doesn't touch your own balance until you pay them back.</p>
+        <div class="view-toggle" id="owedDirToggle" style="margin-bottom:14px">
+          <button class="active" data-owedir="theyPaid">They Paid</button>
+          <button data-owedir="iPaid">I Paid</button>
+        </div>
         <div class="form-group">
-          <label>Who &amp; How Much</label>
-          <div style="display:flex;gap:8px">
-            <input type="text" id="owedPerson" placeholder="Who paid?" style="flex:1">
-            <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="width:100px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <label style="margin-bottom:0" id="owedPersonLabel">Who Paid?</label>
+            <button type="button" class="payment-manage-btn" id="owedPersonManageBtn" title="Edit friends">Manage</button>
           </div>
+          <div class="quick-cat-chips" id="owedPersonChips"></div>
+          <input type="hidden" id="owedPerson" value="">
+        </div>
+        <div class="form-group">
+          <label>Amount &amp; Category</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="owedAmt" placeholder="0.00" step="0.01" style="flex:1">
+            <select id="owedCat" style="width:125px"></select>
+          </div>
+        </div>
+        <div class="form-group" id="owedAccountGroup" hidden>
+          <label>Paid From</label>
+          <select id="owedAccount"></select>
         </div>
         <div class="form-group">
           <label>What &amp; When</label>
@@ -4171,7 +4221,7 @@
 <div class="modal-overlay" id="settleOwedModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
-      <h3>Pay Back</h3>
+      <h3 id="settleOwedModalTitle">Pay Back</h3>
       <button class="icon danger" id="closeSettleOwedModal" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
@@ -4179,7 +4229,7 @@
     <div class="modal-body">
       <p id="settleOwedSummary" style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:16px;line-height:1.45"></p>
       <div class="form-group">
-        <label>Pay from</label>
+        <label id="settleOwedAccountLabel">Pay from</label>
         <select id="settleOwedAccount"></select>
       </div>
       <button class="action-btn" id="confirmSettleOwedBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Confirm Repayment</button>
@@ -4303,6 +4353,27 @@
       <div style="display:flex;gap:8px">
         <button type="button" id="deletePaymentMethodBtn" hidden style="flex:1;padding:11px;background:none;border:none;border-radius:14px;color:var(--ios-red);font-size:13.5px;font-weight:600;cursor:pointer">Delete</button>
         <button class="action-btn" id="savePaymentMethodBtn" style="flex:2;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="friendModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="friendModalTitle">New Friend</h3>
+      <button class="icon danger" id="closeFriendModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="friendName" placeholder="e.g. Alice" autocomplete="off">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="deleteFriendBtn" hidden style="flex:1;padding:11px;background:none;border:none;border-radius:14px;color:var(--ios-red);font-size:13.5px;font-weight:600;cursor:pointer">Delete</button>
+        <button class="action-btn" id="saveFriendBtn" style="flex:2;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Add</button>
       </div>
     </div>
   </div>
@@ -5436,11 +5507,152 @@ function initPaymentMethodModal(){
   };
 }
 
+/* ---------- FRIENDS (chip picker for the Friend Paid form) ----------
+   Same chip-picker language as payment methods — a plain name list stored
+   at budget:friends, add/rename/delete all live in one small modal. No
+   defaults are seeded; there's no sensible default set of friends. */
+async function getFriends(){
+  return (await store.get('budget:friends')) || [];
+}
+
+const friendManageMode = {};
+
+async function renderFriendChips(hiddenId, chipsId){
+  const hidden = $(hiddenId);
+  const box = $(chipsId);
+  if(!hidden || !box) return;
+  const friends = await getFriends();
+  const current = hidden.value;
+  const manageOn = !!friendManageMode[hiddenId];
+
+  const friendChips = friends.map(f => manageOn
+    ? `<span class="quick-cat-chip payment-chip-editable" data-cv="${escapeHtml(f)}">${escapeHtml(f)}<span class="payment-chip-del" data-del="${escapeHtml(f)}">${CROSS}</span></span>`
+    : `<button type="button" class="quick-cat-chip ${f === current ? 'on' : ''}" data-cv="${escapeHtml(f)}">${escapeHtml(f)}</button>`
+  ).join('');
+  const addChip = `<button type="button" class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`;
+
+  box.innerHTML = friendChips + addChip;
+
+  box.querySelectorAll('[data-cv]').forEach(el => {
+    const cv = el.dataset.cv;
+    if(cv === '__add__'){
+      el.onclick = () => openFriendModal(null, hiddenId, chipsId);
+      return;
+    }
+    if(manageOn){
+      el.onclick = (e) => {
+        if(e.target.closest('.payment-chip-del')) return;
+        openFriendModal(cv, hiddenId, chipsId);
+      };
+      const delBtn = el.querySelector('.payment-chip-del');
+      if(delBtn) delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await deleteFriend(cv, hiddenId, chipsId);
+      };
+    } else {
+      el.onclick = () => {
+        hidden.value = cv;
+        renderFriendChips(hiddenId, chipsId);
+      };
+    }
+  });
+}
+
+function initFriendManageBtn(btnId, hiddenId, chipsId){
+  const btn = $(btnId);
+  if(!btn) return;
+  btn.onclick = () => {
+    friendManageMode[hiddenId] = !friendManageMode[hiddenId];
+    btn.classList.toggle('on', friendManageMode[hiddenId]);
+    btn.textContent = friendManageMode[hiddenId] ? 'Done' : 'Manage';
+    renderFriendChips(hiddenId, chipsId);
+  };
+}
+
+let editingFriendName = null;
+let friendModalContext = null;
+
+function openFriendModal(name, hiddenId, chipsId){
+  editingFriendName = name;
+  friendModalContext = { hiddenId, chipsId };
+  $('friendModalTitle').textContent = name ? 'Edit Friend' : 'New Friend';
+  $('friendName').value = name || '';
+  $('saveFriendBtn').textContent = name ? 'Save' : 'Add';
+  $('deleteFriendBtn').hidden = !name;
+  $('friendModal').hidden = false;
+  $('friendName').focus();
+}
+
+async function deleteFriend(name, hiddenId, chipsId){
+  if(!confirm(`Delete "${name}"? Past records keep showing the name, but it won't be offered for new ones.`)) return;
+  const friends = await getFriends();
+  const idx = friends.indexOf(name);
+  if(idx !== -1) friends.splice(idx, 1);
+  await store.set('budget:friends', friends);
+  if($(hiddenId).value === name) $(hiddenId).value = '';
+  await renderFriendChips(hiddenId, chipsId);
+  pill('Friend deleted');
+}
+
+function initFriendModal(){
+  $('closeFriendModal').onclick = () => { $('friendModal').hidden = true; editingFriendName = null; };
+  $('saveFriendBtn').onclick = async () => {
+    const name = $('friendName').value.trim();
+    if(!name) return alert('Give the friend a name.');
+    const friends = await getFriends();
+    const dupe = friends.some(f => f.toLowerCase() === name.toLowerCase() && f !== editingFriendName);
+    if(dupe) return alert('That friend already exists.');
+
+    if(editingFriendName){
+      const idx = friends.indexOf(editingFriendName);
+      if(idx !== -1) friends[idx] = name;
+      await store.set('budget:friends', friends);
+      // Cascade the rename onto existing owed records and their matching
+      // entries so history stays consistent with what the friend is now called.
+      const owed = (await store.get('budget:owed')) || [];
+      let owedChanged = false;
+      owed.forEach(o => { if(o.person === editingFriendName){ o.person = name; owedChanged = true; } });
+      if(owedChanged) await store.set('budget:owed', owed);
+      const entries = (await store.get('budget:entries')) || [];
+      let entChanged = false;
+      entries.forEach(e => {
+        if(e.owedBy === editingFriendName){ e.owedBy = name; entChanged = true; }
+        if(e.owedTo === editingFriendName){ e.owedTo = name; entChanged = true; }
+      });
+      if(entChanged) await store.set('budget:entries', entries);
+      pill(`"${editingFriendName}" renamed to "${name}"`);
+    } else {
+      friends.push(name);
+      await store.set('budget:friends', friends);
+      pill(`Friend "${name}" added`);
+    }
+
+    $('friendModal').hidden = true;
+    const ctx = friendModalContext;
+    if(ctx && $(ctx.hiddenId)){
+      if(!editingFriendName || $(ctx.hiddenId).value === editingFriendName){
+        $(ctx.hiddenId).value = name;
+      }
+      await renderFriendChips(ctx.hiddenId, ctx.chipsId);
+    }
+    editingFriendName = null;
+    if(typeof loadOwedList === 'function') loadOwedList();
+  };
+  $('deleteFriendBtn').onclick = async () => {
+    if(!editingFriendName) return;
+    const ctx = friendModalContext;
+    $('friendModal').hidden = true;
+    await deleteFriend(editingFriendName, ctx.hiddenId, ctx.chipsId);
+    editingFriendName = null;
+    if(typeof loadOwedList === 'function') loadOwedList();
+  };
+}
+
 async function populateCategorySelects(preferValue){
   const cats = await getCategories();
   const optsHtml = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
     + `<option value="__add__">+ Add category…</option>`;
-  ['quickCat', 'bCat', 'editCat'].forEach(id => {
+  ['quickCat', 'bCat', 'editCat', 'owedCat'].forEach(id => {
     const el = $(id);
     if(!el) return;
     const keep = preferValue && cats.some(c => c.v === preferValue) ? preferValue : (el.value || cats[0].v);
@@ -5596,6 +5808,8 @@ function initCategoryPickers(){
   // escape hatch as the other two, so adding a category mid-edit doesn't
   // require abandoning the edit first.
   $('editCat').onchange = () => onCatSelectChange($('editCat'));
+  // Friend Paid's category picker gets the same escape hatch.
+  $('owedCat').onchange = () => onCatSelectChange($('owedCat'));
 }
 
 async function renderExprPreview(){
@@ -7106,7 +7320,7 @@ function renderMonthLogsList(monthEntries, allEntries){
         <div class="b-item-row">
           <div class="b-item-info">
             <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
-            <span class="b-item-desc">${item.date}${item.owedBy ? ` · Paid by ${escapeHtml(item.owedBy)}` : (item.payment ? ` · ${item.payment}` : '')}</span>
+            <span class="b-item-desc">${item.date}${item.owedBy ? ` · Paid by ${escapeHtml(item.owedBy)}` : (item.owedTo ? ` · Paid for ${escapeHtml(item.owedTo)}` : (item.payment ? ` · ${item.payment}` : ''))}</span>
           </div>
           <div class="b-item-right">
             <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
@@ -7194,6 +7408,9 @@ async function loadBudgetModule(){
   $('bAccountSelect').innerHTML = accOptions + `<option value="">— No Account —</option>`;
   $('trFromAcc').innerHTML = accOptions;
   $('trToAcc').innerHTML = accOptions;
+  // "I Paid" (Friend Paid, reverse direction) needs a real account too —
+  // the money actually left one of mine, so no "No Account" fallback here.
+  if($('owedAccount')) $('owedAccount').innerHTML = accOptions;
 
   // Render Accounts Grid — top-level accounts get a card; any sub-accounts
   // render as an indented full-width strip right under their parent (grid
@@ -7359,6 +7576,7 @@ async function loadBudgetModule(){
   drawNetWorthChart();
   renderPaymentBreakdown();
   renderPaymentChips('bPayment', 'bPaymentChips');
+  renderFriendChips('owedPerson', 'owedPersonChips');
 
   // Keep the account drill-down in step if an edit/delete happened while it
   // was open — those actions route back through loadBudgetModule().
@@ -7415,7 +7633,7 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
           <div class="b-item-row">
             <div class="b-item-info">
               <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
-              <span class="b-item-desc">${item.owedBy ? `Paid by ${escapeHtml(item.owedBy)}` : (acc ? acc.name : 'Account')}${item.payment ? ` · ${item.payment}` : ''}</span>
+              <span class="b-item-desc">${item.owedBy ? `Paid by ${escapeHtml(item.owedBy)}` : (item.owedTo ? `Paid for ${escapeHtml(item.owedTo)}` : (acc ? acc.name : 'Account'))}${item.payment ? ` · ${item.payment}` : ''}</span>
             </div>
             <div class="b-item-right">
               <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
@@ -7669,9 +7887,42 @@ function initAccountDetailModal(){
 
 let showSettledOwed = false;
 let settlingOwedId = null;
+let owedDirection = 'theyPaid';
+
+// Net-per-friend rollup shown above the record list: positive means the
+// friend owes the user (from "I Paid" records), negative means the user
+// owes the friend (from "They Paid" records) — settled records don't count,
+// same as everywhere else debt is tallied.
+function renderFriendBalances(owed){
+  const card = $('friendBalancesCard');
+  const box = $('friendBalancesList');
+  if(!card || !box) return;
+  const balances = {};
+  owed.filter(o => !o.settled).forEach(o => {
+    const dir = o.direction || 'theyPaid';
+    balances[o.person] = (balances[o.person] || 0) + (dir === 'iPaid' ? o.amt : -o.amt);
+  });
+  const names = Object.keys(balances).filter(p => Math.abs(balances[p]) > 0.004).sort();
+  if(!names.length){
+    card.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  box.innerHTML = names.map(name => {
+    const net = balances[name];
+    const owesYou = net > 0;
+    return `
+    <div class="friend-balance-row">
+      <span class="friend-balance-name">${escapeHtml(name)}</span>
+      <span class="friend-balance-amt ${owesYou ? 'owe-you' : 'owe-them'}">${owesYou ? `Owes you $${net.toFixed(2)}` : `You owe $${Math.abs(net).toFixed(2)}`}</span>
+    </div>`;
+  }).join('');
+}
 
 async function loadOwedList(){
   const owed = (await store.get('budget:owed')) || [];
+  renderFriendBalances(owed);
   const list = owed.filter(o => showSettledOwed ? true : !o.settled)
                     .sort((a, b) => new Date(b.date) - new Date(a.date));
   const el = $('owedList');
@@ -7680,25 +7931,29 @@ async function loadOwedList(){
     el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-secondary);font-size:13px">${showSettledOwed ? 'Nothing here yet.' : 'Nobody owes anything right now.'}</div>`;
     return;
   }
-  el.innerHTML = list.map(o => `
+  el.innerHTML = list.map(o => {
+    const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
+    const catTag = o.cat ? `<span class="owed-card-cat">${escapeHtml(o.cat)}</span>` : '';
+    const itemText = isIPaid ? `You paid: ${escapeHtml(o.item || 'this')}` : escapeHtml(o.item || 'No item');
+    return `
     <div class="owed-card ${o.settled ? 'settled' : ''}">
       <div class="owed-card-top">
         <div class="owed-avatar">${escapeHtml((o.person || '?').trim().slice(0, 1).toUpperCase())}</div>
         <div class="owed-card-info">
           <span class="owed-card-name">${escapeHtml(o.person)}</span>
-          <span class="owed-card-item">${escapeHtml(o.item || 'No item')}</span>
+          <span class="owed-card-item">${itemText}${catTag}</span>
         </div>
-        <span class="owed-card-amt">-$${o.amt.toFixed(2)}</span>
+        <span class="owed-card-amt ${isIPaid ? 'positive' : ''}">${isIPaid ? '+' : '-'}$${o.amt.toFixed(2)}</span>
       </div>
       <div class="owed-card-bottom">
         <span class="owed-card-date">${o.date}${o.settled ? ' <span class="owed-settled-pill">✓ Settled</span>' : ''}</span>
         <div class="owed-card-actions">
-          ${o.settled ? '' : `<button class="action-btn owed-payback-btn" style="padding:5px 12px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">Pay Back</button>`}
+          ${o.settled ? '' : `<button class="action-btn owed-payback-btn" style="padding:5px 12px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">${isIPaid ? 'Mark Received' : 'Pay Back'}</button>`}
           <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 window.openSettleOwed = async (id) => {
@@ -7706,7 +7961,13 @@ window.openSettleOwed = async (id) => {
   const o = owed.find(x => x.id === id);
   if(!o) return;
   settlingOwedId = id;
-  $('settleOwedSummary').textContent = `Pay ${o.person} back ${o.amt.toFixed(2)} for ${o.item || 'this'}.`;
+  const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
+  $('settleOwedModalTitle').textContent = isIPaid ? 'Mark Received' : 'Pay Back';
+  $('settleOwedAccountLabel').textContent = isIPaid ? 'Receive into' : 'Pay from';
+  $('settleOwedSummary').textContent = isIPaid
+    ? `Mark ${o.amt.toFixed(2)} as received back from ${o.person} for ${o.item || 'this'}.`
+    : `Pay ${o.person} back ${o.amt.toFixed(2)} for ${o.item || 'this'}.`;
+  $('confirmSettleOwedBtn').textContent = isIPaid ? 'Confirm Received' : 'Confirm Repayment';
   const accounts = await getAccounts();
   $('settleOwedAccount').innerHTML = accountOptionsHtml(accounts);
   $('settleOwedModal').hidden = false;
@@ -7722,6 +7983,21 @@ window.deleteOwed = async (id) => {
   loadOwedList();
 };
 
+// Flips the Friend Paid form between "They Paid" (a friend fronted money
+// for me — no account of mine touched yet) and "I Paid" (I fronted it from
+// a real account of mine — a real expense today, the friend owes it back).
+function setOwedDirection(dir){
+  owedDirection = (dir === 'iPaid') ? 'iPaid' : 'theyPaid';
+  const isIPaid = owedDirection === 'iPaid';
+  $('owedDirToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.owedir === owedDirection));
+  $('owedPersonLabel').textContent = isIPaid ? 'Who Did You Pay For?' : 'Who Paid?';
+  $('owedDirHint').textContent = isIPaid
+    ? 'Debits your account like a normal expense today — the friend owes you back.'
+    : 'Counts toward today\'s spending like any expense, but doesn\'t touch your own balance until you pay them back.';
+  $('owedAccountGroup').hidden = !isIPaid;
+  $('addOwedBtn').textContent = isIPaid ? '＋ Log What I Paid' : '＋ Log What They Paid';
+}
+
 function initOwedTracker(){
   $('toggleSettledOwedBtn').onclick = () => {
     showSettledOwed = !showSettledOwed;
@@ -7729,34 +8005,62 @@ function initOwedTracker(){
     loadOwedList();
   };
 
+  $('owedDirToggle').onclick = e => {
+    const btn = e.target.closest('[data-owedir]');
+    if(btn) setOwedDirection(btn.dataset.owedir);
+  };
+
   $('addOwedBtn').onclick = async () => {
     const person = $('owedPerson').value.trim();
     const amt = parseFloat($('owedAmt').value);
-    if(!person) return alert('Who paid?');
+    if(!person) return alert('Pick or add a friend first.');
     if(isNaN(amt) || amt <= 0) return alert('Enter a valid amount.');
+    const cat = $('owedCat').value || 'General';
     const item = $('owedItem').value.trim();
     const date = $('owedDate').value || key(new Date());
     const owed = (await store.get('budget:owed')) || [];
     const id = 'owed_' + Date.now();
     const entries = (await store.get('budget:entries')) || [];
     const entryId = 'tx_' + Date.now();
-    entries.unshift({
-      id: entryId, type: 'exp', amt, accountId: null, cat: 'General',
-      desc: item || `Paid by ${person}`,
-      payment: null, owedBy: person,
-      date, dateKey: date.slice(0, 7)
-    });
-    await store.set('budget:entries', entries);
-    owed.unshift({ id, person, item, amt, date, settled: false, entryId });
+
+    if(owedDirection === 'iPaid'){
+      const accountId = $('owedAccount').value;
+      if(!accountId) return alert('Add a bank account first — there\'s nowhere to pay this from yet.');
+      const accounts = await getAccounts();
+      const acc = accounts.find(a => a.id === accountId);
+      if(acc){
+        acc.balance += acctDelta(acc, amt, true);
+        await store.set('budget:accounts', accounts);
+      }
+      entries.unshift({
+        id: entryId, type: 'exp', amt, accountId, cat,
+        desc: item || `Paid for ${person}`,
+        payment: null, owedTo: person,
+        date, dateKey: date.slice(0, 7)
+      });
+      await store.set('budget:entries', entries);
+      owed.unshift({ id, person, item, amt, cat, date, settled: false, entryId, direction: 'iPaid', accountId });
+    } else {
+      entries.unshift({
+        id: entryId, type: 'exp', amt, accountId: null, cat,
+        desc: item || `Paid by ${person}`,
+        payment: null, owedBy: person,
+        date, dateKey: date.slice(0, 7)
+      });
+      await store.set('budget:entries', entries);
+      owed.unshift({ id, person, item, amt, cat, date, settled: false, entryId, direction: 'theyPaid' });
+    }
+
     await store.set('budget:owed', owed);
     $('owedPerson').value = '';
     $('owedAmt').value = '';
     $('owedItem').value = '';
     $('owedDate').value = key(new Date());
+    renderFriendChips('owedPerson', 'owedPersonChips');
     loadOwedList();
     loadBudgetModule();
     refreshHub();
-    pill(`Logged — ${person} paid ${amt.toFixed(2)}`);
+    pill(owedDirection === 'iPaid' ? `Logged — you paid ${amt.toFixed(2)} for ${person}` : `Logged — ${person} paid ${amt.toFixed(2)}`);
   };
 
   $('closeSettleOwedModal').onclick = () => {
@@ -7769,19 +8073,24 @@ function initOwedTracker(){
     const owed = (await store.get('budget:owed')) || [];
     const o = owed.find(x => x.id === settlingOwedId);
     if(!o) return;
+    const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
     const accountId = $('settleOwedAccount').value;
-    if(!accountId) return alert('Add a bank account first — there\'s nowhere to pay this from yet.');
+    if(!accountId) return alert(`Add a bank account first — there's nowhere to ${isIPaid ? 'receive this into' : 'pay this from'} yet.`);
     const accounts = await getAccounts();
     const acc = accounts.find(a => a.id === accountId);
-    if(acc) acc.balance += acctDelta(acc, o.amt, true);
+    // Settling "They Paid" is a real expense leaving the account (isExpense
+    // true); settling "I Paid" is the friend paying me back, a real deposit
+    // (isExpense false) — acctDelta already knows how each account kind
+    // (spending vs credit) should move for either direction.
+    if(acc) acc.balance += acctDelta(acc, o.amt, !isIPaid);
     await store.set('budget:accounts', accounts);
     const today = key(new Date());
     const entries = (await store.get('budget:entries')) || [];
     entries.unshift({
-      id: 'tx_' + Date.now(), type: 'exp', amt: o.amt, accountId,
-      cat: 'General', desc: `Paid back ${o.person}`, payment: null,
+      id: 'tx_' + Date.now(), type: isIPaid ? 'inc' : 'exp', amt: o.amt, accountId,
+      cat: o.cat || 'General', desc: isIPaid ? `Repaid by ${o.person}` : `Paid back ${o.person}`, payment: null,
       date: today, dateKey: today.slice(0, 7),
-      isSettlement: true   // the real spending was already counted when this was first logged as friend-paid — this only moves cash to settle the debt, so it must not count as new spending
+      isSettlement: true   // the real spending/income was already counted when this was first logged as a friend-paid record — this only moves cash to settle the debt, so it must not double-count
     });
     await store.set('budget:entries', entries);
     o.settled = true;
@@ -7793,7 +8102,7 @@ function initOwedTracker(){
     loadOwedList();
     loadBudgetModule();
     refreshHub();
-    pill(`Paid ${o.person} back — ${o.amt.toFixed(2)}`);
+    pill(isIPaid ? `Received ${o.amt.toFixed(2)} from ${o.person}` : `Paid ${o.person} back — ${o.amt.toFixed(2)}`);
   };
 }
 
@@ -10747,6 +11056,8 @@ async function initApp(){
   initPaymentMethodModal();
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
+  initFriendModal();
+  initFriendManageBtn('owedPersonManageBtn', 'owedPerson', 'owedPersonChips');
   initHubAppOrder().catch(()=>{});
   initHubHiddenApps().catch(()=>{});
   initHubCustomize().catch(()=>{});
