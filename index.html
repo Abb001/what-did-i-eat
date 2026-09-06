@@ -1460,6 +1460,35 @@
     color: var(--accent-deep);
   }
   .expr-hint { color: var(--ios-label-tertiary); }
+  /* Expense line becomes a growable textarea instead of a pill input, so a
+     second (or third…) line typed for a batch has somewhere to go — the
+     row aligns its contents to the bottom so the send button stays put
+     next to the last line as the box grows. */
+  .quick-row-expr { align-items: flex-end; }
+  textarea.quick-input {
+    border-radius: 18px;
+    resize: none;
+    overflow-y: auto;
+    max-height: 140px;
+    line-height: 1.45;
+    font-family: var(--ios-font);
+  }
+  .expr-preview-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 3px 0;
+  }
+  .expr-preview-line + .expr-preview-line { border-top: 0.5px solid var(--ios-separator); margin-top: 4px; padding-top: 7px; }
+  .expr-batch-total {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ios-label);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--ios-separator);
+  }
 
   /* AI pane: the tab is deliberately honest that nothing is connected yet,
      rather than offering an action that silently does nothing. */
@@ -3142,8 +3171,8 @@
         <div class="quick-row">
           <input type="text" id="quickShop" class="quick-input quick-shop" placeholder="Shop (optional)" enterkeyhint="next" autocapitalize="off" autocomplete="off">
         </div>
-        <div class="quick-row">
-          <input type="text" id="quickExpr" class="quick-input" placeholder="milk tea 200 linepay post" enterkeyhint="send" autocapitalize="off" autocomplete="off" spellcheck="false">
+        <div class="quick-row quick-row-expr">
+          <textarea id="quickExpr" class="quick-input" rows="1" placeholder="milk tea 200 linepay post&#10;(one per line to log several at once)" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:2px">
@@ -3619,6 +3648,13 @@
           <input type="hidden" id="bPayment" value="">
         </div>
         <button class="action-btn" id="bAddBtn" style="width:100%;margin-top:6px">＋ New Log</button>
+        <!-- BATCH: stages the current form as a queued row instead of
+             saving it immediately, so several entries (different amounts/
+             categories/accounts, one per line of the form) can be filled
+             in a row and committed together with one "Save All" tap. -->
+        <button type="button" class="action-btn" id="bBatchAddBtn" style="width:100%;margin-top:8px;background:none !important;color:var(--accent) !important;border:1.5px solid var(--accent) !important;box-shadow:none !important">＋ Add to Batch</button>
+        <div id="bBatchList" style="margin-top:10px"></div>
+        <button class="action-btn" id="bBatchSaveBtn" style="width:100%;margin-top:8px" hidden>Save All</button>
       </div>
 
       <div class="mod-card" id="bTransferPane" hidden>
@@ -4379,6 +4415,44 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="editOwedModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Edit Record</h3>
+      <button class="icon danger" id="closeEditOwedModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="editOwedDirLabel" style="font-size:12px;color:var(--ios-label-secondary);margin-bottom:12px"></p>
+      <div class="form-group">
+        <label>Friend</label>
+        <div class="quick-cat-chips" id="editOwedPersonChips"></div>
+        <input type="hidden" id="editOwedPerson" value="">
+      </div>
+      <div class="form-group">
+        <label>Amount &amp; Category</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="editOwedAmt" placeholder="0.00" step="0.01" style="flex:1">
+          <select id="editOwedCat" style="width:125px"></select>
+        </div>
+      </div>
+      <div class="form-group" id="editOwedAccountGroup" hidden>
+        <label>Paid From</label>
+        <select id="editOwedAccount"></select>
+      </div>
+      <div class="form-group">
+        <label>What &amp; When</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="editOwedItem" placeholder="What was it?" style="flex:1">
+          <input type="date" id="editOwedDate" style="width:130px">
+        </div>
+      </div>
+      <button class="action-btn" id="saveEditOwedBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="multiPhotoModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
@@ -5114,8 +5188,8 @@ function syncQuickSend(){
   let ok = false;
   if(quickMode === 'meal') ok = quickPhotos.length > 0 || !!($('quickMealNote') || {}).value?.trim();
   else if(quickMode === 'expense'){
-    const p = parseExpenseLine(($('quickExpr') || {}).value);
-    ok = !!(p && p.amt > 0);
+    const lines = (($('quickExpr') || {}).value || '').split('\n');
+    ok = lines.some(l => { const p = parseExpenseLine(l); return p && p.amt > 0; });
   }
   else ok = !!($('quickNote') || {}).value?.trim();
   send.disabled = !ok;
@@ -5652,7 +5726,7 @@ async function populateCategorySelects(preferValue){
   const cats = await getCategories();
   const optsHtml = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('')
     + `<option value="__add__">+ Add category…</option>`;
-  ['quickCat', 'bCat', 'editCat', 'owedCat'].forEach(id => {
+  ['quickCat', 'bCat', 'editCat', 'owedCat', 'editOwedCat'].forEach(id => {
     const el = $(id);
     if(!el) return;
     const keep = preferValue && cats.some(c => c.v === preferValue) ? preferValue : (el.value || cats[0].v);
@@ -5810,87 +5884,122 @@ function initCategoryPickers(){
   $('editCat').onchange = () => onCatSelectChange($('editCat'));
   // Friend Paid's category picker gets the same escape hatch.
   $('owedCat').onchange = () => onCatSelectChange($('owedCat'));
+  $('editOwedCat').onchange = () => onCatSelectChange($('editOwedCat'));
+}
+
+// quickExpr is a textarea now — one line per expense, so pasting or typing
+// several lines and tapping send logs all of them at once. Grows with the
+// content (capped, then scrolls) rather than staying pill-sized.
+function autoGrowQuickExpr(){
+  const el = $('quickExpr');
+  if(!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function quickExprLines(){
+  return ($('quickExpr').value || '').split('\n').map(l => l.trim()).filter(Boolean);
 }
 
 async function renderExprPreview(){
   const box = $('quickExprPreview');
   if(!box) return;
-  const p = parseExpenseLine($('quickExpr').value);
+  const lines = quickExprLines();
 
-  if(p.empty){
-    box.innerHTML = `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b></span>`;
-    return;
-  }
-  if(p.noAmount){
-    box.innerHTML = `<span class="expr-hint">Add an amount, e.g. <b>milk tea 200 linepay post</b></span>`;
+  if(!lines.length){
+    box.innerHTML = `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>. One line per entry to log several at once.</span>`;
     return;
   }
 
   const accounts = await getAccounts();
-  const matched = matchAccount(accounts, p.account);
-  const accLabel = p.account
-    ? (matched ? matched.name : titleCase(p.account))
-    : (accounts[0] ? accounts[0].name : 'No account');
   const shop = ($('quickShop').value || '').trim();
+  let total = 0, validCount = 0;
 
-  box.innerHTML =
-      (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
-    + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
-    + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
-    + (p.payment ? `<span class="expr-chip">${escapeHtml(titleCase(p.payment))}</span>` : `<span class="expr-chip muted">no payment</span>`)
-    + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
-    + (p.account && !matched ? `<span class="expr-new">new account</span>` : '');
+  const rows = lines.map(line => {
+    const p = parseExpenseLine(line);
+    if(p.noAmount) return `<div class="expr-preview-line"><span class="expr-hint">"${escapeHtml(line)}" — needs an amount</span></div>`;
+    const matched = matchAccount(accounts, p.account);
+    const accLabel = p.account
+      ? (matched ? matched.name : titleCase(p.account))
+      : (accounts[0] ? accounts[0].name : 'No account');
+    total += p.amt;
+    validCount++;
+    return `<div class="expr-preview-line">`
+      + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
+      + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
+      + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
+      + (p.payment ? `<span class="expr-chip">${escapeHtml(titleCase(p.payment))}</span>` : `<span class="expr-chip muted">no payment</span>`)
+      + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
+      + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
+      + `</div>`;
+  }).join('');
+
+  box.innerHTML = rows + (validCount > 1 ? `<div class="expr-batch-total">${validCount} entries · $${total.toFixed(2)} total</div>` : '');
 }
 
 async function quickLogExpense(){
-  const p = parseExpenseLine($('quickExpr').value);
-  if(p.empty || p.noAmount || !(p.amt > 0)) return;
+  const parsed = quickExprLines().map(l => parseExpenseLine(l)).filter(p => !p.empty && !p.noAmount && p.amt > 0);
+  if(!parsed.length) return;
 
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
 
   const accounts = await getAccounts();
-  let acc = p.account ? matchAccount(accounts, p.account) : (accounts[0] || null);
-  let created = false;
-  if(!acc && p.account){
-    // A name that matches nothing becomes a new account rather than being
-    // silently charged to the default one. The preview said so first.
-    acc = { id: 'acc_' + Date.now(), name: titleCase(p.account), balance: 0, spentMonth: 0, parentId: null };
-    accounts.push(acc);
-    created = true;
-  }
-  // No account typed and none exist yet — logged with no account attached
-  // rather than forcing one into existence, same as a friend-paid expense.
-  if(acc){
-    acc.balance += acctDelta(acc, p.amt, true);
-    await store.set('budget:accounts', accounts);
-  }
-
   const entries = (await store.get('budget:entries')) || [];
-  entries.unshift({
-    id: 'tx_' + Date.now(),
-    type: 'exp',
-    amt: p.amt,
-    accountId: acc ? acc.id : null,
-    cat,
-    desc: p.item ? titleCase(p.item) : cat,
-    payment: p.payment ? titleCase(p.payment) : null,
-    shop: shop ? titleCase(shop) : null,
-    date: dateVal,
-    dateKey: dateVal.slice(0, 7)
+  const results = [];
+  let total = 0;
+
+  parsed.forEach((p, i) => {
+    let acc = p.account ? matchAccount(accounts, p.account) : (accounts[0] || null);
+    let created = false;
+    if(!acc && p.account){
+      // A name that matches nothing becomes a new account rather than being
+      // silently charged to the default one. The preview said so first.
+      acc = { id: 'acc_' + Date.now() + '_' + i, name: titleCase(p.account), balance: 0, spentMonth: 0, parentId: null };
+      accounts.push(acc);
+      created = true;
+    }
+    // No account typed and none exist yet — logged with no account attached
+    // rather than forcing one into existence, same as a friend-paid expense.
+    if(acc) acc.balance += acctDelta(acc, p.amt, true);
+
+    entries.unshift({
+      // The Date.now() component can repeat across lines logged in the same
+      // batch — the loop index makes each id unique regardless.
+      id: 'tx_' + Date.now() + '_' + i,
+      type: 'exp',
+      amt: p.amt,
+      accountId: acc ? acc.id : null,
+      cat,
+      desc: p.item ? titleCase(p.item) : cat,
+      payment: p.payment ? titleCase(p.payment) : null,
+      shop: shop ? titleCase(shop) : null,
+      date: dateVal,
+      dateKey: dateVal.slice(0, 7)
+    });
+    total += p.amt;
+    results.push({ p, acc, created });
   });
+
+  await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
 
   $('quickExpr').value = '';
   $('quickShop').value = '';
+  autoGrowQuickExpr();
   renderExprPreview();
   syncQuickSend();
   refreshHub();
   const whenSuffix = dateVal === key(new Date()) ? '' : ` · ${quickWhenPhrase()}`;
-  pill(created
-    ? `$${p.amt.toFixed(2)} · new account ${acc.name}${whenSuffix}`
-    : `$${p.amt.toFixed(2)}${acc ? ` → ${acc.name}` : ''}${whenSuffix}`);
+  if(results.length === 1){
+    const { p, acc, created } = results[0];
+    pill(created
+      ? `$${p.amt.toFixed(2)} · new account ${acc.name}${whenSuffix}`
+      : `$${p.amt.toFixed(2)}${acc ? ` → ${acc.name}` : ''}${whenSuffix}`);
+  } else {
+    pill(`${results.length} entries logged · $${total.toFixed(2)} total${whenSuffix}`);
+  }
 }
 
 async function quickLogNote(){
@@ -5994,7 +6103,7 @@ function initQuickAdd(){
   // The expense line drives both the send button and the parse preview.
   // (quickCat's chips are wired by renderQuickCatChips() itself, called
   // from populateCategorySelects() — there's no separate select to bind here.)
-  if($('quickExpr')) $('quickExpr').oninput = () => { syncQuickSend(); renderExprPreview(); };
+  if($('quickExpr')) $('quickExpr').oninput = () => { autoGrowQuickExpr(); syncQuickSend(); renderExprPreview(); };
   if($('quickShop')) $('quickShop').oninput = renderExprPreview;
   renderExprPreview();
 
@@ -7647,40 +7756,117 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
   }).join('');
 }
 
+// Applies one entry's account-balance effect and pushes it onto `entries`
+// — shared by the single "+ New Log" submit and the batch "Save All" path
+// below, so the two can never drift on how a transaction is recorded.
+function commitBudgetEntry(row, accounts, entries, idSuffix){
+  const acc = accounts.find(a => a.id === row.accountId);
+  if(acc) acc.balance += acctDelta(acc, row.amt, row.type === 'exp');
+  entries.unshift({
+    // idSuffix disambiguates ids when several rows are committed in the
+    // same tick (Date.now() alone can repeat across a batch).
+    id: 'tx_' + Date.now() + (idSuffix != null ? '_' + idSuffix : ''),
+    type: row.type,
+    amt: row.amt,
+    accountId: row.accountId,
+    cat: row.cat,
+    desc: row.desc || (row.type === 'inc' ? 'Income' : 'Expense'),
+    payment: row.payment || null,
+    date: row.date,
+    dateKey: row.date.slice(0, 7)
+  });
+}
+
+function readBudgetEntryForm(){
+  return {
+    type: $('bType').value,
+    amt: parseFloat($('bAmt').value),
+    accountId: $('bAccountSelect').value,
+    cat: $('bCat').value,
+    date: $('bDate').value || new Date().toISOString().slice(0, 10),
+    desc: $('bDesc').value.trim(),
+    payment: $('bPayment').value.trim()
+  };
+}
+
 $('bAddBtn').onclick = async () => {
-  const type = $('bType').value;
-  const amt = parseFloat($('bAmt').value);
-  const accountId = $('bAccountSelect').value;
-  const cat = $('bCat').value;
-  const dateVal = $('bDate').value || new Date().toISOString().slice(0, 10);
-  const desc = $('bDesc').value.trim();
-  const payment = $('bPayment').value.trim();
-  if(isNaN(amt) || amt <= 0) return alert('Please enter a valid amount.');
+  const row = readBudgetEntryForm();
+  if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
 
   const accounts = (await store.get('budget:accounts')) || [];
-  const acc = accounts.find(a => a.id === accountId);
-  if(acc){
-    acc.balance += acctDelta(acc, amt, type === 'exp');
-    await store.set('budget:accounts', accounts);
-  }
-
   const entries = (await store.get('budget:entries')) || [];
-  entries.unshift({
-    id: 'tx_' + Date.now(),
-    type,
-    amt,
-    accountId,
-    cat,
-    desc: desc || (type === 'inc' ? 'Income' : 'Expense'),
-    payment: payment || null,
-    date: dateVal,
-    dateKey: dateVal.slice(0, 7)
-  });
+  commitBudgetEntry(row, accounts, entries);
+  await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
+
   $('bPayment').value = '';
   $('bAmt').value = '';
   $('bDesc').value = '';
   pill('Transaction Logged');
+  loadBudgetModule();
+};
+
+/* ---------- BATCH ENTRY (New Log) ----------
+   Stages the current form as a queued row instead of saving right away.
+   Only amount and description clear between rows — account, category,
+   type, date and payment carry over as defaults, since a batch is usually
+   several items from the same trip/account. "Save All" commits every
+   queued row in one go. The queue lives in memory only (a page reload
+   clears it), same as any other in-progress, unsaved form state. */
+let bBatchQueue = [];
+
+function renderBatchList(){
+  const box = $('bBatchList');
+  const saveBtn = $('bBatchSaveBtn');
+  if(!box || !saveBtn) return;
+  if(!bBatchQueue.length){
+    box.innerHTML = '';
+    saveBtn.hidden = true;
+    return;
+  }
+  box.innerHTML = bBatchQueue.map((row, i) => `
+    <div class="sub-card">
+      <div class="sub-info">
+        <div class="sub-name">${escapeHtml(row.desc || (row.type === 'inc' ? 'Income' : 'Expense'))}</div>
+        <div class="sub-cycle">${escapeHtml(row.cat)} · ${row.date}</div>
+      </div>
+      <div class="sub-right">
+        <span class="sub-amt" style="color:${row.type === 'inc' ? '#16A34A' : 'var(--ios-red)'}">${row.type === 'inc' ? '+' : '-'}$${row.amt.toFixed(2)}</span>
+        <button class="icon danger" onclick="removeBatchRow(${i})" title="Remove">${CROSS}</button>
+      </div>
+    </div>
+  `).join('');
+  saveBtn.hidden = false;
+  saveBtn.textContent = `Save All (${bBatchQueue.length})`;
+}
+
+window.removeBatchRow = (i) => {
+  bBatchQueue.splice(i, 1);
+  renderBatchList();
+};
+
+$('bBatchAddBtn').onclick = () => {
+  const row = readBudgetEntryForm();
+  if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
+  bBatchQueue.push(row);
+  $('bAmt').value = '';
+  $('bDesc').value = '';
+  $('bAmt').focus();
+  renderBatchList();
+  pill(`Queued — ${bBatchQueue.length} in batch`);
+};
+
+$('bBatchSaveBtn').onclick = async () => {
+  if(!bBatchQueue.length) return;
+  const accounts = (await store.get('budget:accounts')) || [];
+  const entries = (await store.get('budget:entries')) || [];
+  bBatchQueue.forEach((row, i) => commitBudgetEntry(row, accounts, entries, i));
+  await store.set('budget:accounts', accounts);
+  await store.set('budget:entries', entries);
+  const n = bBatchQueue.length;
+  bBatchQueue = [];
+  renderBatchList();
+  pill(`${n} entries logged`);
   loadBudgetModule();
 };
 
@@ -7948,6 +8134,7 @@ async function loadOwedList(){
       <div class="owed-card-bottom">
         <span class="owed-card-date">${o.date}${o.settled ? ' <span class="owed-settled-pill">✓ Settled</span>' : ''}</span>
         <div class="owed-card-actions">
+          ${o.settled ? '' : `<button class="icon" style="width:26px;height:26px" onclick="editOwed('${o.id}')" title="Edit">${PENCIL}</button>`}
           ${o.settled ? '' : `<button class="action-btn owed-payback-btn" style="padding:5px 12px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">${isIPaid ? 'Mark Received' : 'Pay Back'}</button>`}
           <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
         </div>
@@ -7982,6 +8169,105 @@ window.deleteOwed = async (id) => {
   await store.set('budget:owed', owed);
   loadOwedList();
 };
+
+// Editing is limited to unsettled records — a settled one already has a
+// second, matching settlement entry (a real expense/income at a fixed
+// amount and account), and letting the original amount drift after that
+// would leave the two out of sync. Direction ("They Paid" / "I Paid") isn't
+// editable either, since it decides whether an account was ever touched;
+// deleting and re-logging is the escape hatch for a record logged the
+// wrong direction.
+let editingOwedId = null;
+
+window.editOwed = async (id) => {
+  const owed = (await store.get('budget:owed')) || [];
+  const o = owed.find(x => x.id === id);
+  if(!o) return;
+  if(o.settled) return;
+  editingOwedId = id;
+  const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
+
+  $('editOwedDirLabel').textContent = isIPaid
+    ? 'I Paid — this friend owes you back.'
+    : 'They Paid — you owe this friend back.';
+  $('editOwedPerson').value = o.person;
+  await renderFriendChips('editOwedPerson', 'editOwedPersonChips');
+  await populateCategorySelects(o.cat);
+  $('editOwedCat').value = o.cat || 'General';
+  $('editOwedAmt').value = o.amt;
+  $('editOwedItem').value = o.item || '';
+  $('editOwedDate').value = o.date;
+
+  $('editOwedAccountGroup').hidden = !isIPaid;
+  if(isIPaid){
+    const accounts = await getAccounts();
+    $('editOwedAccount').innerHTML = accountOptionsHtml(accounts);
+    $('editOwedAccount').value = o.accountId || '';
+  }
+
+  $('editOwedModal').hidden = false;
+};
+
+function initEditOwedModal(){
+  $('closeEditOwedModal').onclick = () => { $('editOwedModal').hidden = true; editingOwedId = null; };
+  $('saveEditOwedBtn').onclick = async () => {
+    if(!editingOwedId) return;
+    const person = $('editOwedPerson').value.trim();
+    const amt = parseFloat($('editOwedAmt').value);
+    if(!person) return alert('Pick or add a friend first.');
+    if(isNaN(amt) || amt <= 0) return alert('Enter a valid amount.');
+    const cat = $('editOwedCat').value || 'General';
+    const item = $('editOwedItem').value.trim();
+    const date = $('editOwedDate').value || key(new Date());
+
+    const owed = (await store.get('budget:owed')) || [];
+    const o = owed.find(x => x.id === editingOwedId);
+    if(!o) return;
+    const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
+
+    const entries = (await store.get('budget:entries')) || [];
+    const entryIdx = entries.findIndex(e => e.id === o.entryId);
+    const oldEntry = entryIdx !== -1 ? entries[entryIdx] : null;
+
+    if(isIPaid){
+      const accountId = $('editOwedAccount').value;
+      if(!accountId) return alert('Add a bank account first — there\'s nowhere to pay this from yet.');
+      const accounts = await getAccounts();
+      // Undo the old amount's effect on whichever account it was charged
+      // to, then apply the edited amount to the (possibly different) one
+      // chosen now — same reversal pattern as editing a regular entry.
+      if(oldEntry){
+        const oldAcc = accounts.find(a => a.id === oldEntry.accountId);
+        if(oldAcc) oldAcc.balance -= acctDelta(oldAcc, oldEntry.amt, true);
+      }
+      const newAcc = accounts.find(a => a.id === accountId);
+      if(newAcc) newAcc.balance += acctDelta(newAcc, amt, true);
+      await store.set('budget:accounts', accounts);
+
+      if(oldEntry) entries[entryIdx] = { ...oldEntry, amt, accountId, cat, desc: item || `Paid for ${person}`, owedTo: person, date, dateKey: date.slice(0, 7) };
+      o.accountId = accountId;
+    } else {
+      // "They Paid" never touches a real account before settlement, so
+      // there's no balance to reconcile — only the entry itself changes.
+      if(oldEntry) entries[entryIdx] = { ...oldEntry, amt, cat, desc: item || `Paid by ${person}`, owedBy: person, date, dateKey: date.slice(0, 7) };
+    }
+    if(oldEntry) await store.set('budget:entries', entries);
+
+    o.person = person;
+    o.amt = amt;
+    o.cat = cat;
+    o.item = item;
+    o.date = date;
+    await store.set('budget:owed', owed);
+
+    $('editOwedModal').hidden = true;
+    editingOwedId = null;
+    loadOwedList();
+    loadBudgetModule();
+    refreshHub();
+    pill('Record updated');
+  };
+}
 
 // Flips the Friend Paid form between "They Paid" (a friend fronted money
 // for me — no account of mine touched yet) and "I Paid" (I fronted it from
@@ -11053,6 +11339,7 @@ async function initApp(){
   initEditEntryModal();
   initAccountDetailModal();
   initOwedTracker();
+  initEditOwedModal();
   initPaymentMethodModal();
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
