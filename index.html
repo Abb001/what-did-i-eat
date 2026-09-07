@@ -647,7 +647,8 @@
     border-radius: 999px;
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  #bulkEditDate:disabled, #bulkEditCat:disabled, #bulkEditPaymentChips.disabled { opacity: 0.4; pointer-events: none; }
+  #bulkEditDate:disabled, #bulkEditCat:disabled, #bulkEditPaymentChips.disabled,
+  #owedBulkEditDate:disabled, #owedBulkEditCat:disabled { opacity: 0.4; pointer-events: none; }
   .payment-breakdown-row {
     display: block;
     width: 100%;
@@ -1038,8 +1039,9 @@
   .b-item-row:last-child {
     border-bottom: none;
   }
-  .b-item-row.bulk-selectable { cursor: pointer; gap: 10px; }
-  .b-item-row.bulk-selected { background: rgba(var(--accent-rgb), 0.10); }
+  .b-item-row.bulk-selectable, .owed-card.bulk-selectable { cursor: pointer; }
+  .b-item-row.bulk-selectable { gap: 10px; }
+  .b-item-row.bulk-selected, .owed-card.bulk-selected { background: rgba(var(--accent-rgb), 0.10); }
   .bulk-select-cb { flex-shrink: 0; }
   .b-item-info {
     display: flex;
@@ -3247,6 +3249,7 @@
         <div class="quick-cat-chips" id="quickPaymentChips" style="margin-top:8px"></div>
         <input type="hidden" id="quickPayment" value="">
         <div id="quickFriendGroup" hidden style="margin-top:6px">
+          <span id="quickFriendLabel" style="display:block;font-size:11.5px;color:var(--ios-label-tertiary);margin-bottom:4px">Which Friend Paid?</span>
           <div class="quick-cat-chips" id="quickFriendChips"></div>
           <input type="hidden" id="quickFriend" value="">
         </div>
@@ -3671,7 +3674,24 @@
       <div class="mod-card" style="margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <span style="font-weight:600;font-size:15px">Paid by Friends</span>
-          <button class="action-btn" id="toggleSettledOwedBtn" style="padding:4px 10px;font-size:11.5px">Show Settled</button>
+          <div style="display:flex;gap:6px">
+            <button class="action-btn" id="toggleSettledOwedBtn" style="padding:4px 10px;font-size:11.5px">Show Settled</button>
+            <button class="action-btn" id="toggleOwedBulkSelectBtn" style="padding:4px 10px;font-size:11.5px">Select</button>
+          </div>
+        </div>
+        <!-- Same select-mode toolbar pattern as Monthly Logs below — only
+             unsettled records get a checkbox, since a settled one already
+             has a matching settlement entry at a fixed amount/account that
+             editing its date or category out from under it would desync. -->
+        <div class="mod-card" id="owedBulkSelectBar" hidden style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;padding:10px 14px">
+          <span id="owedBulkSelectCount" style="font-size:13px;font-weight:600;color:var(--ios-label)">0 selected</span>
+          <div style="display:flex;gap:6px">
+            <button class="action-btn" id="owedBulkSelectAllBtn" style="padding:5px 10px;font-size:11.5px">Select All</button>
+            <button class="action-btn" id="owedBulkEditBtn" style="padding:5px 10px;font-size:11.5px;background:var(--accent) !important;color:#FFFFFF !important">Edit</button>
+            <button class="icon danger" id="owedBulkDeleteBtn" style="width:30px;height:30px" title="Delete selected">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+          </div>
         </div>
         <div id="owedList"></div>
       </div>
@@ -3718,7 +3738,7 @@
              below is "Paid by Friend" — no account of mine is touched,
              so a friend is picked here instead. -->
         <div class="form-group" id="bFriendGroup" hidden>
-          <label>Which Friend Paid?</label>
+          <label id="bFriendLabel">Which Friend Paid?</label>
           <div class="quick-cat-chips" id="bFriendChips"></div>
           <input type="hidden" id="bFriend" value="">
         </div>
@@ -4592,6 +4612,35 @@
         <input type="hidden" id="bulkEditPayment" value="">
       </div>
       <button class="action-btn" id="saveBulkEditBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important;margin-top:6px">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="owedBulkEditModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="owedBulkEditTitle">Edit Records</h3>
+      <button class="icon danger" id="closeOwedBulkEditModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:14px;line-height:1.4">Only the fields checked below are changed — anything left unchecked stays as it is on each record. Amount, friend and direction aren't bulk-editable; edit those one at a time.</p>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="owedBulkEditDateOn" style="width:18px;height:18px">
+          <span>Date</span>
+        </label>
+        <input type="date" id="owedBulkEditDate" disabled>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="owedBulkEditCatOn" style="width:18px;height:18px">
+          <span>Category</span>
+        </label>
+        <select id="owedBulkEditCat" disabled></select>
+      </div>
+      <button class="action-btn" id="saveOwedBulkEditBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important;margin-top:6px">Apply</button>
     </div>
   </div>
 </div>
@@ -5651,27 +5700,45 @@ const paymentChipsOnChange = {};
 // "log a new transaction" surfaces offer it. The edit-entry modal doesn't:
 // converting an already-saved entry between a real account and a friend
 // debt needs its own reconciliation, not just a chip.
+// Two reserved payment choices, one per direction of the same friend
+// tracker the dedicated Friend Paid tab already offers: "Paid by Friend"
+// (they fronted it, no account of mine touched) and "Paid by Me" (I fronted
+// it from a real account, they owe it back). Neither lives in the editable
+// budget:paymentMethods list — see PAYMENT_FRIEND_ENABLED below.
 const PAID_BY_FRIEND = 'Paid by Friend';
+const PAID_BY_ME = 'Paid by Me';
 const PAYMENT_FRIEND_ENABLED = new Set(['bPayment', 'quickPayment']);
 
-// What each "Paid by Friend"-enabled payment picker should toggle when it
-// becomes selected: the real account field hides, a friend picker appears
-// in its place.
+function paymentFriendDirection(value){
+  if(value === PAID_BY_FRIEND) return 'theyPaid';
+  if(value === PAID_BY_ME) return 'iPaid';
+  return null;
+}
+
+// What each "Paid by Friend"-enabled payment picker should toggle when one
+// of the two reserved values becomes selected: a friend picker appears
+// either way, but the real account field only hides for "Paid by Friend"
+// — "Paid by Me" still needs to know which of my accounts paid.
 const paymentFriendUI = {
-  bPayment: { accountId: 'bAccountSelect', amtId: 'bAmt', friendGroupId: 'bFriendGroup', friendHiddenId: 'bFriend', friendChipsId: 'bFriendChips' },
-  quickPayment: { accountId: null, amtId: null, friendGroupId: 'quickFriendGroup', friendHiddenId: 'quickFriend', friendChipsId: 'quickFriendChips' }
+  bPayment: { accountId: 'bAccountSelect', amtId: 'bAmt', friendGroupId: 'bFriendGroup', friendLabelId: 'bFriendLabel', friendHiddenId: 'bFriend', friendChipsId: 'bFriendChips' },
+  quickPayment: { accountId: null, amtId: null, friendGroupId: 'quickFriendGroup', friendLabelId: 'quickFriendLabel', friendHiddenId: 'quickFriend', friendChipsId: 'quickFriendChips' }
 };
 
 function syncPaymentFriendUI(hiddenId){
   const cfg = paymentFriendUI[hiddenId];
   if(!cfg) return;
-  const isFriend = $(hiddenId) && $(hiddenId).value === PAID_BY_FRIEND;
-  if(cfg.accountId && $(cfg.accountId)) $(cfg.accountId).hidden = isFriend;
+  const direction = $(hiddenId) ? paymentFriendDirection($(hiddenId).value) : null;
+  const hidesAccount = direction === 'theyPaid';
+  const isFriendMode = !!direction;
+  if(cfg.accountId && $(cfg.accountId)) $(cfg.accountId).hidden = hidesAccount;
   // The amount field grows to fill the gap the hidden account select
   // leaves behind in the same row, rather than a dead strip of empty space.
-  if(cfg.amtId && $(cfg.amtId)) $(cfg.amtId).style.flex = isFriend ? '1' : '';
-  if(cfg.friendGroupId && $(cfg.friendGroupId)) $(cfg.friendGroupId).hidden = !isFriend;
-  if(isFriend && cfg.friendHiddenId) renderFriendChips(cfg.friendHiddenId, cfg.friendChipsId);
+  if(cfg.amtId && $(cfg.amtId)) $(cfg.amtId).style.flex = hidesAccount ? '1' : '';
+  if(cfg.friendGroupId && $(cfg.friendGroupId)) $(cfg.friendGroupId).hidden = !isFriendMode;
+  if(cfg.friendLabelId && $(cfg.friendLabelId)){
+    $(cfg.friendLabelId).textContent = direction === 'iPaid' ? 'Who Are You Paying For?' : 'Which Friend Paid?';
+  }
+  if(isFriendMode && cfg.friendHiddenId) renderFriendChips(cfg.friendHiddenId, cfg.friendChipsId);
 }
 
 async function renderPaymentChips(hiddenId, chipsId){
@@ -5687,12 +5754,12 @@ async function renderPaymentChips(hiddenId, chipsId){
     ? `<span class="quick-cat-chip payment-chip-editable" data-cv="${escapeHtml(m)}">${escapeHtml(m)}<span class="payment-chip-del" data-del="${escapeHtml(m)}">${CROSS}</span></span>`
     : `<button type="button" class="quick-cat-chip ${m === current ? 'on' : ''}" data-cv="${escapeHtml(m)}">${escapeHtml(m)}</button>`
   ).join('');
-  const friendChip = PAYMENT_FRIEND_ENABLED.has(hiddenId)
-    ? `<button type="button" class="quick-cat-chip ${current === PAID_BY_FRIEND ? 'on' : ''}" data-cv="${escapeHtml(PAID_BY_FRIEND)}">${PAID_BY_FRIEND}</button>`
+  const friendChips = PAYMENT_FRIEND_ENABLED.has(hiddenId)
+    ? [PAID_BY_FRIEND, PAID_BY_ME].map(v => `<button type="button" class="quick-cat-chip ${current === v ? 'on' : ''}" data-cv="${escapeHtml(v)}">${v}</button>`).join('')
     : '';
   const addChip = `<button type="button" class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`;
 
-  box.innerHTML = noneChip + methodChips + friendChip + addChip;
+  box.innerHTML = noneChip + methodChips + friendChips + addChip;
 
   box.querySelectorAll('[data-cv]').forEach(el => {
     const cv = el.dataset.cv;
@@ -5700,7 +5767,7 @@ async function renderPaymentChips(hiddenId, chipsId){
       el.onclick = () => openPaymentMethodModal(null, hiddenId, chipsId);
       return;
     }
-    if(manageOn && cv !== '' && cv !== PAID_BY_FRIEND){
+    if(manageOn && cv !== '' && cv !== PAID_BY_FRIEND && cv !== PAID_BY_ME){
       // Manage mode: tapping the label renames, tapping the × deletes.
       el.onclick = (e) => {
         if(e.target.closest('.payment-chip-del')) return;
@@ -5764,7 +5831,7 @@ function initPaymentMethodModal(){
   $('savePaymentMethodBtn').onclick = async () => {
     const name = $('paymentMethodName').value.trim();
     if(!name) return alert('Give the payment method a name.');
-    if(name.toLowerCase() === PAID_BY_FRIEND.toLowerCase()) return alert('That name is reserved for the built-in "Paid by Friend" option.');
+    if(name.toLowerCase() === PAID_BY_FRIEND.toLowerCase() || name.toLowerCase() === PAID_BY_ME.toLowerCase()) return alert('That name is reserved for a built-in option.');
     const methods = await getPaymentMethods();
     const dupe = methods.some(m => m.toLowerCase() === name.toLowerCase() && m !== editingPaymentMethodName);
     if(dupe) return alert('That payment method already exists.');
@@ -6135,8 +6202,13 @@ function quickExprLines(){
   return ($('quickExpr').value || '').split(/[,\n]+/).map(l => l.trim()).filter(Boolean);
 }
 
+// Returns 'theyPaid', 'iPaid', or null — same two directions the payment
+// chip strip offers everywhere else.
+function quickFriendDirection(){
+  return $('quickPayment') ? paymentFriendDirection($('quickPayment').value) : null;
+}
 function quickIsFriendPaid(){
-  return !!($('quickPayment') && $('quickPayment').value === PAID_BY_FRIEND);
+  return !!quickFriendDirection();
 }
 
 // The persistent legend under the input — stays visible whether or not
@@ -6145,8 +6217,11 @@ function quickIsFriendPaid(){
 function updateQuickExprFormatHint(){
   const el = $('quickExprFormatHint');
   if(!el) return;
-  el.innerHTML = quickIsFriendPaid()
+  const direction = quickFriendDirection();
+  el.innerHTML = direction === 'theyPaid'
     ? `Format: item and amount, plus @date to backdate an entry — separate entries with a comma or new line, and pick each one's category below.`
+    : direction === 'iPaid'
+    ? `Format: item and amount, then account if needed, plus @date to backdate an entry — separate entries with a comma or new line, and pick each one's category below.`
     : `Format: item and amount, then payment and account if needed — separate entries with a comma or new line, and pick each one's category below.`;
 }
 
@@ -6182,12 +6257,14 @@ async function renderExprPreview(){
   const box = $('quickExprPreview');
   if(!box) return;
   const lines = quickExprLines();
-  const isFriendPaid = quickIsFriendPaid();
-  const friend = isFriendPaid ? ($('quickFriend').value || '').trim() : '';
+  const direction = quickFriendDirection();
+  const friend = direction ? ($('quickFriend').value || '').trim() : '';
 
   if(!lines.length){
-    box.innerHTML = isFriendPaid
+    box.innerHTML = direction === 'theyPaid'
       ? `<span class="expr-hint">item · amount — e.g. <b>milk tea 200</b>. Logged as paid by ${friend ? escapeHtml(friend) : 'the friend picked above'}.</span>`
+      : direction === 'iPaid'
+      ? `<span class="expr-hint">item · amount · account — e.g. <b>milk tea 200 post</b>. Logged as paid for ${friend ? escapeHtml(friend) : 'the friend picked above'}.</span>`
       : `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>.</span>`;
     return;
   }
@@ -6210,7 +6287,7 @@ async function renderExprPreview(){
     const dateChip = p.dateTag ? (parsedDate ? `<span class="expr-chip">${escapeHtml(shortDateLabel(parsedDate))}</span>` : `<span class="expr-warn">no match for @${escapeHtml(p.dateTag)}</span>`) : '';
     const catSelect = quickLineCatSelectHtml(line, cats, fallbackCat);
 
-    if(isFriendPaid){
+    if(direction === 'theyPaid'){
       return `<div class="expr-preview-line">`
         + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
         + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
@@ -6224,6 +6301,19 @@ async function renderExprPreview(){
     const accLabel = p.account
       ? (matched ? matched.name : titleCase(p.account))
       : (accounts[0] ? accounts[0].name : 'No account');
+
+    if(direction === 'iPaid'){
+      return `<div class="expr-preview-line">`
+        + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
+        + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
+        + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
+        + `<span class="expr-chip">${friend ? `Paid for ${escapeHtml(friend)}` : 'Pick a friend'}</span>`
+        + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
+        + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
+        + catSelect + dateChip
+        + `</div>`;
+    }
+
     const paymentLabel = chipPayment || (p.payment ? titleCase(p.payment) : '');
     return `<div class="expr-preview-line">`
       + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
@@ -6253,9 +6343,9 @@ async function quickLogExpense(){
     .filter(({ p }) => !p.empty && !p.noAmount && p.amt > 0);
   if(!parsed.length) return;
 
-  const isFriendPaid = quickIsFriendPaid();
-  const friend = isFriendPaid ? ($('quickFriend').value || '').trim() : '';
-  if(isFriendPaid && !friend){ alert('Pick which friend paid.'); return; }
+  const direction = quickFriendDirection();
+  const friend = direction ? ($('quickFriend').value || '').trim() : '';
+  if(direction && !friend){ alert(direction === 'iPaid' ? 'Pick who you paid for.' : 'Pick which friend paid.'); return; }
   const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
 
   const cat = $('quickCat').value;
@@ -6264,7 +6354,7 @@ async function quickLogExpense(){
 
   const accounts = await getAccounts();
   const entries = (await store.get('budget:entries')) || [];
-  const owed = isFriendPaid ? ((await store.get('budget:owed')) || []) : null;
+  const owed = direction ? ((await store.get('budget:owed')) || []) : null;
   const results = [];
   let total = 0;
 
@@ -6276,7 +6366,7 @@ async function quickLogExpense(){
     const lineCat = quickLineCatOverrides[line] || cat;
     const lineDate = (p.dateTag && parseDateTag(p.dateTag)) || dateVal;
 
-    if(isFriendPaid){
+    if(direction === 'theyPaid'){
       // Same accounting as logging this from the dedicated Friend Paid
       // tab: no account of mine touched, a budget:owed record created so
       // it shows up in Friend Balances / Paid by Friends too. Any
@@ -6298,6 +6388,8 @@ async function quickLogExpense(){
       return;
     }
 
+    // Normal entries and "Paid by Me" both touch a real account, resolved
+    // the same way from the line's account word (or the default account).
     let acc = p.account ? matchAccount(accounts, p.account) : (accounts[0] || null);
     let created = false;
     if(!acc && p.account){
@@ -6311,26 +6403,37 @@ async function quickLogExpense(){
     // rather than forcing one into existence, same as a friend-paid expense.
     if(acc) acc.balance += acctDelta(acc, p.amt, true);
 
-    entries.unshift({
+    const entryId = 'tx_' + Date.now() + '_' + i;
+    const entry = {
       // The Date.now() component can repeat across lines logged in the same
       // batch — the loop index makes each id unique regardless.
-      id: 'tx_' + Date.now() + '_' + i,
+      id: entryId,
       type: 'exp',
       amt: p.amt,
       accountId: acc ? acc.id : null,
       cat: lineCat,
       desc: p.item ? titleCase(p.item) : lineCat,
-      payment: chipPayment || (p.payment ? titleCase(p.payment) : null),
+      // "Paid by Me" is itself the payment method — no separate real one applies.
+      payment: direction === 'iPaid' ? null : (chipPayment || (p.payment ? titleCase(p.payment) : null)),
       shop: shop ? titleCase(shop) : null,
       date: lineDate,
       dateKey: lineDate.slice(0, 7)
-    });
+    };
+    if(direction === 'iPaid') entry.owedTo = friend;
+    entries.unshift(entry);
+    if(direction === 'iPaid'){
+      owed.unshift({
+        id: 'owed_' + Date.now() + '_' + i, person: friend,
+        item: p.item ? titleCase(p.item) : lineCat, amt: p.amt, cat: lineCat,
+        date: lineDate, settled: false, entryId, direction: 'iPaid', accountId: acc ? acc.id : null
+      });
+    }
     results.push({ p, acc, created });
   });
 
   await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
-  if(isFriendPaid) await store.set('budget:owed', owed);
+  if(direction) await store.set('budget:owed', owed);
 
   $('quickExpr').value = '';
   $('quickShop').value = '';
@@ -6344,10 +6447,14 @@ async function quickLogExpense(){
   syncQuickSend();
   refreshHub();
   const whenSuffix = dateVal === key(new Date()) ? '' : ` · ${quickWhenPhrase()}`;
-  if(isFriendPaid){
+  if(direction === 'theyPaid'){
     pill(results.length === 1
       ? `$${total.toFixed(2)} · paid by ${friend}${whenSuffix}`
       : `${results.length} entries · $${total.toFixed(2)} · paid by ${friend}${whenSuffix}`);
+  } else if(direction === 'iPaid'){
+    pill(results.length === 1
+      ? `$${total.toFixed(2)} · paid for ${friend}${whenSuffix}`
+      : `${results.length} entries · $${total.toFixed(2)} · paid for ${friend}${whenSuffix}`);
   } else if(results.length === 1){
     const { p, acc, created } = results[0];
     pill(created
@@ -8284,7 +8391,9 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
 // reached from the regular form.
 function commitBudgetEntry(row, accounts, entries, owed, idSuffix){
   const suffix = idSuffix != null ? '_' + idSuffix : '';
-  if(row.payment === PAID_BY_FRIEND){
+  const direction = paymentFriendDirection(row.payment);
+
+  if(direction === 'theyPaid'){
     const entryId = 'tx_' + Date.now() + suffix;
     entries.unshift({
       id: entryId, type: 'exp', amt: row.amt, accountId: null, cat: row.cat,
@@ -8299,28 +8408,40 @@ function commitBudgetEntry(row, accounts, entries, owed, idSuffix){
     });
     return;
   }
+
   const acc = accounts.find(a => a.id === row.accountId);
   if(acc) acc.balance += acctDelta(acc, row.amt, row.type === 'exp');
-  entries.unshift({
+  const entryId = 'tx_' + Date.now() + suffix;
+  const entry = {
     // idSuffix disambiguates ids when several rows are committed in the
     // same tick (Date.now() alone can repeat across a batch).
-    id: 'tx_' + Date.now() + suffix,
+    id: entryId,
     type: row.type,
     amt: row.amt,
     accountId: row.accountId,
     cat: row.cat,
     desc: row.desc || (row.type === 'inc' ? 'Income' : 'Expense'),
-    payment: row.payment || null,
+    // "Paid by Me" is itself the payment method — no separate real one
+    // applies, same as "Paid by Friend" leaves it null.
+    payment: direction === 'iPaid' ? null : (row.payment || null),
     date: row.date,
     dateKey: row.date.slice(0, 7)
+  };
+  if(direction === 'iPaid') entry.owedTo = row.friend;
+  entries.unshift(entry);
+  if(direction === 'iPaid' && owed) owed.unshift({
+    id: 'owed_' + Date.now() + suffix, person: row.friend,
+    item: row.desc, amt: row.amt, cat: row.cat,
+    date: row.date, settled: false, entryId, direction: 'iPaid', accountId: row.accountId
   });
 }
 
-// "Paid by Friend" only makes sense for an expense — income has no
-// account to skip. Switching to Income while it's selected drops back to
-// no payment method rather than leaving a nonsensical combination staged.
+// Neither reserved payment choice makes sense for an income entry — income
+// has no account to skip, and nothing to owe a friend for. Switching to
+// Income while one is selected drops back to no payment method rather
+// than leaving a nonsensical combination staged.
 $('bType').onchange = () => {
-  if($('bType').value === 'inc' && $('bPayment').value === PAID_BY_FRIEND){
+  if($('bType').value === 'inc' && paymentFriendDirection($('bPayment').value)){
     $('bPayment').value = '';
     renderPaymentChips('bPayment', 'bPaymentChips');
   }
@@ -8342,7 +8463,9 @@ function readBudgetEntryForm(){
 $('bAddBtn').onclick = async () => {
   const row = readBudgetEntryForm();
   if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
-  if(row.payment === PAID_BY_FRIEND && !row.friend) return alert('Pick which friend paid.');
+  const bAddDirection = paymentFriendDirection(row.payment);
+  if(bAddDirection && !row.friend) return alert(bAddDirection === 'iPaid' ? 'Pick who you paid for.' : 'Pick which friend paid.');
+  if(bAddDirection === 'iPaid' && !row.accountId) return alert('Pick which account you paid from.');
 
   const accounts = (await store.get('budget:accounts')) || [];
   const entries = (await store.get('budget:entries')) || [];
@@ -8356,7 +8479,9 @@ $('bAddBtn').onclick = async () => {
   $('bFriend').value = '';
   $('bAmt').value = '';
   $('bDesc').value = '';
-  pill(row.payment === PAID_BY_FRIEND ? `Logged — ${row.friend} paid ${row.amt.toFixed(2)}` : 'Transaction Logged');
+  pill(bAddDirection === 'theyPaid' ? `Logged — ${row.friend} paid ${row.amt.toFixed(2)}`
+    : bAddDirection === 'iPaid' ? `Logged — you paid ${row.amt.toFixed(2)} for ${row.friend}`
+    : 'Transaction Logged');
   loadBudgetModule();
 };
 
@@ -8379,12 +8504,15 @@ function renderBatchList(){
     return;
   }
   box.innerHTML = bBatchQueue.map((row, i) => {
-    const isFriend = row.payment === PAID_BY_FRIEND;
+    const direction = paymentFriendDirection(row.payment);
+    const subLabel = direction === 'theyPaid' ? `Paid by ${escapeHtml(row.friend)}`
+      : direction === 'iPaid' ? `Paid for ${escapeHtml(row.friend)}`
+      : row.date;
     return `
     <div class="sub-card">
       <div class="sub-info">
         <div class="sub-name">${escapeHtml(row.desc || (row.type === 'inc' ? 'Income' : 'Expense'))}</div>
-        <div class="sub-cycle">${escapeHtml(row.cat)} · ${isFriend ? `Paid by ${escapeHtml(row.friend)}` : row.date}</div>
+        <div class="sub-cycle">${escapeHtml(row.cat)} · ${subLabel}</div>
       </div>
       <div class="sub-right">
         <span class="sub-amt" style="color:${row.type === 'inc' ? '#16A34A' : 'var(--ios-red)'}">${row.type === 'inc' ? '+' : '-'}$${row.amt.toFixed(2)}</span>
@@ -8404,7 +8532,9 @@ window.removeBatchRow = (i) => {
 $('bBatchAddBtn').onclick = () => {
   const row = readBudgetEntryForm();
   if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
-  if(row.payment === PAID_BY_FRIEND && !row.friend) return alert('Pick which friend paid.');
+  const batchDirection = paymentFriendDirection(row.payment);
+  if(batchDirection && !row.friend) return alert(batchDirection === 'iPaid' ? 'Pick who you paid for.' : 'Pick which friend paid.');
+  if(batchDirection === 'iPaid' && !row.accountId) return alert('Pick which account you paid from.');
   bBatchQueue.push(row);
   $('bAmt').value = '';
   $('bDesc').value = '';
@@ -8665,24 +8795,39 @@ function renderFriendBalances(owed){
   }).join('');
 }
 
+// Select mode for the Paid by Friends list — addressed by o.id (a stable
+// string) rather than array index, since owed records don't share the
+// index-based addressing budget:entries uses elsewhere.
+let owedBulkSelectMode = false;
+let owedBulkSelectedIds = new Set();
+let lastOwedListData = [];
+
 async function loadOwedList(){
   const owed = (await store.get('budget:owed')) || [];
   renderFriendBalances(owed);
   const list = owed.filter(o => showSettledOwed ? true : !o.settled)
                     .sort((a, b) => new Date(b.date) - new Date(a.date));
+  lastOwedListData = list;
   const el = $('owedList');
   if(!el) return;
   if(!list.length){
     el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-secondary);font-size:13px">${showSettledOwed ? 'Nothing here yet.' : 'Nobody owes anything right now.'}</div>`;
+    renderOwedBulkSelectBar();
     return;
   }
   el.innerHTML = list.map(o => {
     const isIPaid = (o.direction || 'theyPaid') === 'iPaid';
     const catTag = o.cat ? `<span class="owed-card-cat">${escapeHtml(o.cat)}</span>` : '';
     const itemText = isIPaid ? `You paid: ${escapeHtml(o.item || 'this')}` : escapeHtml(o.item || 'No item');
+    // Only unsettled records are selectable — a settled one already has a
+    // matching settlement entry at a fixed amount/account, same reason its
+    // individual Edit button is hidden too.
+    const canSelect = owedBulkSelectMode && !o.settled;
+    const selected = owedBulkSelectedIds.has(o.id);
     return `
-    <div class="owed-card ${o.settled ? 'settled' : ''}">
+    <div class="owed-card ${o.settled ? 'settled' : ''} ${canSelect ? 'bulk-selectable' : ''} ${selected ? 'bulk-selected' : ''}" ${canSelect ? `onclick="toggleOwedBulkSelect('${o.id}')"` : ''}>
       <div class="owed-card-top">
+        ${canSelect ? `<input type="checkbox" class="bulk-select-cb" ${selected ? 'checked' : ''} style="width:18px;height:18px;pointer-events:none">` : ''}
         <div class="owed-avatar">${escapeHtml((o.person || '?').trim().slice(0, 1).toUpperCase())}</div>
         <div class="owed-card-info">
           <span class="owed-card-name">${escapeHtml(o.person)}</span>
@@ -8692,14 +8837,134 @@ async function loadOwedList(){
       </div>
       <div class="owed-card-bottom">
         <span class="owed-card-date">${o.date}${o.settled ? ' <span class="owed-settled-pill">✓ Settled</span>' : ''}</span>
+        ${owedBulkSelectMode ? '' : `
         <div class="owed-card-actions">
           ${o.settled ? '' : `<button class="icon" style="width:26px;height:26px" onclick="editOwed('${o.id}')" title="Edit">${PENCIL}</button>`}
           ${o.settled ? '' : `<button class="action-btn owed-payback-btn" style="padding:5px 12px;font-size:11.5px" onclick="openSettleOwed('${o.id}')">${isIPaid ? 'Mark Received' : 'Pay Back'}</button>`}
           <button class="icon danger" onclick="deleteOwed('${o.id}')" title="Delete">${CROSS}</button>
-        </div>
+        </div>`}
       </div>
     </div>`;
   }).join('');
+
+  renderOwedBulkSelectBar();
+}
+
+function renderOwedBulkSelectBar(){
+  const bar = $('owedBulkSelectBar');
+  const toggleBtn = $('toggleOwedBulkSelectBtn');
+  if(!bar || !toggleBtn) return;
+  toggleBtn.textContent = owedBulkSelectMode ? 'Cancel' : 'Select';
+  bar.hidden = !owedBulkSelectMode;
+  if(owedBulkSelectMode){
+    const n = owedBulkSelectedIds.size;
+    $('owedBulkSelectCount').textContent = `${n} selected`;
+    $('owedBulkEditBtn').disabled = n === 0;
+    $('owedBulkEditBtn').style.opacity = n === 0 ? '0.5' : '';
+    $('owedBulkDeleteBtn').disabled = n === 0;
+    $('owedBulkDeleteBtn').style.opacity = n === 0 ? '0.4' : '';
+  }
+}
+
+window.toggleOwedBulkSelect = (id) => {
+  if(owedBulkSelectedIds.has(id)) owedBulkSelectedIds.delete(id);
+  else owedBulkSelectedIds.add(id);
+  loadOwedList();
+};
+
+function initOwedBulkSelect(){
+  $('toggleOwedBulkSelectBtn').onclick = () => {
+    owedBulkSelectMode = !owedBulkSelectMode;
+    owedBulkSelectedIds.clear();
+    loadOwedList();
+  };
+
+  $('owedBulkSelectAllBtn').onclick = () => {
+    const selectableIds = lastOwedListData.filter(o => !o.settled).map(o => o.id);
+    const allSelected = selectableIds.length > 0 && selectableIds.every(id => owedBulkSelectedIds.has(id));
+    if(allSelected) owedBulkSelectedIds.clear();
+    else selectableIds.forEach(id => owedBulkSelectedIds.add(id));
+    loadOwedList();
+  };
+
+  $('owedBulkDeleteBtn').onclick = async () => {
+    if(!owedBulkSelectedIds.size) return;
+    const n = owedBulkSelectedIds.size;
+    if(!confirm(`Delete ${n} record${n === 1 ? '' : 's'}? This does not touch the matching expense entries.`)) return;
+
+    const owed = (await store.get('budget:owed')) || [];
+    const remaining = owed.filter(o => !owedBulkSelectedIds.has(o.id));
+    await store.set('budget:owed', remaining);
+
+    owedBulkSelectMode = false;
+    owedBulkSelectedIds.clear();
+    pill(`${n} record${n === 1 ? '' : 's'} deleted`);
+    loadOwedList();
+    loadBudgetModule();
+  };
+
+  $('owedBulkEditBtn').onclick = () => {
+    if(!owedBulkSelectedIds.size) return;
+    openOwedBulkEditModal();
+  };
+  $('closeOwedBulkEditModal').onclick = () => { $('owedBulkEditModal').hidden = true; };
+
+  $('owedBulkEditDateOn').onchange = () => { $('owedBulkEditDate').disabled = !$('owedBulkEditDateOn').checked; };
+  $('owedBulkEditCatOn').onchange = () => { $('owedBulkEditCat').disabled = !$('owedBulkEditCatOn').checked; };
+
+  $('saveOwedBulkEditBtn').onclick = async () => {
+    const useDate = $('owedBulkEditDateOn').checked;
+    const useCat = $('owedBulkEditCatOn').checked;
+    if(!useDate && !useCat) return alert('Check at least one field to change.');
+    if(useDate && !$('owedBulkEditDate').value) return alert('Pick a date.');
+
+    const dateVal = $('owedBulkEditDate').value;
+    const catVal = $('owedBulkEditCat').value;
+
+    const owed = (await store.get('budget:owed')) || [];
+    const entries = (await store.get('budget:entries')) || [];
+    owedBulkSelectedIds.forEach(id => {
+      const o = owed.find(x => x.id === id);
+      if(!o) return;
+      // Keep the paired expense entry in step, same as a single edit does
+      // — the two must always agree on date/category.
+      const entry = entries.find(e => e.id === o.entryId);
+      if(useDate){
+        o.date = dateVal;
+        if(entry){ entry.date = dateVal; entry.dateKey = dateVal.slice(0, 7); }
+      }
+      if(useCat){
+        o.cat = catVal;
+        if(entry) entry.cat = catVal;
+      }
+    });
+    await store.set('budget:owed', owed);
+    await store.set('budget:entries', entries);
+
+    const n = owedBulkSelectedIds.size;
+    $('owedBulkEditModal').hidden = true;
+    owedBulkSelectMode = false;
+    owedBulkSelectedIds.clear();
+    pill(`${n} record${n === 1 ? '' : 's'} updated`);
+    loadOwedList();
+    loadBudgetModule();
+  };
+}
+
+async function openOwedBulkEditModal(){
+  const n = owedBulkSelectedIds.size;
+  $('owedBulkEditTitle').textContent = `Edit ${n} Record${n === 1 ? '' : 's'}`;
+
+  $('owedBulkEditDateOn').checked = false;
+  $('owedBulkEditDate').disabled = true;
+  $('owedBulkEditDate').value = key(new Date());
+
+  $('owedBulkEditCatOn').checked = false;
+  const cats = await getCategories();
+  $('owedBulkEditCat').innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('');
+  $('owedBulkEditCat').disabled = true;
+
+  $('owedBulkEditModal').hidden = false;
 }
 
 window.openSettleOwed = async (id) => {
@@ -11974,6 +12239,7 @@ async function initApp(){
   initEditOwedModal();
   initPaymentDetailModal();
   initBulkSelect();
+  initOwedBulkSelect();
   initPaymentMethodModal();
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
