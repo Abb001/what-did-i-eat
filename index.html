@@ -1473,6 +1473,13 @@
     color: var(--accent-deep);
   }
   .expr-hint { color: var(--ios-label-tertiary); }
+  .expr-format-hint {
+    font-size: 11px;
+    color: var(--ios-label-tertiary);
+    margin: 5px 2px 8px;
+    line-height: 1.4;
+  }
+  .expr-format-hint b { color: var(--ios-label-secondary); font-weight: 600; }
   /* Expense line becomes a growable textarea instead of a pill input, so a
      second (or third…) line typed for a batch has somewhere to go — the
      row aligns its contents to the bottom so the send button stays put
@@ -3185,9 +3192,13 @@
           <input type="text" id="quickShop" class="quick-input quick-shop" placeholder="Shop (optional)" enterkeyhint="next" autocapitalize="off" autocomplete="off">
         </div>
         <div class="quick-row quick-row-expr">
-          <textarea id="quickExpr" class="quick-input" rows="1" placeholder="milk tea 200 linepay post&#10;(one per line to log several at once)" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+          <textarea id="quickExpr" class="quick-input" rows="1" placeholder="milk tea 200 linepay post, coffee 60 cash" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
           <button class="quick-send" id="quickSend_expense" title="Log it" aria-label="Log it">↑</button>
         </div>
+        <!-- A standing reminder of the grammar, not just a placeholder that
+             disappears the moment something's typed — commas (or new
+             lines) separate multiple entries in one send. -->
+        <div class="expr-format-hint" id="quickExprFormatHint">Format: <b>item amount [payment] [account]</b> — separate entries with a comma or new line</div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:2px">
           <button type="button" class="payment-manage-btn" id="quickCatManageBtn" title="Edit categories">Manage</button>
         </div>
@@ -5995,14 +6006,28 @@ function autoGrowQuickExpr(){
 }
 
 function quickExprLines(){
-  return ($('quickExpr').value || '').split('\n').map(l => l.trim()).filter(Boolean);
+  // A comma or a new line both start a fresh entry — commas keep a batch
+  // to one line for fast typing, new lines still work for pasted lists.
+  return ($('quickExpr').value || '').split(/[,\n]+/).map(l => l.trim()).filter(Boolean);
 }
 
 function quickIsFriendPaid(){
   return !!($('quickPayment') && $('quickPayment').value === PAID_BY_FRIEND);
 }
 
+// The persistent legend under the input — stays visible whether or not
+// anything's typed yet, unlike the in-box hint below which gets replaced
+// by chips the moment there's something to preview.
+function updateQuickExprFormatHint(){
+  const el = $('quickExprFormatHint');
+  if(!el) return;
+  el.innerHTML = quickIsFriendPaid()
+    ? `Format: <b>item amount</b> — separate entries with a comma or new line`
+    : `Format: <b>item amount [payment] [account]</b> — separate entries with a comma or new line`;
+}
+
 async function renderExprPreview(){
+  updateQuickExprFormatHint();
   const box = $('quickExprPreview');
   if(!box) return;
   const lines = quickExprLines();
@@ -6011,8 +6036,8 @@ async function renderExprPreview(){
 
   if(!lines.length){
     box.innerHTML = isFriendPaid
-      ? `<span class="expr-hint">item · amount — e.g. <b>milk tea 200</b>. One line per entry. Logged as paid by ${friend ? escapeHtml(friend) : 'the friend picked above'}.</span>`
-      : `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>. One line per entry to log several at once.</span>`;
+      ? `<span class="expr-hint">item · amount — e.g. <b>milk tea 200</b>. Logged as paid by ${friend ? escapeHtml(friend) : 'the friend picked above'}.</span>`
+      : `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>.</span>`;
     return;
   }
 
@@ -9062,14 +9087,23 @@ async function renderPaymentBreakdown(){
 
   const totals = {};   // key: lowercase payment -> { label, amt }
   let untracked = 0;
+  let friendPaid = 0;
   expenses.forEach(e => {
+    // A friend-paid entry never carries a payment method (accountId and
+    // payment are both null) — without this, every one of them fell into
+    // "No payment method noted", the same catch-all as entries that
+    // genuinely have nothing recorded, hiding how much friends have
+    // covered from the chart entirely.
+    if(e.owedBy){ friendPaid += e.amt; return; }
     if(!e.payment){ untracked += e.amt; return; }
     const k = e.payment.toLowerCase();
     if(!totals[k]) totals[k] = { label: e.payment, amt: 0 };
     totals[k].amt += e.amt;
   });
 
-  const rows = Object.values(totals).sort((a, b) => b.amt - a.amt);
+  const rows = Object.values(totals);
+  if(friendPaid > 0) rows.push({ label: PAID_BY_FRIEND, amt: friendPaid, friendBucket: true });
+  rows.sort((a, b) => b.amt - a.amt);
   if(untracked > 0) rows.push({ label: 'No payment method noted', amt: untracked, muted: true, untracked: true });
   paymentBreakdownRows = rows;
 
@@ -9103,7 +9137,9 @@ window.openPaymentDetail = async (idx) => {
   const accounts = await getAccounts();
   const curMonthKey = new Date().toISOString().slice(0, 7);
   const mine = entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts) && e.date && e.date.startsWith(curMonthKey)
-    && (row.untracked ? !e.payment : (e.payment && e.payment.toLowerCase() === row.label.toLowerCase())));
+    && (row.friendBucket ? !!e.owedBy
+      : row.untracked ? (!e.payment && !e.owedBy)
+      : (!e.owedBy && e.payment && e.payment.toLowerCase() === row.label.toLowerCase())));
 
   $('paymentDetailName').textContent = row.label;
   $('paymentDetailTotal').textContent = `${mine.length} transaction${mine.length === 1 ? '' : 's'} · $${row.amt.toFixed(2)} this month`;
