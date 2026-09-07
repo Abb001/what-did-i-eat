@@ -647,6 +647,19 @@
     border-radius: 999px;
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  .payment-breakdown-row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    margin-bottom: 6px;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
 
   .dow {
     display: grid;
@@ -3180,6 +3193,15 @@
         </div>
         <div class="quick-cat-chips" id="quickCatChips"></div>
         <select id="quickCat" class="quick-select" hidden></select>
+        <!-- Payment method — pick "Paid by Friend" to log this as money a
+             friend fronted instead of a normal expense; any account typed
+             above is then ignored, since no account of yours is touched. -->
+        <div class="quick-cat-chips" id="quickPaymentChips" style="margin-top:8px"></div>
+        <input type="hidden" id="quickPayment" value="">
+        <div id="quickFriendGroup" hidden style="margin-top:6px">
+          <div class="quick-cat-chips" id="quickFriendChips"></div>
+          <input type="hidden" id="quickFriend" value="">
+        </div>
         <div class="expr-preview" id="quickExprPreview"></div>
       </div>
 
@@ -3630,6 +3652,14 @@
             <input type="number" id="bAmt" placeholder="0.00" step="0.01">
             <select id="bAccountSelect" style="flex:1"></select>
           </div>
+        </div>
+        <!-- Shown instead of the account select when the payment method
+             below is "Paid by Friend" — no account of mine is touched,
+             so a friend is picked here instead. -->
+        <div class="form-group" id="bFriendGroup" hidden>
+          <label>Which Friend Paid?</label>
+          <div class="quick-cat-chips" id="bFriendChips"></div>
+          <input type="hidden" id="bFriend" value="">
         </div>
         <div class="form-group">
           <label>Category, Date &amp; Description</label>
@@ -4453,6 +4483,21 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="paymentDetailModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="paymentDetailName">Payment Method</h3>
+      <button class="icon danger" id="closePaymentDetailModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="paymentDetailTotal" style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:14px"></p>
+      <div id="paymentDetailList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="multiPhotoModal" hidden>
   <div class="modal-card">
     <div class="modal-head">
@@ -5189,7 +5234,9 @@ function syncQuickSend(){
   if(quickMode === 'meal') ok = quickPhotos.length > 0 || !!($('quickMealNote') || {}).value?.trim();
   else if(quickMode === 'expense'){
     const lines = (($('quickExpr') || {}).value || '').split('\n');
-    ok = lines.some(l => { const p = parseExpenseLine(l); return p && p.amt > 0; });
+    const hasValid = lines.some(l => { const p = parseExpenseLine(l); return p && p.amt > 0; });
+    const isFriendPaid = quickIsFriendPaid();
+    ok = hasValid && (!isFriendPaid || !!($('quickFriend') && $('quickFriend').value));
   }
   else ok = !!($('quickNote') || {}).value?.trim();
   send.disabled = !ok;
@@ -5457,6 +5504,41 @@ async function getPaymentMethods(){
 // have their own independent chip strip and manage-mode state.
 const paymentManageMode = {};
 
+// Fires after a payment chip picker re-renders (including on selection) —
+// Quick Add uses this to keep its live preview and send-button state in
+// step with which payment method (or "Paid by Friend") is picked.
+const paymentChipsOnChange = {};
+
+// "Paid by Friend" is a reserved payment choice, not a real entry in the
+// editable budget:paymentMethods list — it can't be renamed or deleted,
+// and picking it changes how the transaction is recorded (no account of
+// mine touched, a friend-owed record created instead), so only the two
+// "log a new transaction" surfaces offer it. The edit-entry modal doesn't:
+// converting an already-saved entry between a real account and a friend
+// debt needs its own reconciliation, not just a chip.
+const PAID_BY_FRIEND = 'Paid by Friend';
+const PAYMENT_FRIEND_ENABLED = new Set(['bPayment', 'quickPayment']);
+
+// What each "Paid by Friend"-enabled payment picker should toggle when it
+// becomes selected: the real account field hides, a friend picker appears
+// in its place.
+const paymentFriendUI = {
+  bPayment: { accountId: 'bAccountSelect', amtId: 'bAmt', friendGroupId: 'bFriendGroup', friendHiddenId: 'bFriend', friendChipsId: 'bFriendChips' },
+  quickPayment: { accountId: null, amtId: null, friendGroupId: 'quickFriendGroup', friendHiddenId: 'quickFriend', friendChipsId: 'quickFriendChips' }
+};
+
+function syncPaymentFriendUI(hiddenId){
+  const cfg = paymentFriendUI[hiddenId];
+  if(!cfg) return;
+  const isFriend = $(hiddenId) && $(hiddenId).value === PAID_BY_FRIEND;
+  if(cfg.accountId && $(cfg.accountId)) $(cfg.accountId).hidden = isFriend;
+  // The amount field grows to fill the gap the hidden account select
+  // leaves behind in the same row, rather than a dead strip of empty space.
+  if(cfg.amtId && $(cfg.amtId)) $(cfg.amtId).style.flex = isFriend ? '1' : '';
+  if(cfg.friendGroupId && $(cfg.friendGroupId)) $(cfg.friendGroupId).hidden = !isFriend;
+  if(isFriend && cfg.friendHiddenId) renderFriendChips(cfg.friendHiddenId, cfg.friendChipsId);
+}
+
 async function renderPaymentChips(hiddenId, chipsId){
   const hidden = $(hiddenId);
   const box = $(chipsId);
@@ -5470,9 +5552,12 @@ async function renderPaymentChips(hiddenId, chipsId){
     ? `<span class="quick-cat-chip payment-chip-editable" data-cv="${escapeHtml(m)}">${escapeHtml(m)}<span class="payment-chip-del" data-del="${escapeHtml(m)}">${CROSS}</span></span>`
     : `<button type="button" class="quick-cat-chip ${m === current ? 'on' : ''}" data-cv="${escapeHtml(m)}">${escapeHtml(m)}</button>`
   ).join('');
+  const friendChip = PAYMENT_FRIEND_ENABLED.has(hiddenId)
+    ? `<button type="button" class="quick-cat-chip ${current === PAID_BY_FRIEND ? 'on' : ''}" data-cv="${escapeHtml(PAID_BY_FRIEND)}">${PAID_BY_FRIEND}</button>`
+    : '';
   const addChip = `<button type="button" class="quick-cat-chip quick-cat-chip-add" data-cv="__add__">+ Add</button>`;
 
-  box.innerHTML = noneChip + methodChips + addChip;
+  box.innerHTML = noneChip + methodChips + friendChip + addChip;
 
   box.querySelectorAll('[data-cv]').forEach(el => {
     const cv = el.dataset.cv;
@@ -5480,7 +5565,7 @@ async function renderPaymentChips(hiddenId, chipsId){
       el.onclick = () => openPaymentMethodModal(null, hiddenId, chipsId);
       return;
     }
-    if(manageOn && cv !== ''){
+    if(manageOn && cv !== '' && cv !== PAID_BY_FRIEND){
       // Manage mode: tapping the label renames, tapping the × deletes.
       el.onclick = (e) => {
         if(e.target.closest('.payment-chip-del')) return;
@@ -5498,6 +5583,9 @@ async function renderPaymentChips(hiddenId, chipsId){
       };
     }
   });
+
+  syncPaymentFriendUI(hiddenId);
+  if(paymentChipsOnChange[hiddenId]) paymentChipsOnChange[hiddenId]();
 }
 
 function initPaymentManageBtn(btnId, hiddenId, chipsId){
@@ -5541,6 +5629,7 @@ function initPaymentMethodModal(){
   $('savePaymentMethodBtn').onclick = async () => {
     const name = $('paymentMethodName').value.trim();
     if(!name) return alert('Give the payment method a name.');
+    if(name.toLowerCase() === PAID_BY_FRIEND.toLowerCase()) return alert('That name is reserved for the built-in "Paid by Friend" option.');
     const methods = await getPaymentMethods();
     const dupe = methods.some(m => m.toLowerCase() === name.toLowerCase() && m !== editingPaymentMethodName);
     if(dupe) return alert('That payment method already exists.');
@@ -5591,6 +5680,12 @@ async function getFriends(){
 
 const friendManageMode = {};
 
+// Fires after a friend chip picker re-renders (including on selection) —
+// Quick Add uses this to keep its live preview and send-button state in
+// step with which friend is picked, without every other friend picker in
+// the app needing to know or care.
+const friendChipsOnChange = {};
+
 async function renderFriendChips(hiddenId, chipsId){
   const hidden = $(hiddenId);
   const box = $(chipsId);
@@ -5630,6 +5725,8 @@ async function renderFriendChips(hiddenId, chipsId){
       };
     }
   });
+
+  if(friendChipsOnChange[hiddenId]) friendChipsOnChange[hiddenId]();
 }
 
 function initFriendManageBtn(btnId, hiddenId, chipsId){
@@ -5901,34 +5998,54 @@ function quickExprLines(){
   return ($('quickExpr').value || '').split('\n').map(l => l.trim()).filter(Boolean);
 }
 
+function quickIsFriendPaid(){
+  return !!($('quickPayment') && $('quickPayment').value === PAID_BY_FRIEND);
+}
+
 async function renderExprPreview(){
   const box = $('quickExprPreview');
   if(!box) return;
   const lines = quickExprLines();
+  const isFriendPaid = quickIsFriendPaid();
+  const friend = isFriendPaid ? ($('quickFriend').value || '').trim() : '';
 
   if(!lines.length){
-    box.innerHTML = `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>. One line per entry to log several at once.</span>`;
+    box.innerHTML = isFriendPaid
+      ? `<span class="expr-hint">item · amount — e.g. <b>milk tea 200</b>. One line per entry. Logged as paid by ${friend ? escapeHtml(friend) : 'the friend picked above'}.</span>`
+      : `<span class="expr-hint">item · amount · payment · account — e.g. <b>milk tea 200 linepay post</b>. One line per entry to log several at once.</span>`;
     return;
   }
 
   const accounts = await getAccounts();
   const shop = ($('quickShop').value || '').trim();
+  const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
   let total = 0, validCount = 0;
 
   const rows = lines.map(line => {
     const p = parseExpenseLine(line);
     if(p.noAmount) return `<div class="expr-preview-line"><span class="expr-hint">"${escapeHtml(line)}" — needs an amount</span></div>`;
+    total += p.amt;
+    validCount++;
+
+    if(isFriendPaid){
+      return `<div class="expr-preview-line">`
+        + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
+        + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
+        + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
+        + `<span class="expr-chip">${friend ? `Paid by ${escapeHtml(friend)}` : 'Pick a friend'}</span>`
+        + `</div>`;
+    }
+
     const matched = matchAccount(accounts, p.account);
     const accLabel = p.account
       ? (matched ? matched.name : titleCase(p.account))
       : (accounts[0] ? accounts[0].name : 'No account');
-    total += p.amt;
-    validCount++;
+    const paymentLabel = chipPayment || (p.payment ? titleCase(p.payment) : '');
     return `<div class="expr-preview-line">`
       + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
       + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
       + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
-      + (p.payment ? `<span class="expr-chip">${escapeHtml(titleCase(p.payment))}</span>` : `<span class="expr-chip muted">no payment</span>`)
+      + (paymentLabel ? `<span class="expr-chip">${escapeHtml(paymentLabel)}</span>` : `<span class="expr-chip muted">no payment</span>`)
       + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
       + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
       + `</div>`;
@@ -5941,16 +6058,46 @@ async function quickLogExpense(){
   const parsed = quickExprLines().map(l => parseExpenseLine(l)).filter(p => !p.empty && !p.noAmount && p.amt > 0);
   if(!parsed.length) return;
 
+  const isFriendPaid = quickIsFriendPaid();
+  const friend = isFriendPaid ? ($('quickFriend').value || '').trim() : '';
+  if(isFriendPaid && !friend){ alert('Pick which friend paid.'); return; }
+  const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
+
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
 
   const accounts = await getAccounts();
   const entries = (await store.get('budget:entries')) || [];
+  const owed = isFriendPaid ? ((await store.get('budget:owed')) || []) : null;
   const results = [];
   let total = 0;
 
   parsed.forEach((p, i) => {
+    total += p.amt;
+
+    if(isFriendPaid){
+      // Same accounting as logging this from the dedicated Friend Paid
+      // tab: no account of mine touched, a budget:owed record created so
+      // it shows up in Friend Balances / Paid by Friends too. Any
+      // payment/account word typed in the line is irrelevant here.
+      const entryId = 'tx_' + Date.now() + '_' + i;
+      entries.unshift({
+        id: entryId, type: 'exp', amt: p.amt, accountId: null, cat,
+        desc: p.item ? titleCase(p.item) : cat,
+        payment: null, owedBy: friend,
+        shop: shop ? titleCase(shop) : null,
+        date: dateVal, dateKey: dateVal.slice(0, 7)
+      });
+      owed.unshift({
+        id: 'owed_' + Date.now() + '_' + i, person: friend,
+        item: p.item ? titleCase(p.item) : cat, amt: p.amt, cat,
+        date: dateVal, settled: false, entryId, direction: 'theyPaid'
+      });
+      results.push({ p, acc: null, created: false });
+      return;
+    }
+
     let acc = p.account ? matchAccount(accounts, p.account) : (accounts[0] || null);
     let created = false;
     if(!acc && p.account){
@@ -5973,26 +6120,34 @@ async function quickLogExpense(){
       accountId: acc ? acc.id : null,
       cat,
       desc: p.item ? titleCase(p.item) : cat,
-      payment: p.payment ? titleCase(p.payment) : null,
+      payment: chipPayment || (p.payment ? titleCase(p.payment) : null),
       shop: shop ? titleCase(shop) : null,
       date: dateVal,
       dateKey: dateVal.slice(0, 7)
     });
-    total += p.amt;
     results.push({ p, acc, created });
   });
 
   await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
+  if(isFriendPaid) await store.set('budget:owed', owed);
 
   $('quickExpr').value = '';
   $('quickShop').value = '';
+  if($('quickPayment')){
+    $('quickPayment').value = '';
+    renderPaymentChips('quickPayment', 'quickPaymentChips');
+  }
   autoGrowQuickExpr();
   renderExprPreview();
   syncQuickSend();
   refreshHub();
   const whenSuffix = dateVal === key(new Date()) ? '' : ` · ${quickWhenPhrase()}`;
-  if(results.length === 1){
+  if(isFriendPaid){
+    pill(results.length === 1
+      ? `$${total.toFixed(2)} · paid by ${friend}${whenSuffix}`
+      : `${results.length} entries · $${total.toFixed(2)} · paid by ${friend}${whenSuffix}`);
+  } else if(results.length === 1){
     const { p, acc, created } = results[0];
     pill(created
       ? `$${p.amt.toFixed(2)} · new account ${acc.name}${whenSuffix}`
@@ -6105,6 +6260,12 @@ function initQuickAdd(){
   // from populateCategorySelects() — there's no separate select to bind here.)
   if($('quickExpr')) $('quickExpr').oninput = () => { autoGrowQuickExpr(); syncQuickSend(); renderExprPreview(); };
   if($('quickShop')) $('quickShop').oninput = renderExprPreview;
+  // Payment method (including "Paid by Friend") and the friend it reveals
+  // both need the preview and send-button state kept in step, the same
+  // way the expense line itself does.
+  paymentChipsOnChange.quickPayment = () => { renderExprPreview(); syncQuickSend(); };
+  friendChipsOnChange.quickFriend = () => { renderExprPreview(); syncQuickSend(); };
+  renderPaymentChips('quickPayment', 'quickPaymentChips');
   renderExprPreview();
 
   const dateInput = $('quickDate');
@@ -7692,6 +7853,11 @@ async function loadBudgetModule(){
   if(accDetailAccountId && $('accDetailModal') && !$('accDetailModal').hidden){
     openAccountDetail(accDetailAccountId);
   }
+  // Same for the payment-method drill-down — an edit/delete made from
+  // inside it would otherwise leave a stale row on screen.
+  if(paymentDetailOpenIdx !== null && $('paymentDetailModal') && !$('paymentDetailModal').hidden){
+    openPaymentDetail(paymentDetailOpenIdx);
+  }
 }
 
 function renderBudgetTransactions(entries, accounts, monthFilter){
@@ -7759,13 +7925,36 @@ function renderBudgetTransactions(entries, accounts, monthFilter){
 // Applies one entry's account-balance effect and pushes it onto `entries`
 // — shared by the single "+ New Log" submit and the batch "Save All" path
 // below, so the two can never drift on how a transaction is recorded.
-function commitBudgetEntry(row, accounts, entries, idSuffix){
+// Applies one entry's effect and pushes it onto `entries` — shared by the
+// single "+ New Log" submit and the batch "Save All" path below. A row
+// whose payment is "Paid by Friend" takes a different path entirely: no
+// account of mine is touched, and a matching budget:owed record is created
+// so it shows up in Friend Balances / Paid by Friends exactly like one
+// logged from the dedicated Friend Paid tab — same accounting, just
+// reached from the regular form.
+function commitBudgetEntry(row, accounts, entries, owed, idSuffix){
+  const suffix = idSuffix != null ? '_' + idSuffix : '';
+  if(row.payment === PAID_BY_FRIEND){
+    const entryId = 'tx_' + Date.now() + suffix;
+    entries.unshift({
+      id: entryId, type: 'exp', amt: row.amt, accountId: null, cat: row.cat,
+      desc: row.desc || `Paid by ${row.friend}`,
+      payment: null, owedBy: row.friend,
+      date: row.date, dateKey: row.date.slice(0, 7)
+    });
+    if(owed) owed.unshift({
+      id: 'owed_' + Date.now() + suffix, person: row.friend,
+      item: row.desc, amt: row.amt, cat: row.cat,
+      date: row.date, settled: false, entryId, direction: 'theyPaid'
+    });
+    return;
+  }
   const acc = accounts.find(a => a.id === row.accountId);
   if(acc) acc.balance += acctDelta(acc, row.amt, row.type === 'exp');
   entries.unshift({
     // idSuffix disambiguates ids when several rows are committed in the
     // same tick (Date.now() alone can repeat across a batch).
-    id: 'tx_' + Date.now() + (idSuffix != null ? '_' + idSuffix : ''),
+    id: 'tx_' + Date.now() + suffix,
     type: row.type,
     amt: row.amt,
     accountId: row.accountId,
@@ -7777,6 +7966,16 @@ function commitBudgetEntry(row, accounts, entries, idSuffix){
   });
 }
 
+// "Paid by Friend" only makes sense for an expense — income has no
+// account to skip. Switching to Income while it's selected drops back to
+// no payment method rather than leaving a nonsensical combination staged.
+$('bType').onchange = () => {
+  if($('bType').value === 'inc' && $('bPayment').value === PAID_BY_FRIEND){
+    $('bPayment').value = '';
+    renderPaymentChips('bPayment', 'bPaymentChips');
+  }
+};
+
 function readBudgetEntryForm(){
   return {
     type: $('bType').value,
@@ -7785,24 +7984,29 @@ function readBudgetEntryForm(){
     cat: $('bCat').value,
     date: $('bDate').value || new Date().toISOString().slice(0, 10),
     desc: $('bDesc').value.trim(),
-    payment: $('bPayment').value.trim()
+    payment: $('bPayment').value.trim(),
+    friend: $('bFriend').value.trim()
   };
 }
 
 $('bAddBtn').onclick = async () => {
   const row = readBudgetEntryForm();
   if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
+  if(row.payment === PAID_BY_FRIEND && !row.friend) return alert('Pick which friend paid.');
 
   const accounts = (await store.get('budget:accounts')) || [];
   const entries = (await store.get('budget:entries')) || [];
-  commitBudgetEntry(row, accounts, entries);
+  const owed = (await store.get('budget:owed')) || [];
+  commitBudgetEntry(row, accounts, entries, owed);
   await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
+  await store.set('budget:owed', owed);
 
   $('bPayment').value = '';
+  $('bFriend').value = '';
   $('bAmt').value = '';
   $('bDesc').value = '';
-  pill('Transaction Logged');
+  pill(row.payment === PAID_BY_FRIEND ? `Logged — ${row.friend} paid ${row.amt.toFixed(2)}` : 'Transaction Logged');
   loadBudgetModule();
 };
 
@@ -7824,18 +8028,20 @@ function renderBatchList(){
     saveBtn.hidden = true;
     return;
   }
-  box.innerHTML = bBatchQueue.map((row, i) => `
+  box.innerHTML = bBatchQueue.map((row, i) => {
+    const isFriend = row.payment === PAID_BY_FRIEND;
+    return `
     <div class="sub-card">
       <div class="sub-info">
         <div class="sub-name">${escapeHtml(row.desc || (row.type === 'inc' ? 'Income' : 'Expense'))}</div>
-        <div class="sub-cycle">${escapeHtml(row.cat)} · ${row.date}</div>
+        <div class="sub-cycle">${escapeHtml(row.cat)} · ${isFriend ? `Paid by ${escapeHtml(row.friend)}` : row.date}</div>
       </div>
       <div class="sub-right">
         <span class="sub-amt" style="color:${row.type === 'inc' ? '#16A34A' : 'var(--ios-red)'}">${row.type === 'inc' ? '+' : '-'}$${row.amt.toFixed(2)}</span>
         <button class="icon danger" onclick="removeBatchRow(${i})" title="Remove">${CROSS}</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   saveBtn.hidden = false;
   saveBtn.textContent = `Save All (${bBatchQueue.length})`;
 }
@@ -7848,6 +8054,7 @@ window.removeBatchRow = (i) => {
 $('bBatchAddBtn').onclick = () => {
   const row = readBudgetEntryForm();
   if(isNaN(row.amt) || row.amt <= 0) return alert('Please enter a valid amount.');
+  if(row.payment === PAID_BY_FRIEND && !row.friend) return alert('Pick which friend paid.');
   bBatchQueue.push(row);
   $('bAmt').value = '';
   $('bDesc').value = '';
@@ -7860,9 +8067,11 @@ $('bBatchSaveBtn').onclick = async () => {
   if(!bBatchQueue.length) return;
   const accounts = (await store.get('budget:accounts')) || [];
   const entries = (await store.get('budget:entries')) || [];
-  bBatchQueue.forEach((row, i) => commitBudgetEntry(row, accounts, entries, i));
+  const owed = (await store.get('budget:owed')) || [];
+  bBatchQueue.forEach((row, i) => commitBudgetEntry(row, accounts, entries, owed, i));
   await store.set('budget:accounts', accounts);
   await store.set('budget:entries', entries);
+  await store.set('budget:owed', owed);
   const n = bBatchQueue.length;
   bBatchQueue = [];
   renderBatchList();
@@ -8836,6 +9045,13 @@ function initPieChartTooltip(canvas, infoEl){
    was typed in the one-line expense parser), so entries are grouped by
    their lowercase value and shown under whichever original casing was
    used first — good enough without forcing a fixed list of payment types. */
+// Rows currently drawn on the payment breakdown chart, indexed the same
+// way as the chart itself — a bar's click handler just references its
+// index here rather than re-deriving or escaping the label for an inline
+// onclick attribute.
+let paymentBreakdownRows = [];
+let paymentDetailOpenIdx = null;
+
 async function renderPaymentBreakdown(){
   const el = $('paymentBreakdown');
   if(!el) return;
@@ -8854,7 +9070,8 @@ async function renderPaymentBreakdown(){
   });
 
   const rows = Object.values(totals).sort((a, b) => b.amt - a.amt);
-  if(untracked > 0) rows.push({ label: 'No payment method noted', amt: untracked, muted: true });
+  if(untracked > 0) rows.push({ label: 'No payment method noted', amt: untracked, muted: true, untracked: true });
+  paymentBreakdownRows = rows;
 
   if(!rows.length){
     el.innerHTML = `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No expenses this month.</div>`;
@@ -8862,15 +9079,69 @@ async function renderPaymentBreakdown(){
   }
 
   const max = Math.max(...rows.map(r => r.amt));
-  el.innerHTML = rows.map(r => `
-    <div style="margin-bottom:10px">
+  el.innerHTML = rows.map((r, i) => `
+    <button type="button" class="payment-breakdown-row" onclick="openPaymentDetail(${i})">
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
         <span style="font-weight:600;color:${r.muted ? 'var(--ios-label-tertiary)' : 'var(--ios-label)'}">${escapeHtml(r.label)}</span>
         <span style="color:var(--ios-label-secondary)">$${r.amt.toFixed(2)}</span>
       </div>
       <div class="bar" style="height:5px"><i style="width:${max ? Math.round((r.amt/max)*100) : 0}%;${r.muted ? 'background:rgba(120,120,128,0.35)' : ''}"></i></div>
-    </div>
+    </button>
   `).join('');
+}
+
+// Tapping a bar opens the same month-scoped list the chart was already
+// summing — grouped by day, with the usual edit/delete wiring, so a
+// surprising total can be traced back to the transactions behind it
+// without leaving Overview for the full Log tab.
+window.openPaymentDetail = async (idx) => {
+  const row = paymentBreakdownRows[idx];
+  if(!row) return;
+  paymentDetailOpenIdx = idx;
+
+  const entries = (await store.get('budget:entries')) || [];
+  const accounts = await getAccounts();
+  const curMonthKey = new Date().toISOString().slice(0, 7);
+  const mine = entries.filter(e => e.type === 'exp' && isSpendingEntry(e, accounts) && e.date && e.date.startsWith(curMonthKey)
+    && (row.untracked ? !e.payment : (e.payment && e.payment.toLowerCase() === row.label.toLowerCase())));
+
+  $('paymentDetailName').textContent = row.label;
+  $('paymentDetailTotal').textContent = `${mine.length} transaction${mine.length === 1 ? '' : 's'} · $${row.amt.toFixed(2)} this month`;
+
+  const dayGroups = {};
+  mine.forEach(item => { (dayGroups[item.date] ||= []).push(item); });
+  const sortedDays = Object.keys(dayGroups).sort().reverse();
+
+  $('paymentDetailList').innerHTML = sortedDays.length ? sortedDays.map(dKey => `
+    <div class="b-day-group" style="margin-bottom:12px">
+      <div class="b-day-head"><span class="b-day-title">${dKey}</span></div>
+      <div class="b-item-list">
+        ${dayGroups[dKey].map(item => {
+          const origIdx = entries.indexOf(item);
+          return `
+        <div class="b-item-row">
+          <div class="b-item-info">
+            <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
+            <span class="b-item-desc">${item.owedBy ? `Paid by ${escapeHtml(item.owedBy)}` : (item.owedTo ? `Paid for ${escapeHtml(item.owedTo)}` : '')}</span>
+          </div>
+          <div class="b-item-right">
+            <span class="b-item-amt exp">-$${item.amt.toFixed(2)}</span>
+            <button class="icon" onclick="editBudgetEntry(${origIdx})" title="Edit">${PENCIL}</button>
+            <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
+          </div>
+        </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('') : `<div class="empty" style="padding:20px 0;text-align:center;color:var(--ios-label-secondary);font-size:13px">No transactions this month.</div>`;
+
+  $('paymentDetailModal').hidden = false;
+};
+
+function initPaymentDetailModal(){
+  $('closePaymentDetailModal').onclick = () => {
+    $('paymentDetailModal').hidden = true;
+    paymentDetailOpenIdx = null;
+  };
 }
 
 /* ---------- PILLAR 5: SAVINGS GOALS ---------- */
@@ -11340,6 +11611,7 @@ async function initApp(){
   initAccountDetailModal();
   initOwedTracker();
   initEditOwedModal();
+  initPaymentDetailModal();
   initPaymentMethodModal();
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
