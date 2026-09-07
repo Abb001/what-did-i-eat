@@ -6618,9 +6618,14 @@ function initQuickAdd(){
   };
 
   // Enter sends, so a whole entry can be made without leaving the keyboard.
+  // quickExpr is the odd one out — it's a multi-line batch textarea (entries
+  // separated by a comma OR a new line), so Enter has to insert a newline
+  // like it would anywhere else. Intercepting it here like the single-line
+  // fields do would make typing a newline-separated batch by hand
+  // impossible: every Enter would submit whatever partial text exists
+  // instead of starting the next line.
   const onEnter = (el, fn) => { if(el) el.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); fn(); } }; };
   onEnter($('quickMealNote'), quickLogMeal);
-  onEnter($('quickExpr'), quickLogExpense);
   onEnter($('quickNote'), quickLogNote);
 
   ['quickMealNote','quickNote'].forEach(id => {
