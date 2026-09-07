@@ -1472,6 +1472,11 @@
     font-weight: 600;
     color: var(--accent-deep);
   }
+  .expr-warn {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ios-red);
+  }
   .expr-hint { color: var(--ios-label-tertiary); }
   .expr-format-hint {
     font-size: 11px;
@@ -5403,10 +5408,29 @@ async function commitQuickMeal(mode){
 
    The result is always shown before it is committed. A ledger is exactly
    the wrong place for a parser to guess quietly. */
+// #tag and @date are pulled out of the line wherever they appear, before
+// the amount/payment/account tokens are worked out — so a batch line can
+// give itself its own category and/or date instead of inheriting the
+// pickers above the input, without disturbing the position-based parsing
+// everything else relies on.
 function parseExpenseLine(text){
   const raw = (text || '').trim();
   if(!raw) return { empty: true };
-  const tokens = raw.split(/\s+/);
+  let tokens = raw.split(/\s+/);
+
+  let catTag = '';
+  const tagIdx = tokens.findIndex(t => t.length > 1 && t[0] === '#');
+  if(tagIdx !== -1){
+    catTag = tokens[tagIdx].slice(1);
+    tokens = tokens.slice(0, tagIdx).concat(tokens.slice(tagIdx + 1));
+  }
+
+  let dateTag = '';
+  const dateIdx = tokens.findIndex(t => t.length > 1 && t[0] === '@');
+  if(dateIdx !== -1){
+    dateTag = tokens[dateIdx].slice(1);
+    tokens = tokens.slice(0, dateIdx).concat(tokens.slice(dateIdx + 1));
+  }
 
   let amtIdx = -1, amt = NaN;
   for(let i = 0; i < tokens.length; i++){
@@ -5415,14 +5439,16 @@ function parseExpenseLine(text){
     const v = parseFloat(tokens[i].replace(/[^0-9.]/g, ''));
     if(!isNaN(v) && v > 0){ amtIdx = i; amt = v; break; }
   }
-  if(amtIdx === -1) return { noAmount: true };
+  if(amtIdx === -1) return { noAmount: true, catTag, dateTag };
 
   const rest = tokens.slice(amtIdx + 1);
   return {
     item: tokens.slice(0, amtIdx).join(' '),
     amt,
     payment: rest[0] || '',
-    account: rest.slice(1).join(' ')
+    account: rest.slice(1).join(' '),
+    catTag,
+    dateTag
   };
 }
 
@@ -5437,6 +5463,37 @@ function matchAccount(accounts, name){
   return accounts.find(a => a.name.toLowerCase() === n)
       || accounts.find(a => a.name.toLowerCase().includes(n) || n.includes(a.name.toLowerCase()))
       || null;
+}
+
+// Matches a #tag against the real category list the same forgiving way
+// matchAccount does for accounts — exact first, then substring either way.
+// A tag that matches nothing simply doesn't override anything, rather than
+// silently inventing a new category the way an unmatched account does.
+function matchCategory(cats, tag){
+  if(!tag) return null;
+  const t = tag.toLowerCase();
+  return cats.find(c => c.v.toLowerCase() === t || c.l.toLowerCase() === t)
+      || cats.find(c => c.v.toLowerCase().includes(t) || c.l.toLowerCase().includes(t))
+      || null;
+}
+
+// Turns an @tag into a dateKey (YYYY-MM-DD), or null if it doesn't parse
+// as one of the formats below — "today"/"yesterday", ISO, or M/D[/YY[YY]]
+// (assumes the current year when one isn't given).
+function parseDateTag(tag){
+  if(!tag) return null;
+  const t = tag.toLowerCase();
+  const today = new Date();
+  if(t === 'today') return key(today);
+  if(t === 'yesterday'){ const d = new Date(today); d.setDate(d.getDate() - 1); return key(d); }
+  let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return `${m[1]}-${pad(+m[2])}-${pad(+m[3])}`;
+  m = t.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+  if(m){
+    const yr = m[3] ? (m[3].length === 2 ? '20' + m[3] : m[3]) : String(today.getFullYear());
+    return `${yr}-${pad(+m[1])}-${pad(+m[2])}`;
+  }
+  return null;
 }
 
 // No default accounts are seeded — a new install starts with none, and the
@@ -6022,8 +6079,36 @@ function updateQuickExprFormatHint(){
   const el = $('quickExprFormatHint');
   if(!el) return;
   el.innerHTML = quickIsFriendPaid()
-    ? `Format: <b>item amount</b> — separate entries with a comma or new line`
-    : `Format: <b>item amount [payment] [account]</b> — separate entries with a comma or new line`;
+    ? `Format: <b>item amount [#category] [@date]</b> — separate entries with a comma or new line`
+    : `Format: <b>item amount [payment] [account] [#category] [@date]</b> — separate entries with a comma or new line`;
+}
+
+// A short, readable form for a resolved dateKey in the preview — "Today",
+// "Yesterday", or "Sep 5" for anything further back, so an @-tag reads at
+// a glance rather than as a raw YYYY-MM-DD string.
+function shortDateLabel(dateKey){
+  const today = key(new Date());
+  if(dateKey === today) return 'Today';
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  if(dateKey === key(yest)) return 'Yesterday';
+  const [y, m, d] = dateKey.split('-').map(Number);
+  return `${MONTHS[m - 1].slice(0, 3)} ${d}`;
+}
+
+// Resolves one line's #category / @date tags against the real lists, or
+// falls back to the shared pickers above the input (quickCat / quickDate)
+// when there's no tag — or the tag matched nothing. Shared by the preview
+// and the actual log so the two can never disagree about what a line means.
+function resolveLineOverrides(p, cats, fallbackCat, fallbackDateVal){
+  const matchedCat = p.catTag ? matchCategory(cats, p.catTag) : null;
+  const parsedDate = p.dateTag ? parseDateTag(p.dateTag) : null;
+  return {
+    cat: matchedCat ? matchedCat.v : fallbackCat,
+    catLabel: matchedCat ? matchedCat.l : null,
+    catTagUnmatched: !!(p.catTag && !matchedCat),
+    date: parsedDate || fallbackDateVal,
+    dateTagInvalid: !!(p.dateTag && !parsedDate)
+  };
 }
 
 async function renderExprPreview(){
@@ -6042,6 +6127,9 @@ async function renderExprPreview(){
   }
 
   const accounts = await getAccounts();
+  const cats = await getCategories();
+  const fallbackCat = $('quickCat').value;
+  const fallbackDateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
   const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
   let total = 0, validCount = 0;
@@ -6052,12 +6140,20 @@ async function renderExprPreview(){
     total += p.amt;
     validCount++;
 
+    const ov = resolveLineOverrides(p, cats, fallbackCat, fallbackDateVal);
+    // Only shown when a tag actually changed something — a line with no
+    // tags stays exactly as compact as before, since it's just using the
+    // pickers above the input like every line already did.
+    const catChip = ov.catLabel ? `<span class="expr-chip">${escapeHtml(ov.catLabel)}</span>` : (ov.catTagUnmatched ? `<span class="expr-warn">no match for #${escapeHtml(p.catTag)}</span>` : '');
+    const dateChip = p.dateTag ? (ov.dateTagInvalid ? `<span class="expr-warn">no match for @${escapeHtml(p.dateTag)}</span>` : `<span class="expr-chip">${escapeHtml(shortDateLabel(ov.date))}</span>`) : '';
+
     if(isFriendPaid){
       return `<div class="expr-preview-line">`
         + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
         + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
         + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
         + `<span class="expr-chip">${friend ? `Paid by ${escapeHtml(friend)}` : 'Pick a friend'}</span>`
+        + catChip + dateChip
         + `</div>`;
     }
 
@@ -6073,6 +6169,7 @@ async function renderExprPreview(){
       + (paymentLabel ? `<span class="expr-chip">${escapeHtml(paymentLabel)}</span>` : `<span class="expr-chip muted">no payment</span>`)
       + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
       + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
+      + catChip + dateChip
       + `</div>`;
   }).join('');
 
@@ -6091,6 +6188,7 @@ async function quickLogExpense(){
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
+  const cats = await getCategories();
 
   const accounts = await getAccounts();
   const entries = (await store.get('budget:entries')) || [];
@@ -6100,6 +6198,9 @@ async function quickLogExpense(){
 
   parsed.forEach((p, i) => {
     total += p.amt;
+    // A #category or @date tag on this specific line overrides the shared
+    // pickers just for it — same resolution the preview already showed.
+    const { cat: lineCat, date: lineDate } = resolveLineOverrides(p, cats, cat, dateVal);
 
     if(isFriendPaid){
       // Same accounting as logging this from the dedicated Friend Paid
@@ -6108,16 +6209,16 @@ async function quickLogExpense(){
       // payment/account word typed in the line is irrelevant here.
       const entryId = 'tx_' + Date.now() + '_' + i;
       entries.unshift({
-        id: entryId, type: 'exp', amt: p.amt, accountId: null, cat,
-        desc: p.item ? titleCase(p.item) : cat,
+        id: entryId, type: 'exp', amt: p.amt, accountId: null, cat: lineCat,
+        desc: p.item ? titleCase(p.item) : lineCat,
         payment: null, owedBy: friend,
         shop: shop ? titleCase(shop) : null,
-        date: dateVal, dateKey: dateVal.slice(0, 7)
+        date: lineDate, dateKey: lineDate.slice(0, 7)
       });
       owed.unshift({
         id: 'owed_' + Date.now() + '_' + i, person: friend,
-        item: p.item ? titleCase(p.item) : cat, amt: p.amt, cat,
-        date: dateVal, settled: false, entryId, direction: 'theyPaid'
+        item: p.item ? titleCase(p.item) : lineCat, amt: p.amt, cat: lineCat,
+        date: lineDate, settled: false, entryId, direction: 'theyPaid'
       });
       results.push({ p, acc: null, created: false });
       return;
@@ -6143,12 +6244,12 @@ async function quickLogExpense(){
       type: 'exp',
       amt: p.amt,
       accountId: acc ? acc.id : null,
-      cat,
-      desc: p.item ? titleCase(p.item) : cat,
+      cat: lineCat,
+      desc: p.item ? titleCase(p.item) : lineCat,
       payment: chipPayment || (p.payment ? titleCase(p.payment) : null),
       shop: shop ? titleCase(shop) : null,
-      date: dateVal,
-      dateKey: dateVal.slice(0, 7)
+      date: lineDate,
+      dateKey: lineDate.slice(0, 7)
     });
     results.push({ p, acc, created });
   });
