@@ -5707,7 +5707,10 @@ const paymentChipsOnChange = {};
 // budget:paymentMethods list — see PAYMENT_FRIEND_ENABLED below.
 const PAID_BY_FRIEND = 'Paid by Friend';
 const PAID_BY_ME = 'Paid by Me';
-const PAYMENT_FRIEND_ENABLED = new Set(['bPayment', 'quickPayment']);
+// Quick Add's own compact "Friend Mode" selector (renderQuickFriendModeChips)
+// covers the same two reserved values for quickPayment — only New Log's
+// full chip strip goes through this set.
+const PAYMENT_FRIEND_ENABLED = new Set(['bPayment']);
 
 function paymentFriendDirection(value){
   if(value === PAID_BY_FRIEND) return 'theyPaid';
@@ -6211,6 +6214,34 @@ function quickIsFriendPaid(){
   return !!quickFriendDirection();
 }
 
+// Quick Add's payment picker isn't a full chip strip like New Log's — real
+// payment methods moved to a per-line dropdown in the preview (see
+// quickLinePaymentSelectHtml), so this only has to offer the two reserved
+// whole-batch modes plus None. Keeps writing to the same quickPayment
+// hidden value the rest of the friend-mode plumbing already reads.
+function renderQuickFriendModeChips(){
+  const box = $('quickPaymentChips');
+  const hidden = $('quickPayment');
+  if(!box || !hidden) return;
+  const current = hidden.value;
+  const options = [
+    { v: '', label: 'None' },
+    { v: PAID_BY_FRIEND, label: PAID_BY_FRIEND },
+    { v: PAID_BY_ME, label: PAID_BY_ME }
+  ];
+  box.innerHTML = options.map(o =>
+    `<button type="button" class="quick-cat-chip ${current === o.v ? 'on' : ''}" data-cv="${escapeHtml(o.v)}">${escapeHtml(o.label)}</button>`
+  ).join('');
+  box.querySelectorAll('[data-cv]').forEach(el => {
+    el.onclick = () => {
+      hidden.value = el.dataset.cv;
+      renderQuickFriendModeChips();
+      syncPaymentFriendUI('quickPayment');
+      if(paymentChipsOnChange.quickPayment) paymentChipsOnChange.quickPayment();
+    };
+  });
+}
+
 // The persistent legend under the input — stays visible whether or not
 // anything's typed yet, unlike the in-box hint below which gets replaced
 // by chips the moment there's something to preview.
@@ -6249,7 +6280,36 @@ let quickLineCatOverrides = {};
 function quickLineCatSelectHtml(line, cats, fallbackCat){
   const current = quickLineCatOverrides[line] || fallbackCat;
   const opts = cats.map(c => `<option value="${escapeHtml(c.v)}" ${c.v === current ? 'selected' : ''}>${escapeHtml(c.l)}</option>`).join('');
-  return `<select class="expr-line-cat" data-line="${escapeHtml(line)}">${opts}</select>`;
+  return `<select class="expr-line-cat" data-kind="cat" data-line="${escapeHtml(line)}">${opts}</select>`;
+}
+
+// Same idea for payment — a per-line dropdown instead of the one shared
+// chip strip New Log still uses. "No payment" is itself a meaningful pick
+// here (distinct from "haven't touched this line's dropdown yet"), so the
+// override map is checked with hasOwnProperty rather than truthiness —
+// a line explicitly set back to "No payment" must stay that way, not fall
+// through to whatever it typed.
+let quickLinePaymentOverrides = {};
+
+function matchPaymentMethodName(methods, typed){
+  if(!typed) return '';
+  const t = typed.toLowerCase();
+  const hit = methods.find(m => m.toLowerCase() === t);
+  return hit || '';
+}
+
+function quickLinePaymentDefault(line, p, methods){
+  return Object.prototype.hasOwnProperty.call(quickLinePaymentOverrides, line)
+    ? quickLinePaymentOverrides[line]
+    : matchPaymentMethodName(methods, p.payment);
+}
+
+function quickLinePaymentSelectHtml(line, p, methods){
+  const current = quickLinePaymentDefault(line, p, methods);
+  const opts = [`<option value="">No payment</option>`]
+    .concat(methods.map(m => `<option value="${escapeHtml(m)}" ${m === current ? 'selected' : ''}>${escapeHtml(m)}</option>`))
+    .join('');
+  return `<select class="expr-line-cat" data-kind="payment" data-line="${escapeHtml(line)}">${opts}</select>`;
 }
 
 async function renderExprPreview(){
@@ -6271,10 +6331,10 @@ async function renderExprPreview(){
 
   const accounts = await getAccounts();
   const cats = await getCategories();
+  const methods = direction ? [] : await getPaymentMethods();
   const fallbackCat = $('quickCat').value;
   const fallbackDateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
-  const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
   let total = 0, validCount = 0;
 
   const rows = lines.map(line => {
@@ -6314,26 +6374,30 @@ async function renderExprPreview(){
         + `</div>`;
     }
 
-    const paymentLabel = chipPayment || (p.payment ? titleCase(p.payment) : '');
+    const paymentSelect = quickLinePaymentSelectHtml(line, p, methods);
     return `<div class="expr-preview-line">`
       + (shop ? `<span class="expr-chip shop">${escapeHtml(titleCase(shop))}</span>` : '')
       + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
       + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
-      + (paymentLabel ? `<span class="expr-chip">${escapeHtml(paymentLabel)}</span>` : `<span class="expr-chip muted">no payment</span>`)
       + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
       + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
-      + catSelect + dateChip
+      + catSelect + paymentSelect + dateChip
       + `</div>`;
   }).join('');
 
   box.innerHTML = rows + (validCount > 1 ? `<div class="expr-batch-total">${validCount} entries · $${total.toFixed(2)} total</div>` : '');
 
   // Wired after the fact rather than inline — a per-line pick just updates
-  // the override map, no re-render needed (nothing else on the row depends
-  // on it, and re-rendering here would drop focus for no reason).
+  // the relevant override map, no re-render needed (nothing else on the
+  // row depends on it, and re-rendering here would drop focus for no
+  // reason). Category and payment share one CSS class for a uniform look,
+  // so data-kind is what tells the two apart here.
   box.querySelectorAll('.expr-line-cat').forEach(sel => {
     sel.onclick = e => e.stopPropagation();
-    sel.onchange = () => { quickLineCatOverrides[sel.dataset.line] = sel.value; };
+    sel.onchange = () => {
+      if(sel.dataset.kind === 'payment') quickLinePaymentOverrides[sel.dataset.line] = sel.value;
+      else quickLineCatOverrides[sel.dataset.line] = sel.value;
+    };
   });
 }
 
@@ -6346,7 +6410,7 @@ async function quickLogExpense(){
   const direction = quickFriendDirection();
   const friend = direction ? ($('quickFriend').value || '').trim() : '';
   if(direction && !friend){ alert(direction === 'iPaid' ? 'Pick who you paid for.' : 'Pick which friend paid.'); return; }
-  const chipPayment = $('quickPayment') ? $('quickPayment').value : '';
+  const methods = direction ? [] : await getPaymentMethods();
 
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
@@ -6414,7 +6478,7 @@ async function quickLogExpense(){
       cat: lineCat,
       desc: p.item ? titleCase(p.item) : lineCat,
       // "Paid by Me" is itself the payment method — no separate real one applies.
-      payment: direction === 'iPaid' ? null : (chipPayment || (p.payment ? titleCase(p.payment) : null)),
+      payment: direction === 'iPaid' ? null : (quickLinePaymentDefault(line, p, methods) || null),
       shop: shop ? titleCase(shop) : null,
       date: lineDate,
       dateKey: lineDate.slice(0, 7)
@@ -6438,9 +6502,10 @@ async function quickLogExpense(){
   $('quickExpr').value = '';
   $('quickShop').value = '';
   quickLineCatOverrides = {};
+  quickLinePaymentOverrides = {};
   if($('quickPayment')){
     $('quickPayment').value = '';
-    renderPaymentChips('quickPayment', 'quickPaymentChips');
+    renderQuickFriendModeChips();
   }
   autoGrowQuickExpr();
   renderExprPreview();
@@ -6573,7 +6638,7 @@ function initQuickAdd(){
   // way the expense line itself does.
   paymentChipsOnChange.quickPayment = () => { renderExprPreview(); syncQuickSend(); };
   friendChipsOnChange.quickFriend = () => { renderExprPreview(); syncQuickSend(); };
-  renderPaymentChips('quickPayment', 'quickPaymentChips');
+  renderQuickFriendModeChips();
   renderExprPreview();
 
   const dateInput = $('quickDate');
