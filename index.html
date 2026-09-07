@@ -1478,6 +1478,29 @@
     color: var(--ios-red);
   }
   .expr-hint { color: var(--ios-label-tertiary); }
+  /* Each preview line's own category picker — same pill weight as the
+     read-only chips beside it, but a real <select> so tapping it opens
+     the native picker instead of needing anything typed. */
+  .expr-line-cat {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 22px 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--ios-font);
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--accent-deep);
+    border: none;
+    box-shadow: var(--lg-depth);
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23996633' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 11px;
+  }
   .expr-format-hint {
     font-size: 11px;
     color: var(--ios-label-tertiary);
@@ -3203,11 +3226,16 @@
         <!-- A standing reminder of the grammar, not just a placeholder that
              disappears the moment something's typed — commas (or new
              lines) separate multiple entries in one send. -->
-        <div class="expr-format-hint" id="quickExprFormatHint">Format: <b>item amount [payment] [account]</b> — separate entries with a comma or new line</div>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:2px">
+        <div class="expr-format-hint" id="quickExprFormatHint">Format: item and amount, then payment and account if needed — separate entries with a comma or new line, and pick each one's category below.</div>
+        <!-- The shared chip strip is hidden now that every line in the
+             preview gets its own category dropdown instead — kept in the
+             DOM (not removed) since renderQuickCatChips()/initCategoryPickers()
+             still wire it unconditionally; quickCat itself still just holds
+             the default new lines start from. -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:2px" hidden>
           <button type="button" class="payment-manage-btn" id="quickCatManageBtn" title="Edit categories">Manage</button>
         </div>
-        <div class="quick-cat-chips" id="quickCatChips"></div>
+        <div class="quick-cat-chips" id="quickCatChips" hidden></div>
         <select id="quickCat" class="quick-select" hidden></select>
         <!-- Payment method — pick "Paid by Friend" to log this as money a
              friend fronted instead of a normal expense; any account typed
@@ -5413,17 +5441,15 @@ async function commitQuickMeal(mode){
 // give itself its own category and/or date instead of inheriting the
 // pickers above the input, without disturbing the position-based parsing
 // everything else relies on.
+// @date is pulled out of the line wherever it appears, before the amount/
+// payment/account tokens are worked out — so a batch line can backdate
+// itself without disturbing the position-based parsing everything else
+// relies on. Category isn't typed at all — each line gets its own
+// dropdown in the preview instead (see quickLineCatOverrides).
 function parseExpenseLine(text){
   const raw = (text || '').trim();
   if(!raw) return { empty: true };
   let tokens = raw.split(/\s+/);
-
-  let catTag = '';
-  const tagIdx = tokens.findIndex(t => t.length > 1 && t[0] === '#');
-  if(tagIdx !== -1){
-    catTag = tokens[tagIdx].slice(1);
-    tokens = tokens.slice(0, tagIdx).concat(tokens.slice(tagIdx + 1));
-  }
 
   let dateTag = '';
   const dateIdx = tokens.findIndex(t => t.length > 1 && t[0] === '@');
@@ -5439,7 +5465,7 @@ function parseExpenseLine(text){
     const v = parseFloat(tokens[i].replace(/[^0-9.]/g, ''));
     if(!isNaN(v) && v > 0){ amtIdx = i; amt = v; break; }
   }
-  if(amtIdx === -1) return { noAmount: true, catTag, dateTag };
+  if(amtIdx === -1) return { noAmount: true, dateTag };
 
   const rest = tokens.slice(amtIdx + 1);
   return {
@@ -5447,7 +5473,6 @@ function parseExpenseLine(text){
     amt,
     payment: rest[0] || '',
     account: rest.slice(1).join(' '),
-    catTag,
     dateTag
   };
 }
@@ -5462,18 +5487,6 @@ function matchAccount(accounts, name){
   const n = name.toLowerCase();
   return accounts.find(a => a.name.toLowerCase() === n)
       || accounts.find(a => a.name.toLowerCase().includes(n) || n.includes(a.name.toLowerCase()))
-      || null;
-}
-
-// Matches a #tag against the real category list the same forgiving way
-// matchAccount does for accounts — exact first, then substring either way.
-// A tag that matches nothing simply doesn't override anything, rather than
-// silently inventing a new category the way an unmatched account does.
-function matchCategory(cats, tag){
-  if(!tag) return null;
-  const t = tag.toLowerCase();
-  return cats.find(c => c.v.toLowerCase() === t || c.l.toLowerCase() === t)
-      || cats.find(c => c.v.toLowerCase().includes(t) || c.l.toLowerCase().includes(t))
       || null;
 }
 
@@ -6079,8 +6092,8 @@ function updateQuickExprFormatHint(){
   const el = $('quickExprFormatHint');
   if(!el) return;
   el.innerHTML = quickIsFriendPaid()
-    ? `Format: <b>item amount [#category] [@date]</b> — separate entries with a comma or new line`
-    : `Format: <b>item amount [payment] [account] [#category] [@date]</b> — separate entries with a comma or new line`;
+    ? `Format: item and amount, plus @date to backdate an entry — separate entries with a comma or new line, and pick each one's category below.`
+    : `Format: item and amount, then payment and account if needed — separate entries with a comma or new line, and pick each one's category below.`;
 }
 
 // A short, readable form for a resolved dateKey in the preview — "Today",
@@ -6095,20 +6108,19 @@ function shortDateLabel(dateKey){
   return `${MONTHS[m - 1].slice(0, 3)} ${d}`;
 }
 
-// Resolves one line's #category / @date tags against the real lists, or
-// falls back to the shared pickers above the input (quickCat / quickDate)
-// when there's no tag — or the tag matched nothing. Shared by the preview
-// and the actual log so the two can never disagree about what a line means.
-function resolveLineOverrides(p, cats, fallbackCat, fallbackDateVal){
-  const matchedCat = p.catTag ? matchCategory(cats, p.catTag) : null;
-  const parsedDate = p.dateTag ? parseDateTag(p.dateTag) : null;
-  return {
-    cat: matchedCat ? matchedCat.v : fallbackCat,
-    catLabel: matchedCat ? matchedCat.l : null,
-    catTagUnmatched: !!(p.catTag && !matchedCat),
-    date: parsedDate || fallbackDateVal,
-    dateTagInvalid: !!(p.dateTag && !parsedDate)
-  };
+// Each batch line picks its category from a dropdown in the preview
+// instead of being typed — nothing to remember or mistype. Keyed by the
+// line's own trimmed text (not its position), so retyping elsewhere in
+// the box doesn't shuffle which line an earlier pick belongs to; cleared
+// whenever the input itself is cleared (a fresh box starts with no
+// leftover picks). Falls back to quickCat's stored default for any line
+// that hasn't had its dropdown touched yet.
+let quickLineCatOverrides = {};
+
+function quickLineCatSelectHtml(line, cats, fallbackCat){
+  const current = quickLineCatOverrides[line] || fallbackCat;
+  const opts = cats.map(c => `<option value="${escapeHtml(c.v)}" ${c.v === current ? 'selected' : ''}>${escapeHtml(c.l)}</option>`).join('');
+  return `<select class="expr-line-cat" data-line="${escapeHtml(line)}">${opts}</select>`;
 }
 
 async function renderExprPreview(){
@@ -6140,12 +6152,9 @@ async function renderExprPreview(){
     total += p.amt;
     validCount++;
 
-    const ov = resolveLineOverrides(p, cats, fallbackCat, fallbackDateVal);
-    // Only shown when a tag actually changed something — a line with no
-    // tags stays exactly as compact as before, since it's just using the
-    // pickers above the input like every line already did.
-    const catChip = ov.catLabel ? `<span class="expr-chip">${escapeHtml(ov.catLabel)}</span>` : (ov.catTagUnmatched ? `<span class="expr-warn">no match for #${escapeHtml(p.catTag)}</span>` : '');
-    const dateChip = p.dateTag ? (ov.dateTagInvalid ? `<span class="expr-warn">no match for @${escapeHtml(p.dateTag)}</span>` : `<span class="expr-chip">${escapeHtml(shortDateLabel(ov.date))}</span>`) : '';
+    const parsedDate = p.dateTag ? parseDateTag(p.dateTag) : null;
+    const dateChip = p.dateTag ? (parsedDate ? `<span class="expr-chip">${escapeHtml(shortDateLabel(parsedDate))}</span>` : `<span class="expr-warn">no match for @${escapeHtml(p.dateTag)}</span>`) : '';
+    const catSelect = quickLineCatSelectHtml(line, cats, fallbackCat);
 
     if(isFriendPaid){
       return `<div class="expr-preview-line">`
@@ -6153,7 +6162,7 @@ async function renderExprPreview(){
         + `<span class="expr-chip">${escapeHtml(p.item ? titleCase(p.item) : 'No item')}</span>`
         + `<span class="expr-chip amt">$${p.amt.toFixed(2)}</span>`
         + `<span class="expr-chip">${friend ? `Paid by ${escapeHtml(friend)}` : 'Pick a friend'}</span>`
-        + catChip + dateChip
+        + catSelect + dateChip
         + `</div>`;
     }
 
@@ -6169,15 +6178,25 @@ async function renderExprPreview(){
       + (paymentLabel ? `<span class="expr-chip">${escapeHtml(paymentLabel)}</span>` : `<span class="expr-chip muted">no payment</span>`)
       + `<span class="expr-chip">${escapeHtml(accLabel)}</span>`
       + (p.account && !matched ? `<span class="expr-new">new account</span>` : '')
-      + catChip + dateChip
+      + catSelect + dateChip
       + `</div>`;
   }).join('');
 
   box.innerHTML = rows + (validCount > 1 ? `<div class="expr-batch-total">${validCount} entries · $${total.toFixed(2)} total</div>` : '');
+
+  // Wired after the fact rather than inline — a per-line pick just updates
+  // the override map, no re-render needed (nothing else on the row depends
+  // on it, and re-rendering here would drop focus for no reason).
+  box.querySelectorAll('.expr-line-cat').forEach(sel => {
+    sel.onclick = e => e.stopPropagation();
+    sel.onchange = () => { quickLineCatOverrides[sel.dataset.line] = sel.value; };
+  });
 }
 
 async function quickLogExpense(){
-  const parsed = quickExprLines().map(l => parseExpenseLine(l)).filter(p => !p.empty && !p.noAmount && p.amt > 0);
+  const parsed = quickExprLines()
+    .map(line => ({ line, p: parseExpenseLine(line) }))
+    .filter(({ p }) => !p.empty && !p.noAmount && p.amt > 0);
   if(!parsed.length) return;
 
   const isFriendPaid = quickIsFriendPaid();
@@ -6188,7 +6207,6 @@ async function quickLogExpense(){
   const cat = $('quickCat').value;
   const dateVal = quickTargetDate();
   const shop = ($('quickShop').value || '').trim();
-  const cats = await getCategories();
 
   const accounts = await getAccounts();
   const entries = (await store.get('budget:entries')) || [];
@@ -6196,11 +6214,13 @@ async function quickLogExpense(){
   const results = [];
   let total = 0;
 
-  parsed.forEach((p, i) => {
+  parsed.forEach(({ line, p }, i) => {
     total += p.amt;
-    // A #category or @date tag on this specific line overrides the shared
-    // pickers just for it — same resolution the preview already showed.
-    const { cat: lineCat, date: lineDate } = resolveLineOverrides(p, cats, cat, dateVal);
+    // Each line's own category dropdown (defaulting to quickCat when
+    // untouched) and its @date tag (if any) — same resolution the preview
+    // already showed, so what gets logged matches what was previewed.
+    const lineCat = quickLineCatOverrides[line] || cat;
+    const lineDate = (p.dateTag && parseDateTag(p.dateTag)) || dateVal;
 
     if(isFriendPaid){
       // Same accounting as logging this from the dedicated Friend Paid
@@ -6260,6 +6280,7 @@ async function quickLogExpense(){
 
   $('quickExpr').value = '';
   $('quickShop').value = '';
+  quickLineCatOverrides = {};
   if($('quickPayment')){
     $('quickPayment').value = '';
     renderPaymentChips('quickPayment', 'quickPaymentChips');
