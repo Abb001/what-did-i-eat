@@ -647,6 +647,7 @@
     border-radius: 999px;
     transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  #bulkEditDate:disabled, #bulkEditCat:disabled, #bulkEditPaymentChips.disabled { opacity: 0.4; pointer-events: none; }
   .payment-breakdown-row {
     display: block;
     width: 100%;
@@ -1037,6 +1038,9 @@
   .b-item-row:last-child {
     border-bottom: none;
   }
+  .b-item-row.bulk-selectable { cursor: pointer; gap: 10px; }
+  .b-item-row.bulk-selected { background: rgba(var(--accent-rgb), 0.10); }
+  .bulk-select-cb { flex-shrink: 0; }
   .b-item-info {
     display: flex;
     flex-direction: column;
@@ -3674,6 +3678,19 @@
 
       <div class="b-month-header" style="margin-top:0">
         <h3 id="bMonthLogsTitle">Monthly Logs (Newest First)</h3>
+        <button class="action-btn" id="toggleBulkSelectBtn" style="padding:4px 10px;font-size:11.5px">Select</button>
+      </div>
+      <!-- Appears only in select mode — the toolbar for whatever's checked
+           below, rather than a separate screen or dialog. -->
+      <div class="mod-card" id="bulkSelectBar" hidden style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;padding:10px 14px">
+        <span id="bulkSelectCount" style="font-size:13px;font-weight:600;color:var(--ios-label)">0 selected</span>
+        <div style="display:flex;gap:6px">
+          <button class="action-btn" id="bulkSelectAllBtn" style="padding:5px 10px;font-size:11.5px">Select All</button>
+          <button class="action-btn" id="bulkEditBtn" style="padding:5px 10px;font-size:11.5px;background:var(--accent) !important;color:#FFFFFF !important">Edit</button>
+          <button class="icon danger" id="bulkDeleteBtn" style="width:30px;height:30px" title="Delete selected">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
       </div>
       <div id="bMonthLogsList"></div>
     </div>
@@ -4538,6 +4555,43 @@
     <div class="modal-body">
       <p id="paymentDetailTotal" style="font-size:13.5px;color:var(--ios-label-secondary);margin-bottom:14px"></p>
       <div id="paymentDetailList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bulkEditModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="bulkEditTitle">Edit Transactions</h3>
+      <button class="icon danger" id="closeBulkEditModal" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--ios-label-secondary);margin-bottom:14px;line-height:1.4">Only the fields checked below are changed — anything left unchecked stays as it is on each transaction.</p>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="bulkEditDateOn" style="width:18px;height:18px">
+          <span>Date</span>
+        </label>
+        <input type="date" id="bulkEditDate" disabled>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="bulkEditCatOn" style="width:18px;height:18px">
+          <span>Category</span>
+        </label>
+        <select id="bulkEditCat" disabled></select>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="bulkEditPaymentOn" style="width:18px;height:18px">
+          <span>Payment Method</span>
+        </label>
+        <div class="quick-cat-chips" id="bulkEditPaymentChips"></div>
+        <input type="hidden" id="bulkEditPayment" value="">
+      </div>
+      <button class="action-btn" id="saveBulkEditBtn" style="width:100%;justify-content:center;background:var(--accent) !important;color:#FFFFFF !important;margin-top:6px">Apply</button>
     </div>
   </div>
 </div>
@@ -7694,10 +7748,24 @@ async function drawBudgetLogsTab(){
 $('bCalPrev').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() - 1); drawBudgetLogsTab(); };
 $('bCalNext').onclick = () => { bCalDate.setMonth(bCalDate.getMonth() + 1); drawBudgetLogsTab(); };
 
+// Multi-select on the Monthly Logs list — "Select" turns each row into a
+// tappable checkbox target instead of its usual edit/delete buttons, and a
+// toolbar appears above the list for whatever's checked (bulk-edit a
+// shared field like date/category/payment, or delete them all at once).
+// Selection is by index into budget:entries, the same addressing every
+// other edit/delete action here already uses.
+let bulkSelectMode = false;
+let bulkSelectedIdx = new Set();
+// Cached so a selection change can re-render just the list, without
+// re-fetching entries and redrawing the calendar grid above it.
+let lastMonthLogsData = { monthEntries: [], allEntries: [] };
+
 function renderMonthLogsList(monthEntries, allEntries){
+  lastMonthLogsData = { monthEntries, allEntries };
   const el = $('bMonthLogsList');
   if(!monthEntries.length){
     el.innerHTML = `<div class="empty" style="padding:28px 16px;text-align:center;color:var(--ios-label-secondary);font-size:13.5px">No transactions recorded for this month.</div>`;
+    renderBulkSelectBar();
     return;
   }
 
@@ -7733,22 +7801,157 @@ function renderMonthLogsList(monthEntries, allEntries){
       <div class="b-item-list">
         ${items.map(item => {
           const origIdx = allEntries.indexOf(item);
+          const selected = bulkSelectedIdx.has(origIdx);
           return `
-        <div class="b-item-row">
+        <div class="b-item-row ${bulkSelectMode ? 'bulk-selectable' : ''} ${selected ? 'bulk-selected' : ''}" ${bulkSelectMode ? `onclick="toggleBulkSelect(${origIdx})"` : ''}>
+          ${bulkSelectMode ? `<input type="checkbox" class="bulk-select-cb" ${selected ? 'checked' : ''} style="width:18px;height:18px;pointer-events:none">` : ''}
           <div class="b-item-info">
             <span class="b-item-cat">${item.shop ? escapeHtml(item.shop) + ' · ' : ''}${item.cat} · ${item.desc || 'No description'}</span>
             <span class="b-item-desc">${item.date}${item.owedBy ? ` · Paid by ${escapeHtml(item.owedBy)}` : (item.owedTo ? ` · Paid for ${escapeHtml(item.owedTo)}` : (item.payment ? ` · ${item.payment}` : ''))}</span>
           </div>
           <div class="b-item-right">
             <span class="b-item-amt ${item.type}">${item.type==='inc'?'+':'-'}$${item.amt.toFixed(2)}</span>
+            ${bulkSelectMode ? '' : `
             <button class="icon" onclick="editBudgetEntry(${origIdx})" title="Edit">${PENCIL}</button>
-            <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>
+            <button class="icon danger" onclick="delBudget(${origIdx})" title="Delete">${CROSS}</button>`}
           </div>
         </div>`;
         }).join('')}
       </div>
     </div>`;
   }).join('');
+
+  renderBulkSelectBar();
+}
+
+function renderBulkSelectBar(){
+  const bar = $('bulkSelectBar');
+  const toggleBtn = $('toggleBulkSelectBtn');
+  if(!bar || !toggleBtn) return;
+  toggleBtn.textContent = bulkSelectMode ? 'Cancel' : 'Select';
+  bar.hidden = !bulkSelectMode;
+  if(bulkSelectMode){
+    const n = bulkSelectedIdx.size;
+    $('bulkSelectCount').textContent = `${n} selected`;
+    $('bulkEditBtn').disabled = n === 0;
+    $('bulkEditBtn').style.opacity = n === 0 ? '0.5' : '';
+    $('bulkDeleteBtn').disabled = n === 0;
+    $('bulkDeleteBtn').style.opacity = n === 0 ? '0.4' : '';
+  }
+}
+
+window.toggleBulkSelect = (idx) => {
+  if(bulkSelectedIdx.has(idx)) bulkSelectedIdx.delete(idx);
+  else bulkSelectedIdx.add(idx);
+  renderMonthLogsList(lastMonthLogsData.monthEntries, lastMonthLogsData.allEntries);
+};
+
+function initBulkSelect(){
+  $('toggleBulkSelectBtn').onclick = () => {
+    bulkSelectMode = !bulkSelectMode;
+    bulkSelectedIdx.clear();
+    renderMonthLogsList(lastMonthLogsData.monthEntries, lastMonthLogsData.allEntries);
+  };
+
+  $('bulkSelectAllBtn').onclick = () => {
+    const allShown = lastMonthLogsData.monthEntries.map(item => lastMonthLogsData.allEntries.indexOf(item));
+    const allSelected = allShown.length > 0 && allShown.every(i => bulkSelectedIdx.has(i));
+    // Tapping again once everything's checked clears it — the same toggle
+    // "select all / select none" a checkbox-list usually gets.
+    if(allSelected) bulkSelectedIdx.clear();
+    else allShown.forEach(i => bulkSelectedIdx.add(i));
+    renderMonthLogsList(lastMonthLogsData.monthEntries, lastMonthLogsData.allEntries);
+  };
+
+  $('bulkDeleteBtn').onclick = async () => {
+    if(!bulkSelectedIdx.size) return;
+    const n = bulkSelectedIdx.size;
+    if(!confirm(`Delete ${n} transaction${n === 1 ? '' : 's'}? This can't be undone.`)) return;
+
+    const entries = (await store.get('budget:entries')) || [];
+    const accounts = (await store.get('budget:accounts')) || [];
+    // Highest index first so removing one doesn't shift the position of
+    // any index still waiting to be removed.
+    const idxDesc = [...bulkSelectedIdx].sort((a, b) => b - a);
+    idxDesc.forEach(idx => {
+      const item = entries[idx];
+      if(!item) return;
+      const acc = accounts.find(a => a.id === item.accountId);
+      if(acc) acc.balance -= acctDelta(acc, item.amt, item.type === 'exp');
+      entries.splice(idx, 1);
+    });
+    await store.set('budget:accounts', accounts);
+    await store.set('budget:entries', entries);
+
+    bulkSelectMode = false;
+    bulkSelectedIdx.clear();
+    pill(`${n} transaction${n === 1 ? '' : 's'} deleted`);
+    loadBudgetModule();
+    refreshHub();
+  };
+
+  $('bulkEditBtn').onclick = () => {
+    if(!bulkSelectedIdx.size) return;
+    openBulkEditModal();
+  };
+  $('closeBulkEditModal').onclick = () => { $('bulkEditModal').hidden = true; };
+
+  $('bulkEditDateOn').onchange = () => { $('bulkEditDate').disabled = !$('bulkEditDateOn').checked; };
+  $('bulkEditCatOn').onchange = () => { $('bulkEditCat').disabled = !$('bulkEditCatOn').checked; };
+  $('bulkEditPaymentOn').onchange = () => {
+    $('bulkEditPaymentChips').classList.toggle('disabled', !$('bulkEditPaymentOn').checked);
+  };
+
+  $('saveBulkEditBtn').onclick = async () => {
+    const useDate = $('bulkEditDateOn').checked;
+    const useCat = $('bulkEditCatOn').checked;
+    const usePayment = $('bulkEditPaymentOn').checked;
+    if(!useDate && !useCat && !usePayment) return alert('Check at least one field to change.');
+    if(useDate && !$('bulkEditDate').value) return alert('Pick a date.');
+
+    const dateVal = $('bulkEditDate').value;
+    const catVal = $('bulkEditCat').value;
+    const paymentVal = $('bulkEditPayment').value.trim();
+
+    const entries = (await store.get('budget:entries')) || [];
+    bulkSelectedIdx.forEach(idx => {
+      const item = entries[idx];
+      if(!item) return;
+      if(useDate){ item.date = dateVal; item.dateKey = dateVal.slice(0, 7); }
+      if(useCat) item.cat = catVal;
+      if(usePayment) item.payment = paymentVal || null;
+    });
+    await store.set('budget:entries', entries);
+
+    const n = bulkSelectedIdx.size;
+    $('bulkEditModal').hidden = true;
+    bulkSelectMode = false;
+    bulkSelectedIdx.clear();
+    pill(`${n} transaction${n === 1 ? '' : 's'} updated`);
+    loadBudgetModule();
+    refreshHub();
+  };
+}
+
+async function openBulkEditModal(){
+  const n = bulkSelectedIdx.size;
+  $('bulkEditTitle').textContent = `Edit ${n} Transaction${n === 1 ? '' : 's'}`;
+
+  $('bulkEditDateOn').checked = false;
+  $('bulkEditDate').disabled = true;
+  $('bulkEditDate').value = key(new Date());
+
+  $('bulkEditCatOn').checked = false;
+  const cats = await getCategories();
+  $('bulkEditCat').innerHTML = cats.map(c => `<option value="${escapeHtml(c.v)}">${escapeHtml(c.l)}</option>`).join('');
+  $('bulkEditCat').disabled = true;
+
+  $('bulkEditPaymentOn').checked = false;
+  $('bulkEditPayment').value = '';
+  await renderPaymentChips('bulkEditPayment', 'bulkEditPaymentChips');
+  $('bulkEditPaymentChips').classList.add('disabled');
+
+  $('bulkEditModal').hidden = false;
 }
 
 async function loadBudgetModule(){
@@ -11770,6 +11973,7 @@ async function initApp(){
   initOwedTracker();
   initEditOwedModal();
   initPaymentDetailModal();
+  initBulkSelect();
   initPaymentMethodModal();
   initPaymentManageBtn('bPaymentManageBtn', 'bPayment', 'bPaymentChips');
   initPaymentManageBtn('editPaymentManageBtn', 'editPayment', 'editPaymentChips');
